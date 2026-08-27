@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Painel Mushy Perfume</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="page-loaded">
+
+<div class="admin-login-page">
+  <div class="admin-login-card">
+    <a href="../index.html" class="logo">Mushy<span>Perfume</span></a>
+    <p class="admin-eyebrow">Painel administrativo</p>
+
+    <div id="loginAlert"></div>
+
+    <form id="loginForm">
+      <div class="form-field">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" autocomplete="username" required>
+      </div>
+      <div class="form-field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-admin" id="loginBtn">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const alertEl = document.getElementById("loginAlert");
+  if (params.get("error") === "unauthorized") {
+    alertEl.innerHTML = `<div class="admin-alert admin-alert-error">Essa conta não tem acesso ao painel administrativo.</div>`;
+  }
+
+  const form = document.getElementById("loginForm");
+  const btn = document.getElementById("loginBtn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = "Entrando…";
+    alertEl.innerHTML = "";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error || !data.session) {
+      alertEl.innerHTML = `<div class="admin-alert admin-alert-error">E-mail ou senha incorretos.</div>`;
+      btn.disabled = false;
+      btn.textContent = "Entrar";
+      return;
+    }
+
+    const { data: isAdmin } = await supabaseClient.rpc("is_admin");
+    if (!isAdmin) {
+      await supabaseClient.auth.signOut();
+      alertEl.innerHTML = `<div class="admin-alert admin-alert-error">Essa conta não tem acesso ao painel administrativo.</div>`;
+      btn.disabled = false;
+      btn.textContent = "Entrar";
+      return;
+    }
+
+    window.location.href = "index.html";
+  });
+
+  // Already signed in and already an admin? Skip straight to the dashboard.
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+    const { data: isAdmin } = await supabaseClient.rpc("is_admin");
+    if (isAdmin) window.location.replace("index.html");
+  })();
+</script>
+</body>
+</html>

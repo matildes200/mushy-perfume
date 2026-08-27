@@ -41,6 +41,30 @@ const newsletterNote = document.getElementById("newsletterNote");
 
 const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
 
+// Effective price after discount_percent (0 when the column doesn't exist yet
+// or hasn't been set, so pre-migration data still renders correctly).
+const effectivePrice = (p) => p.price * (1 - (p.discount_percent || 0) / 100);
+const isOutOfStock = (p) => p.stock !== undefined && p.stock !== null && p.stock <= 0;
+
+function priceMarkup(p, className) {
+  if (!p.discount_percent) return `<span class="${className}">${money(p.price)}</span>`;
+  return `<span class="${className} price-discounted">
+    <span class="price-original">${money(p.price)}</span>
+    <span class="price-final">${money(effectivePrice(p))}</span>
+    <span class="price-badge">-${p.discount_percent}%</span>
+  </span>`;
+}
+
+function stockBadge(p) {
+  return isOutOfStock(p) ? `<span class="stock-badge">Esgotado</span>` : "";
+}
+
+function addButton(p, label) {
+  return isOutOfStock(p)
+    ? `<button class="btn btn-small" disabled>Esgotado</button>`
+    : `<button class="btn btn-small" data-add="${p.id}">${label}</button>`;
+}
+
 // Resolved to an absolute URL: a relative url() stored in a CSS custom property
 // resolves against the stylesheet that reads it via var(), not against this page,
 // so a plain relative path breaks once it's consumed from css/style.css.
@@ -107,6 +131,7 @@ function productCardTemplate(p) {
       <div class="card-flip">
         <div class="card-face card-face-front${toneClass}"${style}>
           ${wishlistHeart(p.id)}
+          ${stockBadge(p)}
           ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
           <span class="card-flip-hint">Toque para ver detalhes</span>
         </div>
@@ -115,8 +140,8 @@ function productCardTemplate(p) {
           <h3>${p.name}</h3>
           <p class="product-notes">${p.notes}</p>
           <div class="product-footer">
-            <span class="product-price">${money(p.price)}</span>
-            <button class="btn btn-small" data-add="${p.id}">Adicionar</button>
+            ${priceMarkup(p, "product-price")}
+            ${addButton(p, "Adicionar")}
           </div>
         </div>
       </div>
@@ -129,12 +154,13 @@ function featuredCardTemplate(p) {
   return `
     <article class="featured-card${hasImage ? " has-image" : ""}"${style}>
       ${wishlistHeart(p.id)}
+      ${stockBadge(p)}
       ${hasImage ? "" : `<div class="featured-media">${mediaContent(p)}</div>`}
       <div class="featured-body">
         <span class="featured-category">${p.category}</span>
         <h3 class="featured-name">${p.name}</h3>
-        <span class="featured-price">${money(p.price)}</span>
-        <button class="btn btn-small" data-add="${p.id}">Comprar</button>
+        ${priceMarkup(p, "featured-price")}
+        ${addButton(p, "Comprar")}
       </div>
     </article>`;
 }
@@ -147,6 +173,7 @@ function carouselCardTemplate(p) {
       <div class="card-flip">
         <div class="card-face card-face-front${toneClass}"${style}>
           ${wishlistHeart(p.id)}
+          ${stockBadge(p)}
           ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
           <span class="card-flip-hint">Toque para ver detalhes</span>
         </div>
@@ -155,8 +182,8 @@ function carouselCardTemplate(p) {
           <h3>${p.name}</h3>
           <p class="carousel-notes">${p.notes}</p>
           <div class="carousel-footer">
-            <span class="carousel-price">${money(p.price)}</span>
-            <button class="btn btn-small" data-add="${p.id}">Adicionar</button>
+            ${priceMarkup(p, "carousel-price")}
+            ${addButton(p, "Adicionar")}
           </div>
         </div>
       </div>
@@ -165,12 +192,16 @@ function carouselCardTemplate(p) {
 
 const CATEGORY_ORDER = { masculino: 0, feminino: 1, unissex: 2 };
 
+// Hidden by an admin (active === false) but tolerant of the column not
+// existing yet, so the storefront still works before the migration runs.
+const isVisible = (p) => p.active !== false;
+
 function renderProducts() {
   if (!grid) return;
   const query = searchInput ? normalizeText(searchInput.value.trim()) : "";
   const items = PRODUCTS.filter((p) => {
     const matchesCategory = activeFilter === "todos" || p.category === activeFilter;
-    return matchesCategory && productMatchesSearch(p, query);
+    return isVisible(p) && matchesCategory && productMatchesSearch(p, query);
   }).sort((a, b) => CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category]);
   grid.innerHTML = items.length
     ? items.map(productCardTemplate).join("")
@@ -179,12 +210,12 @@ function renderProducts() {
 
 function renderFeatured() {
   if (!featuredGrid) return;
-  featuredGrid.innerHTML = PRODUCTS.filter((p) => p.featured).map(featuredCardTemplate).join("");
+  featuredGrid.innerHTML = PRODUCTS.filter((p) => isVisible(p) && p.featured).map(featuredCardTemplate).join("");
 }
 
 function renderCarousel() {
   if (!carouselTrack) return;
-  carouselTrack.innerHTML = PRODUCTS.filter((p) => p.bestseller).map(carouselCardTemplate).join("");
+  carouselTrack.innerHTML = PRODUCTS.filter((p) => isVisible(p) && p.bestseller).map(carouselCardTemplate).join("");
 }
 
 function updateCartUI() {
@@ -207,14 +238,14 @@ function updateCartUI() {
     .map((id) => {
       const p = PRODUCTS.find((x) => x.id === Number(id));
       const qty = cart[id];
-      const subtotal = p.price * qty;
+      const subtotal = effectivePrice(p) * qty;
       total += subtotal;
       return `
       <div class="cart-item">
         <div class="cart-item-media ${p.image ? "" : p.tone}">${mediaContent(p)}</div>
         <div class="cart-item-info">
           <strong>${p.name}</strong>
-          <span>${money(p.price)}</span>
+          <span>${money(effectivePrice(p))}</span>
           <div class="qty-control">
             <button data-dec="${p.id}" aria-label="Diminuir quantidade">−</button>
             <span>${qty}</span>
@@ -330,7 +361,7 @@ function buildWhatsAppMessage() {
   const lines = ids.map((id) => {
     const p = PRODUCTS.find((x) => x.id === Number(id));
     const qty = cart[id];
-    const subtotal = p.price * qty;
+    const subtotal = effectivePrice(p) * qty;
     total += subtotal;
     return `• ${p.name} x${qty} — ${money(subtotal)}`;
   });
@@ -397,11 +428,29 @@ wishlistBtn?.addEventListener("click", openWishlist);
 wishlistClose?.addEventListener("click", closeWishlist);
 wishlistOverlay?.addEventListener("click", closeWishlist);
 
+async function logOrder() {
+  const ids = Object.keys(cart);
+  let total = 0;
+  const items = ids.map((id) => {
+    const p = PRODUCTS.find((x) => x.id === Number(id));
+    const qty = cart[id];
+    const unitPrice = effectivePrice(p);
+    total += unitPrice * qty;
+    return { id: p.id, name: p.name, price: unitPrice, qty };
+  });
+  try {
+    await supabaseClient.from("orders").insert({ items, total, status: "pending" });
+  } catch (err) {
+    console.error("Falha ao registrar pedido no Supabase:", err);
+  }
+}
+
 checkoutBtn?.addEventListener("click", (e) => {
   if (Object.keys(cart).length === 0) {
     e.preventDefault();
     return;
   }
+  logOrder();
   checkoutBtn.setAttribute("href", buildWhatsAppMessage());
   checkoutBtn.setAttribute("target", "_blank");
   checkoutBtn.setAttribute("rel", "noopener");
@@ -422,11 +471,23 @@ searchClose?.addEventListener("click", () => {
 carouselPrev?.addEventListener("click", () => carousel.scrollBy({ left: -300, behavior: "smooth" }));
 carouselNext?.addEventListener("click", () => carousel.scrollBy({ left: 300, behavior: "smooth" }));
 
-newsletterForm?.addEventListener("submit", (e) => {
+newsletterForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!newsletterEmail.value) return;
-  newsletterNote.textContent = "Obrigado! Você foi inscrito com sucesso.";
-  newsletterForm.reset();
+  const email = newsletterEmail.value.trim();
+  if (!email) return;
+  const submitBtn = newsletterForm.querySelector("button[type=submit]");
+  submitBtn?.setAttribute("disabled", "true");
+  try {
+    const { error } = await supabaseClient.from("subscriptions").insert({ email });
+    if (error && error.code !== "23505") throw error; // 23505 = already subscribed, treat as success
+    newsletterNote.textContent = "Obrigado! Você foi inscrito com sucesso.";
+    newsletterForm.reset();
+  } catch (err) {
+    console.error("Falha ao registrar inscrição no Supabase:", err);
+    newsletterNote.textContent = "Não foi possível concluir sua inscrição. Tente novamente.";
+  } finally {
+    submitBtn?.removeAttribute("disabled");
+  }
 });
 
 // ---------- Header scroll state + hero parallax ----------
@@ -469,11 +530,13 @@ if (searchQueryParam && searchInput) {
   searchBar?.classList.add("open");
 }
 
-renderProducts();
-renderFeatured();
-renderCarousel();
-updateCartUI();
-updateWishlistUI();
+document.addEventListener("products:ready", () => {
+  renderProducts();
+  renderFeatured();
+  renderCarousel();
+  updateCartUI();
+  updateWishlistUI();
+});
 
 // ---------- Fade page in on load, fade out before navigating to another page ----------
 requestAnimationFrame(() => document.body.classList.add("page-loaded"));
