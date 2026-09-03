@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel | Mushy Perfume</title>
+<title>Administradores | Painel Mushy Perfume</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,88 +40,67 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Visão geral</h1>
-      <p>Resumo rápido da loja</p>
+      <h1>Administradores</h1>
+      <p>Quem tem acesso ao painel administrativo</p>
     </div>
-    <div class="row-actions" style="gap:10px;">
-      <a href="produtos.html" class="btn-admin">+ Novo produto</a>
-      <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver pedidos</a>
-      <a href="estoque.html" class="btn-admin btn-admin-outline">Gerir stock</a>
-    </div>
+    <button class="btn-admin" id="newAdminBtn">+ Novo administrador</button>
   </div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-card"><span>Vendas totais</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Clientes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Produtos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos pendentes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Stock baixo</span><strong>—</strong></div>
+  <div class="admin-alert admin-alert-success" style="margin-bottom:20px;">
+    Adicionar alguém aqui dá acesso ao painel, mas essa pessoa também precisa criar (ou já ter) uma conta com esse mesmo e-mail em <strong>Minha Conta</strong> no site. Sem isso, ela não conseguirá entrar.
   </div>
+
+  <div id="adminsAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Vendas</h2>
-      <div class="row-actions" id="chartRange">
-        <button class="btn-admin btn-admin-outline" data-range="7">7 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="30">30 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="365">Este ano</button>
-      </div>
-    </div>
-    <div style="padding:24px;">
-      <div class="bar-chart" id="salesChart"></div>
-    </div>
-  </div>
-
-  <div class="dash-grid">
-    <div class="admin-panel">
-      <div class="admin-panel-head">
-        <h2>Pedidos recentes</h2>
-        <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver todos</a>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="recentOrdersTable">
-          <thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="dash-side">
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Mais vendido</h2></div>
-        <div id="bestSeller" style="padding:20px 24px;"></div>
-      </div>
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Alertas de stock</h2></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="lowStockTable">
-            <thead><tr><th>Produto</th><th>Stock</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Clientes recentes</h2>
-      <a href="clientes.html" class="btn-admin btn-admin-outline">Ver todos</a>
-    </div>
+    <div class="admin-panel-head"><h2>Equipe</h2></div>
     <div class="admin-table-wrap">
-      <table class="admin-table" id="recentCustomersTable">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Desde</th></tr></thead>
-        <tbody></tbody>
+      <table class="admin-table" id="adminsTable">
+        <thead>
+          <tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Telefone</th><th>Desde</th><th></th></tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="admin-empty">Carregando…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<div class="modal-overlay" id="adminModalOverlay">
+  <div class="modal">
+    <h2 id="adminModalTitle">Novo administrador</h2>
+    <div id="adminFormAlert"></div>
+    <form id="adminForm">
+      <input type="hidden" id="adminId">
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="full_name">Nome completo</label>
+          <input type="text" id="full_name" required>
+        </div>
+        <div class="form-field span-2">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="form-field">
+          <label for="role">Função</label>
+          <input type="text" id="role" placeholder="Administrador, Atendimento...">
+        </div>
+        <div class="form-field">
+          <label for="phone">Telefone</label>
+          <input type="text" id="phone" placeholder="+244...">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancelar</button>
+        <button type="submit" class="btn-admin" id="saveAdminBtn">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-common.js"></script>
 <script src="js/admin-auth.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/administradores.js"></script>
 </body>
 </html>

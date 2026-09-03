@@ -1,64 +1,151 @@
+let ordersCache = [];
+let selectedOrderId = null;
 const ordersAlert = document.getElementById("ordersAlert");
 const ordersTableBody = document.querySelector("#ordersTable tbody");
+const orderModalOverlay = document.getElementById("orderModalOverlay");
+const orderModalAlert = document.getElementById("orderModalAlert");
+
+const PIPELINE = ["pending", "confirmed", "processing", "shipped", "delivered"];
 
 function showOrdersAlert(message, type = "error") {
   ordersAlert.innerHTML = message ? `<div class="admin-alert admin-alert-${type}">${escapeHtml(message)}</div>` : "";
 }
 
 function renderOrderRow(o) {
-  const itemsSummary = (o.items || []).map((i) => `${i.name} x${i.qty}`).join(", ");
-  const customer = [o.customer_name, o.customer_phone].filter(Boolean).join(" · ");
   return `
     <tr data-id="${o.id}">
+      <td>${orderCode(o.id)}</td>
+      <td class="wrap">${escapeHtml(o.customer_name || "—")}</td>
       <td>${formatDate(o.created_at)}</td>
-      <td class="wrap">
-        ${escapeHtml(itemsSummary)}
-        ${customer ? `<br><span style="color:var(--text-muted);font-size:11.5px;">${escapeHtml(customer)}</span>` : ""}
-      </td>
+      <td>${(o.items || []).length}</td>
       <td>${money(o.total)}</td>
-      <td>
-        <select class="status-select" data-status="${o.id}">
-          ${Object.entries(STATUS_LABELS).map(([val, label]) => `<option value="${val}" ${o.status === val ? "selected" : ""}>${label}</option>`).join("")}
-        </select>
-      </td>
-      <td>
-        <button class="btn-icon danger" data-delete-order="${o.id}" aria-label="Remover pedido">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>
-        </button>
-      </td>
+      <td><span class="pill ${o.payment_status === "paid" ? "pill-active" : "pill-inactive"}">${o.payment_status || "pending"}</span></td>
+      <td>${o.delivery_status || "pending"}</td>
+      <td><span class="status-${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
+      <td><button class="btn-admin btn-admin-outline" data-open="${o.id}">Ver</button></td>
     </tr>`;
 }
 
 async function loadOrders() {
   const { data, error } = await supabaseClient.from("orders").select("*").order("created_at", { ascending: false });
   if (error) {
-    showOrdersAlert("Não foi possível carregar os pedidos. Confirme se a migração do banco de dados foi executada.");
-    ordersTableBody.innerHTML = `<tr><td colspan="5" class="admin-empty">Erro ao carregar.</td></tr>`;
+    showOrdersAlert("Não foi possível carregar os pedidos. Confirme se as migrações do banco de dados foram executadas.");
+    ordersTableBody.innerHTML = `<tr><td colspan="9" class="admin-empty">Erro ao carregar.</td></tr>`;
     return;
   }
-  ordersTableBody.innerHTML = data.length
-    ? data.map(renderOrderRow).join("")
-    : `<tr><td colspan="5" class="admin-empty">Nenhum pedido ainda.</td></tr>`;
+  ordersCache = data || [];
+  ordersTableBody.innerHTML = ordersCache.length
+    ? ordersCache.map(renderOrderRow).join("")
+    : `<tr><td colspan="9" class="admin-empty">Nenhum pedido ainda.</td></tr>`;
 }
 
-ordersTableBody.addEventListener("change", async (e) => {
-  const select = e.target.closest("[data-status]");
-  if (!select) return;
-  const { error } = await supabaseClient.from("orders").update({ status: select.value }).eq("id", Number(select.dataset.status));
-  if (error) showOrdersAlert("Não foi possível atualizar o status.");
-  else showOrdersAlert("Status atualizado.", "success");
-});
-
-ordersTableBody.addEventListener("click", async (e) => {
-  const btn = e.target.closest("[data-delete-order]");
-  if (!btn) return;
-  if (!confirm("Remover este pedido do histórico?")) return;
-  const { error } = await supabaseClient.from("orders").delete().eq("id", Number(btn.dataset.deleteOrder));
-  if (error) {
-    showOrdersAlert("Não foi possível remover o pedido.");
+function renderPipeline(order) {
+  const el = document.getElementById("orderPipeline");
+  if (order.status === "cancelled" || order.status === "refunded") {
+    el.innerHTML = `<div class="pipeline-step terminal" style="flex:1 1 100%;cursor:default;">${STATUS_LABELS[order.status]}</div>`;
     return;
   }
-  loadOrders();
+  const currentIdx = PIPELINE.indexOf(order.status);
+  el.innerHTML = PIPELINE.map((step, i) => {
+    const cls = i < currentIdx ? "done" : i === currentIdx ? "current" : "";
+    return `<button type="button" class="pipeline-step ${cls}" data-status="${step}">${STATUS_LABELS[step] || step}</button>`;
+  }).join("");
+}
+
+function openOrderModal(order) {
+  selectedOrderId = order.id;
+  document.getElementById("orderModalTitle").textContent = `Pedido ${orderCode(order.id)}`;
+  showAlert2("");
+
+  document.getElementById("odName").textContent = order.customer_name || "—";
+  document.getElementById("odEmail").textContent = order.customer_email || "—";
+  document.getElementById("odPhone").textContent = order.customer_phone || "—";
+
+  document.querySelector("#orderItemsTable tbody").innerHTML = (order.items || [])
+    .map((it) => `<tr><td class="wrap">${escapeHtml(it.name)}</td><td>${it.qty}</td><td>${money(it.price)}</td><td>${money(it.price * it.qty)}</td></tr>`)
+    .join("") || `<tr><td colspan="4" class="admin-empty">Sem itens.</td></tr>`;
+
+  document.getElementById("odDeliveryFee").textContent = money(order.delivery_fee || 0);
+  document.getElementById("odDiscount").textContent = money(order.discount || 0);
+  document.getElementById("odTotal").textContent = money(order.total);
+
+  document.getElementById("odShippingAddress").value = order.shipping_address || "";
+  document.getElementById("odShippingCity").value = order.shipping_city || "";
+  document.getElementById("odCourier").value = order.courier || "";
+  document.getElementById("odTracking").value = order.tracking_number || "";
+  document.getElementById("odDeliveryStatus").value = order.delivery_status || "pending";
+  document.getElementById("odPaymentMethod").value = order.payment_method || "";
+  document.getElementById("odPaymentStatus").value = order.payment_status || "pending";
+
+  renderPipeline(order);
+  orderModalOverlay.classList.add("open");
+}
+
+function showAlert2(message, type = "error") {
+  orderModalAlert.innerHTML = message ? `<div class="admin-alert admin-alert-${type}">${escapeHtml(message)}</div>` : "";
+}
+
+function closeOrderModal() {
+  orderModalOverlay.classList.remove("open");
+  selectedOrderId = null;
+}
+
+async function updateOrder(patch) {
+  const { data, error } = await supabaseClient.from("orders").update(patch).eq("id", selectedOrderId).select().single();
+  if (error) {
+    showAlert2("Não foi possível salvar as alterações.");
+    return null;
+  }
+  const idx = ordersCache.findIndex((o) => o.id === selectedOrderId);
+  if (idx !== -1) ordersCache[idx] = data;
+  ordersTableBody.innerHTML = ordersCache.map(renderOrderRow).join("");
+  return data;
+}
+
+document.getElementById("orderPipeline").addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-status]");
+  if (!btn) return;
+  const updated = await updateOrder({ status: btn.dataset.status });
+  if (updated) renderPipeline(updated);
+});
+
+document.getElementById("cancelOrderBtn").addEventListener("click", async () => {
+  if (!confirm("Cancelar este pedido?")) return;
+  const updated = await updateOrder({ status: "cancelled" });
+  if (updated) renderPipeline(updated);
+});
+
+document.getElementById("refundOrderBtn").addEventListener("click", async () => {
+  if (!confirm("Marcar este pedido como reembolsado?")) return;
+  const updated = await updateOrder({ status: "refunded", payment_status: "refunded" });
+  if (updated) {
+    renderPipeline(updated);
+    document.getElementById("odPaymentStatus").value = "refunded";
+  }
+});
+
+document.getElementById("saveOrderBtn").addEventListener("click", async () => {
+  const patch = {
+    shipping_address: document.getElementById("odShippingAddress").value.trim(),
+    shipping_city: document.getElementById("odShippingCity").value.trim(),
+    courier: document.getElementById("odCourier").value.trim(),
+    tracking_number: document.getElementById("odTracking").value.trim(),
+    delivery_status: document.getElementById("odDeliveryStatus").value,
+    payment_method: document.getElementById("odPaymentMethod").value.trim(),
+    payment_status: document.getElementById("odPaymentStatus").value,
+  };
+  const updated = await updateOrder(patch);
+  if (updated) showAlert2("Alterações salvas.", "success");
+});
+
+document.getElementById("closeOrderModalBtn").addEventListener("click", closeOrderModal);
+orderModalOverlay.addEventListener("click", (e) => { if (e.target === orderModalOverlay) closeOrderModal(); });
+
+ordersTableBody.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-open]");
+  if (!btn) return;
+  const order = ordersCache.find((o) => String(o.id) === btn.dataset.open);
+  if (order) openOrderModal(order);
 });
 
 document.addEventListener("admin:ready", loadOrders);

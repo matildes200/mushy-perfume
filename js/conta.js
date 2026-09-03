@@ -52,6 +52,10 @@ async function showProfile(session) {
   document.getElementById("profilePhone").textContent = profile?.phone || session.user.user_metadata?.phone || "—";
   authView.style.display = "none";
   profileView.style.display = "block";
+
+  const { data: isAdmin } = await supabaseClient.rpc("is_admin");
+  const adminLink = document.getElementById("adminPanelLink");
+  if (adminLink) adminLink.style.display = isAdmin ? "flex" : "none";
 }
 
 function showAuthForms() {

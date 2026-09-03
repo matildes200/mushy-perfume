@@ -19,7 +19,6 @@
     <nav class="main-nav" id="mainNav">
       <a href="colecao.html">Coleções</a>
       <a href="sobre.html">Sobre</a>
-      <a href="index.html#notas">Ingredientes</a>
       <a href="index.html#contato">Contato</a>
     </nav>
 
@@ -168,12 +167,30 @@
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
-    <div class="cart-total">
+    <button type="button" class="coupon-toggle" id="couponToggle">Tem um cupom de desconto?</button>
+    <div class="coupon-field" id="couponFieldWrap" style="display:none;">
+      <input type="text" id="couponInput" class="checkout-input" placeholder="Código do cupom">
+      <button type="button" class="btn btn-small" id="applyCouponBtn">Aplicar</button>
+    </div>
+    <p class="coupon-message" id="couponMessage"></p>
+    <div class="cart-total" id="cartSubtotalRow" style="display:none;">
       <span>Subtotal</span>
+      <strong id="cartSubtotal">0,00 Kz</strong>
+    </div>
+    <div class="cart-total coupon-discount-row" id="couponDiscountRow" style="display:none;">
+      <span>Desconto <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · remover)</button></span>
+      <strong id="cartDiscount">-0,00 Kz</strong>
+    </div>
+    <div class="cart-total cart-total-final">
+      <span>Total</span>
       <strong id="cartTotal">0,00 Kz</strong>
     </div>
+    <div class="checkout-details">
+      <input type="text" id="checkoutName" class="checkout-input" placeholder="Seu nome">
+      <input type="tel" id="checkoutPhone" class="checkout-input" placeholder="Seu contacto">
+    </div>
     <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar no WhatsApp</a>
-    <p class="cart-note">O pagamento e a entrega são combinados diretamente pelo WhatsApp.</p>
+    <p class="cart-note">Pagamento e entrega combinados pelo WhatsApp.</p>
   </div>
 </aside>
 
@@ -187,6 +204,20 @@
   </div>
   <div class="cart-items" id="wishlistItems"></div>
 </aside>
+
+<div class="pd-overlay" id="productDetailOverlay">
+  <div class="pd-modal">
+    <button class="pd-close" id="productDetailClose" aria-label="Fechar">&times;</button>
+    <div class="pd-media" id="pdMedia"></div>
+    <div class="pd-info">
+      <span class="pd-category" id="pdCategory"></span>
+      <h3 class="pd-name" id="pdName"></h3>
+      <p class="pd-notes" id="pdNotes"></p>
+      <div class="pd-price" id="pdPrice"></div>
+      <button class="btn btn-primary" id="pdAddToCart">Adicionar ao carrinho</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>

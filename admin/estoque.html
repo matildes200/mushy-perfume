@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel | Mushy Perfume</title>
+<title>Stock | Painel Mushy Perfume</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,88 +40,71 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Visão geral</h1>
-      <p>Resumo rápido da loja</p>
-    </div>
-    <div class="row-actions" style="gap:10px;">
-      <a href="produtos.html" class="btn-admin">+ Novo produto</a>
-      <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver pedidos</a>
-      <a href="estoque.html" class="btn-admin btn-admin-outline">Gerir stock</a>
+      <h1>Stock</h1>
+      <p>Acompanhe e ajuste as quantidades do catálogo</p>
     </div>
   </div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-card"><span>Vendas totais</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Clientes</span><strong>—</strong></div>
+  <div id="inventoryAlert"></div>
+
+  <div class="stat-grid" id="inventoryStats">
     <div class="stat-card"><span>Produtos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos pendentes</span><strong>—</strong></div>
+    <div class="stat-card"><span>Em stock</span><strong>—</strong></div>
     <div class="stat-card"><span>Stock baixo</span><strong>—</strong></div>
+    <div class="stat-card"><span>Esgotados</span><strong>—</strong></div>
   </div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Vendas</h2>
-      <div class="row-actions" id="chartRange">
-        <button class="btn-admin btn-admin-outline" data-range="7">7 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="30">30 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="365">Este ano</button>
-      </div>
-    </div>
-    <div style="padding:24px;">
-      <div class="bar-chart" id="salesChart"></div>
-    </div>
-  </div>
-
-  <div class="dash-grid">
-    <div class="admin-panel">
-      <div class="admin-panel-head">
-        <h2>Pedidos recentes</h2>
-        <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver todos</a>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="recentOrdersTable">
-          <thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="dash-side">
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Mais vendido</h2></div>
-        <div id="bestSeller" style="padding:20px 24px;"></div>
-      </div>
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Alertas de stock</h2></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="lowStockTable">
-            <thead><tr><th>Produto</th><th>Stock</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Clientes recentes</h2>
-      <a href="clientes.html" class="btn-admin btn-admin-outline">Ver todos</a>
-    </div>
+    <div class="admin-panel-head"><h2>Inventário</h2></div>
     <div class="admin-table-wrap">
-      <table class="admin-table" id="recentCustomersTable">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Desde</th></tr></thead>
-        <tbody></tbody>
+      <table class="admin-table" id="inventoryTable">
+        <thead><tr><th>Produto</th><th>SKU</th><th>Stock atual</th><th>Mínimo</th><th>Status</th><th></th></tr></thead>
+        <tbody><tr><td colspan="6" class="admin-empty">Carregando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-head"><h2>Histórico de movimentações</h2></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="stockHistoryTable">
+        <thead><tr><th>Data</th><th>Produto</th><th>Alteração</th><th>Motivo</th></tr></thead>
+        <tbody><tr><td colspan="4" class="admin-empty">Carregando…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<div class="modal-overlay" id="stockModalOverlay">
+  <div class="modal">
+    <h2 id="stockModalTitle">Ajustar stock</h2>
+    <div id="stockModalAlert"></div>
+    <form id="stockForm">
+      <input type="hidden" id="stockProductId">
+      <div class="form-field" style="margin-bottom:16px;">
+        <label>Stock atual</label>
+        <strong id="stockCurrentValue" style="font-size:18px;"></strong>
+      </div>
+      <div class="form-field" style="margin-bottom:16px;">
+        <label for="stockChange">Ajuste (use negativo para remover)</label>
+        <input type="number" id="stockChange" step="1" required placeholder="Ex: 20 ou -5">
+      </div>
+      <div class="form-field" style="margin-bottom:16px;">
+        <label for="stockReason">Motivo</label>
+        <input type="text" id="stockReason" placeholder="Reposição, inventário, avaria...">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin btn-admin-outline" id="cancelStockBtn">Cancelar</button>
+        <button type="submit" class="btn-admin">Confirmar ajuste</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-common.js"></script>
 <script src="js/admin-auth.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/estoque.js"></script>
 </body>
 </html>

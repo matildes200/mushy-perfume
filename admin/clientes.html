@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel | Mushy Perfume</title>
+<title>Clientes | Painel Mushy Perfume</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,88 +40,65 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Visão geral</h1>
-      <p>Resumo rápido da loja</p>
-    </div>
-    <div class="row-actions" style="gap:10px;">
-      <a href="produtos.html" class="btn-admin">+ Novo produto</a>
-      <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver pedidos</a>
-      <a href="estoque.html" class="btn-admin btn-admin-outline">Gerir stock</a>
+      <h1>Clientes</h1>
+      <p>Quem já comprou ou criou conta na loja</p>
     </div>
   </div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-card"><span>Vendas totais</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Clientes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Produtos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos pendentes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Stock baixo</span><strong>—</strong></div>
-  </div>
+  <div id="customersAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Vendas</h2>
-      <div class="row-actions" id="chartRange">
-        <button class="btn-admin btn-admin-outline" data-range="7">7 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="30">30 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="365">Este ano</button>
-      </div>
-    </div>
-    <div style="padding:24px;">
-      <div class="bar-chart" id="salesChart"></div>
-    </div>
-  </div>
-
-  <div class="dash-grid">
-    <div class="admin-panel">
-      <div class="admin-panel-head">
-        <h2>Pedidos recentes</h2>
-        <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver todos</a>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="recentOrdersTable">
-          <thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="dash-side">
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Mais vendido</h2></div>
-        <div id="bestSeller" style="padding:20px 24px;"></div>
-      </div>
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Alertas de stock</h2></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="lowStockTable">
-            <thead><tr><th>Produto</th><th>Stock</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Clientes recentes</h2>
-      <a href="clientes.html" class="btn-admin btn-admin-outline">Ver todos</a>
-    </div>
+    <div class="admin-panel-head"><h2>Todos os clientes</h2></div>
     <div class="admin-table-wrap">
-      <table class="admin-table" id="recentCustomersTable">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Desde</th></tr></thead>
-        <tbody></tbody>
+      <table class="admin-table" id="customersTable">
+        <thead>
+          <tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Pedidos</th><th>Total gasto</th><th>Último pedido</th><th>Tipo</th><th></th></tr>
+        </thead>
+        <tbody><tr><td colspan="8" class="admin-empty">Carregando…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<div class="modal-overlay" id="customerModalOverlay">
+  <div class="modal modal-wide">
+    <h2 id="customerModalTitle">Cliente</h2>
+
+    <h3 class="form-section">Informações pessoais</h3>
+    <div class="order-detail-grid">
+      <div><span>Nome</span><strong id="cdName">—</strong></div>
+      <div><span>E-mail</span><strong id="cdEmail">—</strong></div>
+      <div><span>Telefone</span><strong id="cdPhone">—</strong></div>
+    </div>
+
+    <h3 class="form-section">Estatísticas</h3>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0;">
+      <div class="stat-card"><span>Pedidos</span><strong id="cdOrderCount">0</strong></div>
+      <div class="stat-card"><span>Total gasto</span><strong id="cdTotalSpent">0,00 Kz</strong></div>
+      <div class="stat-card"><span>Ticket médio</span><strong id="cdAvgOrder">0,00 Kz</strong></div>
+    </div>
+
+    <h3 class="form-section">Última morada de entrega</h3>
+    <p id="cdAddress" style="font-size:13.5px;color:var(--text-muted);">—</p>
+
+    <h3 class="form-section">Histórico de pedidos</h3>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="customerOrdersTable">
+        <thead><tr><th>Pedido</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-admin btn-admin-outline" id="closeCustomerModalBtn">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-common.js"></script>
 <script src="js/admin-auth.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/clientes.js"></script>
 </body>
 </html>

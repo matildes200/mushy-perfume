@@ -21,9 +21,23 @@ const cartClose = document.getElementById("cartClose");
 const cartOverlay = document.getElementById("cartOverlay");
 const cartDrawer = document.getElementById("cartDrawer");
 const cartItemsEl = document.getElementById("cartItems");
+const cartSubtotalEl = document.getElementById("cartSubtotal");
 const cartTotalEl = document.getElementById("cartTotal");
 const cartCountEl = document.getElementById("cartCount");
 const checkoutBtn = document.getElementById("checkoutBtn");
+const checkoutName = document.getElementById("checkoutName");
+const checkoutPhone = document.getElementById("checkoutPhone");
+
+const couponToggle = document.getElementById("couponToggle");
+const couponFieldWrap = document.getElementById("couponFieldWrap");
+const couponInput = document.getElementById("couponInput");
+const applyCouponBtn = document.getElementById("applyCouponBtn");
+const removeCouponBtn = document.getElementById("removeCouponBtn");
+const couponMessageEl = document.getElementById("couponMessage");
+const cartSubtotalRow = document.getElementById("cartSubtotalRow");
+const couponDiscountRow = document.getElementById("couponDiscountRow");
+const appliedCouponCodeEl = document.getElementById("appliedCouponCode");
+const cartDiscountEl = document.getElementById("cartDiscount");
 
 const wishlistBtn = document.getElementById("wishlistBtn");
 const wishlistClose = document.getElementById("wishlistClose");
@@ -218,6 +232,107 @@ function renderCarousel() {
   carouselTrack.innerHTML = PRODUCTS.filter((p) => isVisible(p) && p.bestseller).map(carouselCardTemplate).join("");
 }
 
+// ---------- Coupons ----------
+// Only the code/type/value/min_order_value returned by validate_coupon are cached
+// here — the RPC (not this cache) is the source of truth, called again on every
+// apply and never trusted past that without re-validating server-side.
+let appliedCoupon = JSON.parse(localStorage.getItem("mushy-coupon") || "null");
+
+function saveCoupon() {
+  if (appliedCoupon) localStorage.setItem("mushy-coupon", JSON.stringify(appliedCoupon));
+  else localStorage.removeItem("mushy-coupon");
+}
+
+function cartSubtotal() {
+  return Object.keys(cart).reduce((sum, id) => {
+    const p = PRODUCTS.find((x) => x.id === Number(id));
+    return p ? sum + effectivePrice(p) * cart[id] : sum;
+  }, 0);
+}
+
+function couponDiscountAmount(subtotal) {
+  if (!appliedCoupon || subtotal < appliedCoupon.min_order_value) return 0;
+  if (appliedCoupon.discount_type === "percentage") return subtotal * (appliedCoupon.discount_value / 100);
+  return Math.min(appliedCoupon.discount_value, subtotal);
+}
+
+const COUPON_REASON_MESSAGES = {
+  not_found: "Cupom não encontrado.",
+  inactive: "Este cupom não está mais ativo.",
+  not_started: "Este cupom ainda não é válido.",
+  expired: "Este cupom expirou.",
+  max_uses: "Este cupom atingiu o limite de usos.",
+};
+
+function showCouponMessage(text, type) {
+  if (!couponMessageEl) return;
+  couponMessageEl.textContent = text;
+  couponMessageEl.className = `coupon-message${type ? ` ${type}` : ""}`;
+}
+
+// The coupon input starts collapsed behind a small toggle so it doesn't
+// crowd out the product list; a coupon that's already applied is shown
+// via the discount row instead, so the toggle only reappears once removed.
+function setCouponToggleState() {
+  if (couponToggle) couponToggle.style.display = appliedCoupon ? "none" : "block";
+  if (couponFieldWrap) couponFieldWrap.style.display = "none";
+}
+
+couponToggle?.addEventListener("click", () => {
+  couponToggle.style.display = "none";
+  if (couponFieldWrap) couponFieldWrap.style.display = "flex";
+  couponInput?.focus();
+});
+
+async function applyCoupon() {
+  const code = couponInput?.value.trim();
+  if (!code) return;
+  applyCouponBtn.disabled = true;
+  const subtotal = cartSubtotal();
+  try {
+    const { data, error } = await supabaseClient.rpc("validate_coupon", { p_code: code, p_order_total: subtotal });
+    const result = Array.isArray(data) ? data[0] : data;
+    if (error || !result) {
+      showCouponMessage("Não foi possível validar este cupom. Tente novamente.", "error");
+      return;
+    }
+    if (!result.valid) {
+      if (result.reason_code === "min_order") {
+        showCouponMessage(`Pedido mínimo de ${money(result.min_order_value)} para usar este cupom.`, "error");
+      } else {
+        showCouponMessage(COUPON_REASON_MESSAGES[result.reason_code] || "Cupom inválido.", "error");
+      }
+      return;
+    }
+    appliedCoupon = {
+      code: code.toUpperCase(),
+      discount_type: result.discount_type,
+      discount_value: Number(result.discount_value),
+      min_order_value: Number(result.min_order_value || 0),
+    };
+    saveCoupon();
+    couponInput.value = "";
+    setCouponToggleState();
+    showCouponMessage(`Cupom ${appliedCoupon.code} aplicado!`, "success");
+    updateCartUI();
+  } finally {
+    applyCouponBtn.disabled = false;
+  }
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  saveCoupon();
+  setCouponToggleState();
+  showCouponMessage("", "");
+  updateCartUI();
+}
+
+applyCouponBtn?.addEventListener("click", applyCoupon);
+couponInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(); } });
+removeCouponBtn?.addEventListener("click", removeCoupon);
+setCouponToggleState();
+
 function updateCartUI() {
   const ids = Object.keys(cart);
   const totalCount = ids.reduce((sum, id) => sum + cart[id], 0);
@@ -226,6 +341,9 @@ function updateCartUI() {
 
   if (ids.length === 0) {
     cartItemsEl.innerHTML = `<p class="cart-empty">Seu carrinho está vazio.</p>`;
+    if (cartSubtotalEl) cartSubtotalEl.textContent = money(0);
+    if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
+    if (couponDiscountRow) couponDiscountRow.style.display = "none";
     cartTotalEl.textContent = money(0);
     checkoutBtn.classList.add("disabled");
     return;
@@ -233,15 +351,14 @@ function updateCartUI() {
 
   checkoutBtn.classList.remove("disabled");
 
-  let total = 0;
+  let subtotal = 0;
   cartItemsEl.innerHTML = ids
     .map((id) => {
       const p = PRODUCTS.find((x) => x.id === Number(id));
       const qty = cart[id];
-      const subtotal = effectivePrice(p) * qty;
-      total += subtotal;
+      subtotal += effectivePrice(p) * qty;
       return `
-      <div class="cart-item">
+      <div class="cart-item" data-cart-view="${p.id}">
         <div class="cart-item-media ${p.image ? "" : p.tone}">${mediaContent(p)}</div>
         <div class="cart-item-info">
           <strong>${p.name}</strong>
@@ -258,6 +375,23 @@ function updateCartUI() {
       </div>`;
     })
     .join("");
+
+  const discount = couponDiscountAmount(subtotal);
+  const total = Math.max(0, subtotal - discount);
+  if (cartSubtotalEl) cartSubtotalEl.textContent = money(subtotal);
+
+  if (couponDiscountRow) {
+    if (appliedCoupon && discount > 0) {
+      if (cartSubtotalRow) cartSubtotalRow.style.display = "flex";
+      couponDiscountRow.style.display = "flex";
+      if (appliedCouponCodeEl) appliedCouponCodeEl.textContent = appliedCoupon.code;
+      if (cartDiscountEl) cartDiscountEl.textContent = `-${money(discount)}`;
+    } else {
+      if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
+      couponDiscountRow.style.display = "none";
+      if (appliedCoupon) showCouponMessage(`Adicione mais ${money(appliedCoupon.min_order_value - subtotal)} para usar o cupom ${appliedCoupon.code}.`, "error");
+    }
+  }
 
   cartTotalEl.textContent = money(total);
 }
@@ -315,19 +449,57 @@ function renderWishlistDrawer() {
     .filter(Boolean)
     .map(
       (p) => `
-      <div class="cart-item">
+      <div class="cart-item" data-wishlist-view="${p.id}">
         <div class="cart-item-media ${p.image ? "" : p.tone}">${mediaContent(p)}</div>
         <div class="cart-item-info">
           <strong>${p.name}</strong>
-          <span>${money(p.price)}</span>
+          <span>${money(effectivePrice(p))}</span>
         </div>
-        <button class="remove-btn" data-wishlist-remove="${p.id}" aria-label="Remover dos favoritos">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
-        </button>
+        <div class="wishlist-item-actions">
+          <button class="remove-btn add-to-cart-btn" data-wishlist-add="${p.id}" aria-label="Adicionar ao carrinho">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
+          </button>
+          <button class="remove-btn" data-wishlist-remove="${p.id}" aria-label="Remover dos favoritos">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
       </div>`
     )
     .join("");
 }
+
+// ---------- Product detail modal (opened from the wishlist) ----------
+const productDetailOverlay = document.getElementById("productDetailOverlay");
+const pdAddToCartBtn = document.getElementById("pdAddToCart");
+let productDetailId = null;
+
+function openProductDetail(p) {
+  if (!productDetailOverlay) return;
+  productDetailId = p.id;
+  const mediaEl = document.getElementById("pdMedia");
+  mediaEl.className = `pd-media${p.image ? "" : ` ${p.tone}`}`;
+  mediaEl.innerHTML = mediaContent(p);
+  document.getElementById("pdCategory").textContent = p.category;
+  document.getElementById("pdName").textContent = p.name;
+  document.getElementById("pdNotes").textContent = p.notes;
+  document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
+  productDetailOverlay.classList.add("open");
+}
+
+function closeProductDetail() {
+  productDetailOverlay?.classList.remove("open");
+  productDetailId = null;
+}
+
+document.getElementById("productDetailClose")?.addEventListener("click", closeProductDetail);
+productDetailOverlay?.addEventListener("click", (e) => { if (e.target === productDetailOverlay) closeProductDetail(); });
+pdAddToCartBtn?.addEventListener("click", () => {
+  if (productDetailId != null) {
+    if (wishlist.includes(productDetailId)) toggleWishlist(productDetailId);
+    addToCart(productDetailId);
+  }
+  closeProductDetail();
+});
 
 function updateWishlistUI() {
   if (wishlistCountEl) {
@@ -357,21 +529,26 @@ function closeWishlist() {
 
 function buildWhatsAppMessage() {
   const ids = Object.keys(cart);
-  let total = 0;
+  let subtotal = 0;
   const lines = ids.map((id) => {
     const p = PRODUCTS.find((x) => x.id === Number(id));
     const qty = cart[id];
-    const subtotal = effectivePrice(p) * qty;
-    total += subtotal;
-    return `• ${p.name} x${qty} — ${money(subtotal)}`;
+    const itemSubtotal = effectivePrice(p) * qty;
+    subtotal += itemSubtotal;
+    return `• ${p.name} x${qty} — ${money(itemSubtotal)}`;
   });
+  const discount = couponDiscountAmount(subtotal);
+  const total = Math.max(0, subtotal - discount);
   const message = [
     "Olá! Gostaria de finalizar este pedido na Mushy Perfume:",
     "",
     ...lines,
     "",
+    discount > 0 ? `Cupom: ${appliedCoupon.code} (-${money(discount)})` : null,
     `Total: ${money(total)}`,
-  ].join("\n");
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
@@ -386,6 +563,25 @@ document.body.addEventListener("click", (e) => {
   const wishRemove = e.target.closest("[data-wishlist-remove]");
   if (wishRemove) return toggleWishlist(Number(wishRemove.dataset.wishlistRemove));
 
+  const wishAdd = e.target.closest("[data-wishlist-add]");
+  if (wishAdd) {
+    const id = Number(wishAdd.dataset.wishlistAdd);
+    toggleWishlist(id); // it's always present when clicked from the wishlist drawer, so this removes it
+    closeWishlist();
+    addToCart(id);
+    return;
+  }
+
+  const wishView = e.target.closest("[data-wishlist-view]");
+  if (wishView) {
+    const product = PRODUCTS.find((p) => p.id === Number(wishView.dataset.wishlistView));
+    if (product) {
+      closeWishlist();
+      openProductDetail(product);
+    }
+    return;
+  }
+
   const inc = e.target.closest("[data-inc]");
   if (inc) return changeQty(Number(inc.dataset.inc), 1);
 
@@ -394,6 +590,16 @@ document.body.addEventListener("click", (e) => {
 
   const rem = e.target.closest("[data-remove]");
   if (rem) return removeFromCart(Number(rem.dataset.remove));
+
+  const cartView = e.target.closest("[data-cart-view]");
+  if (cartView) {
+    const product = PRODUCTS.find((p) => p.id === Number(cartView.dataset.cartView));
+    if (product) {
+      closeCart();
+      openProductDetail(product);
+    }
+    return;
+  }
 
   const filterBtn = e.target.closest(".filter-btn");
   if (filterBtn && filters && filters.contains(filterBtn)) {
@@ -428,18 +634,50 @@ wishlistBtn?.addEventListener("click", openWishlist);
 wishlistClose?.addEventListener("click", closeWishlist);
 wishlistOverlay?.addEventListener("click", closeWishlist);
 
-async function logOrder() {
+// Populated on load when the shopper is signed in (see initCustomerSession below).
+let currentCustomer = null;
+
+async function initCustomerSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
+  const { data } = await supabaseClient.from("customers").select("*").eq("id", session.user.id).maybeSingle();
+  currentCustomer = data;
+  if (data) {
+    if (checkoutName) checkoutName.value = data.full_name || "";
+    if (checkoutPhone) checkoutPhone.value = data.phone || "";
+  }
+}
+initCustomerSession();
+
+async function logOrder(name, phone) {
   const ids = Object.keys(cart);
-  let total = 0;
+  let subtotal = 0;
   const items = ids.map((id) => {
     const p = PRODUCTS.find((x) => x.id === Number(id));
     const qty = cart[id];
     const unitPrice = effectivePrice(p);
-    total += unitPrice * qty;
+    subtotal += unitPrice * qty;
     return { id: p.id, name: p.name, price: unitPrice, qty };
   });
+  const discount = couponDiscountAmount(subtotal);
+  const total = Math.max(0, subtotal - discount);
+  const usedCoupon = discount > 0 ? appliedCoupon.code : null;
   try {
-    await supabaseClient.from("orders").insert({ items, total, status: "pending" });
+    await supabaseClient.from("orders").insert({
+      items,
+      total,
+      status: "pending",
+      customer_id: currentCustomer?.id || null,
+      customer_name: name,
+      customer_phone: phone,
+      customer_email: currentCustomer?.email || null,
+      discount,
+      coupon_code: usedCoupon,
+    });
+    if (usedCoupon) {
+      await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
+      removeCoupon();
+    }
   } catch (err) {
     console.error("Falha ao registrar pedido no Supabase:", err);
   }
@@ -450,7 +688,18 @@ checkoutBtn?.addEventListener("click", (e) => {
     e.preventDefault();
     return;
   }
-  logOrder();
+
+  const name = checkoutName?.value.trim() || "";
+  const phone = checkoutPhone?.value.trim() || "";
+  checkoutName?.classList.toggle("field-error", !name);
+  checkoutPhone?.classList.toggle("field-error", !phone);
+  if (!name || !phone) {
+    e.preventDefault();
+    (name ? checkoutPhone : checkoutName)?.focus();
+    return;
+  }
+
+  logOrder(name, phone);
   checkoutBtn.setAttribute("href", buildWhatsAppMessage());
   checkoutBtn.setAttribute("target", "_blank");
   checkoutBtn.setAttribute("rel", "noopener");

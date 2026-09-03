@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel | Mushy Perfume</title>
+<title>Cupons | Painel Mushy Perfume</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,88 +40,93 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Visão geral</h1>
-      <p>Resumo rápido da loja</p>
+      <h1>Cupons</h1>
+      <p>Crie e acompanhe promoções e códigos de desconto</p>
     </div>
-    <div class="row-actions" style="gap:10px;">
-      <a href="produtos.html" class="btn-admin">+ Novo produto</a>
-      <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver pedidos</a>
-      <a href="estoque.html" class="btn-admin btn-admin-outline">Gerir stock</a>
-    </div>
+    <button class="btn-admin" id="newCouponBtn">+ Novo cupom</button>
   </div>
 
-  <div class="stat-grid" id="statGrid">
-    <div class="stat-card"><span>Vendas totais</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Clientes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Produtos</span><strong>—</strong></div>
-    <div class="stat-card"><span>Pedidos pendentes</span><strong>—</strong></div>
-    <div class="stat-card"><span>Stock baixo</span><strong>—</strong></div>
+  <div class="stat-grid" id="couponStats">
+    <div class="stat-card"><span>Total de cupons</span><strong>—</strong></div>
+    <div class="stat-card"><span>Ativos</span><strong>—</strong></div>
+    <div class="stat-card"><span>Expirados</span><strong>—</strong></div>
+    <div class="stat-card"><span>Usos no total</span><strong>—</strong></div>
   </div>
+
+  <div id="couponsAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Vendas</h2>
-      <div class="row-actions" id="chartRange">
-        <button class="btn-admin btn-admin-outline" data-range="7">7 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="30">30 dias</button>
-        <button class="btn-admin btn-admin-outline" data-range="365">Este ano</button>
-      </div>
-    </div>
-    <div style="padding:24px;">
-      <div class="bar-chart" id="salesChart"></div>
-    </div>
-  </div>
-
-  <div class="dash-grid">
-    <div class="admin-panel">
-      <div class="admin-panel-head">
-        <h2>Pedidos recentes</h2>
-        <a href="pedidos.html" class="btn-admin btn-admin-outline">Ver todos</a>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="recentOrdersTable">
-          <thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="dash-side">
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Mais vendido</h2></div>
-        <div id="bestSeller" style="padding:20px 24px;"></div>
-      </div>
-      <div class="admin-panel">
-        <div class="admin-panel-head"><h2>Alertas de stock</h2></div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="lowStockTable">
-            <thead><tr><th>Produto</th><th>Stock</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Clientes recentes</h2>
-      <a href="clientes.html" class="btn-admin btn-admin-outline">Ver todos</a>
-    </div>
+    <div class="admin-panel-head"><h2>Todos os cupons</h2></div>
     <div class="admin-table-wrap">
-      <table class="admin-table" id="recentCustomersTable">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Desde</th></tr></thead>
-        <tbody></tbody>
+      <table class="admin-table" id="couponsTable">
+        <thead>
+          <tr><th>Código</th><th>Nome</th><th>Desconto</th><th>Validade</th><th>Pedido mínimo</th><th>Usos</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody><tr><td colspan="8" class="admin-empty">Carregando…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<div class="modal-overlay" id="couponModalOverlay">
+  <div class="modal">
+    <h2 id="couponModalTitle">Novo cupom</h2>
+    <div id="couponFormAlert"></div>
+    <form id="couponForm">
+      <input type="hidden" id="couponId">
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="name">Nome da promoção</label>
+          <input type="text" id="name" placeholder="Promoção de verão" required>
+        </div>
+        <div class="form-field span-2">
+          <label for="code">Código do cupom</label>
+          <input type="text" id="code" placeholder="SUMMER20" style="text-transform:uppercase;" required>
+        </div>
+        <div class="form-field">
+          <label for="discount_type">Tipo de desconto</label>
+          <select id="discount_type">
+            <option value="percentage">Percentual (%)</option>
+            <option value="fixed">Valor fixo (Kz)</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="discount_value">Valor do desconto</label>
+          <input type="number" id="discount_value" min="0" step="0.01" required>
+        </div>
+        <div class="form-field">
+          <label for="start_date">Início da validade</label>
+          <input type="date" id="start_date">
+        </div>
+        <div class="form-field">
+          <label for="end_date">Fim da validade</label>
+          <input type="date" id="end_date">
+        </div>
+        <div class="form-field">
+          <label for="min_order_value">Pedido mínimo (Kz)</label>
+          <input type="number" id="min_order_value" min="0" step="0.01" value="0">
+        </div>
+        <div class="form-field">
+          <label for="max_uses">Limite de usos</label>
+          <input type="number" id="max_uses" min="1" step="1" placeholder="Sem limite">
+        </div>
+        <div class="form-field form-checkbox">
+          <input type="checkbox" id="active" checked>
+          <label for="active">Cupom ativo</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin btn-admin-outline" id="cancelCouponBtn">Cancelar</button>
+        <button type="submit" class="btn-admin" id="saveCouponBtn">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-common.js"></script>
 <script src="js/admin-auth.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/cupons.js"></script>
 </body>
 </html>

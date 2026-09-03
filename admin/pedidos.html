@@ -20,10 +20,19 @@
     <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Visão geral</a>
     <a href="produtos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Produtos</a>
     <a href="pedidos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg> Pedidos</a>
+    <a href="clientes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="7.5" r="3.5"/><path d="M2.5 19.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="17.5" cy="8.5" r="2.8"/><path d="M15.3 13.3c2.6.5 4.5 2.9 4.5 6.2"/></svg> Clientes</a>
+    <a href="estoque.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 6.5 12 11l9-4.5L12 2z"/><path d="M3 11.5 12 16l9-4.5"/><path d="M3 16.5 12 21l9-4.5"/></svg> Stock</a>
+    <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18"/><path d="M6 21v-7"/><path d="M12 21V7"/><path d="M18 21v-11"/></svg> Análises</a>
+    <a href="cupons.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 13.5 13.5 20a2 2 0 0 1-2.8 0L4 13.3a2 2 0 0 1 0-2.8L10.5 4H18a2 2 0 0 1 2 2v7.5z"/><circle cx="14.5" cy="9.5" r="1.3" fill="currentColor" stroke="none"/></svg> Cupons</a>
+    <a href="administradores.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg> Administradores</a>
     <a href="assinaturas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6 8 7 8-7"/></svg> Assinaturas</a>
   </nav>
   <div class="admin-user">
     <div class="admin-user-email" data-admin-email></div>
+    <a href="../index.html" class="admin-back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+      Voltar ao site
+    </a>
     <button class="admin-logout" data-admin-logout>Sair</button>
   </div>
 </aside>
@@ -45,13 +54,106 @@
     <div class="admin-table-wrap">
       <table class="admin-table" id="ordersTable">
         <thead>
-          <tr><th>Data</th><th>Itens</th><th>Total</th><th>Status</th><th></th></tr>
+          <tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Entrega</th><th>Status</th><th></th></tr>
         </thead>
-        <tbody><tr><td colspan="5" class="admin-empty">Carregando…</td></tr></tbody>
+        <tbody><tr><td colspan="9" class="admin-empty">Carregando…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
+
+<div class="modal-overlay" id="orderModalOverlay">
+  <div class="modal modal-wide">
+    <h2 id="orderModalTitle">Pedido</h2>
+    <div id="orderModalAlert"></div>
+
+    <h3 class="form-section">Cliente</h3>
+    <div class="order-detail-grid">
+      <div><span>Nome</span><strong id="odName">—</strong></div>
+      <div><span>E-mail</span><strong id="odEmail">—</strong></div>
+      <div><span>Telefone</span><strong id="odPhone">—</strong></div>
+    </div>
+
+    <h3 class="form-section">Itens do pedido</h3>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="orderItemsTable">
+        <thead><tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>Subtotal</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="order-detail-grid" style="margin-top:14px;">
+      <div><span>Taxa de entrega</span><strong id="odDeliveryFee">—</strong></div>
+      <div><span>Desconto</span><strong id="odDiscount">—</strong></div>
+      <div><span>Total</span><strong id="odTotal">—</strong></div>
+    </div>
+
+    <h3 class="form-section">Entrega</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="odShippingAddress">Morada</label>
+        <input type="text" id="odShippingAddress">
+      </div>
+      <div class="form-field">
+        <label for="odShippingCity">Cidade</label>
+        <input type="text" id="odShippingCity">
+      </div>
+      <div class="form-field">
+        <label for="odCourier">Transportadora</label>
+        <input type="text" id="odCourier">
+      </div>
+      <div class="form-field">
+        <label for="odTracking">Nº de rastreio</label>
+        <input type="text" id="odTracking">
+      </div>
+      <div class="form-field">
+        <label for="odDeliveryStatus">Status da entrega</label>
+        <select id="odDeliveryStatus">
+          <option value="pending">Pendente</option>
+          <option value="preparing">Preparando</option>
+          <option value="shipped">Enviado</option>
+          <option value="in_transit">Em trânsito</option>
+          <option value="delivered">Entregue</option>
+          <option value="failed">Falhou</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="form-section">Pagamento</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="odPaymentMethod">Método de pagamento</label>
+        <input type="text" id="odPaymentMethod" placeholder="Transferência, numerário...">
+      </div>
+      <div class="form-field">
+        <label for="odPaymentStatus">Status do pagamento</label>
+        <select id="odPaymentStatus">
+          <option value="pending">Pendente</option>
+          <option value="paid">Pago</option>
+          <option value="failed">Falhou</option>
+          <option value="refunded">Reembolsado</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="form-section">Status do pedido</h3>
+    <div class="order-pipeline" id="orderPipeline">
+      <button type="button" class="pipeline-step" data-status="pending">Pendente</button>
+      <button type="button" class="pipeline-step" data-status="confirmed">Confirmado</button>
+      <button type="button" class="pipeline-step" data-status="processing">Processando</button>
+      <button type="button" class="pipeline-step" data-status="shipped">Enviado</button>
+      <button type="button" class="pipeline-step" data-status="delivered">Entregue</button>
+    </div>
+    <div class="row-actions" style="margin-top:10px;">
+      <button type="button" class="btn-admin btn-admin-outline" id="cancelOrderBtn" style="color:#8a3b2b;border-color:#8a3b2b;">Cancelar pedido</button>
+      <button type="button" class="btn-admin btn-admin-outline" id="refundOrderBtn">Marcar como reembolsado</button>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-admin btn-admin-outline" id="closeOrderModalBtn">Fechar</button>
+      <button type="button" class="btn-admin" id="saveOrderBtn">Guardar alterações</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
