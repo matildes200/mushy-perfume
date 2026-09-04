@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Perfume — Coupon redemption at checkout
+-- Mushy Parfum — Coupon redemption at checkout
 -- Run after migration_3_coupons.sql.
 -- ============================================================
 

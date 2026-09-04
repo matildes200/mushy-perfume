@@ -1,4 +1,13 @@
-const WHATSAPP_NUMBER = "5511999999999"; // TODO: substitua pelo número real da loja
+// Referral links point to conta.html?ref=CODE; the code is stashed until the
+// visitor actually finishes creating an account (see showProfile() in conta.js).
+const refParam = new URLSearchParams(window.location.search).get("ref");
+if (refParam) localStorage.setItem("mushy-pending-ref", refParam.toUpperCase());
+
+// Some mobile browsers restore the previous scroll position before this script
+// runs, which can leave the fixed header rendered outside the visible viewport
+// until the next manual scroll. Forcing a clean top-of-page load avoids that.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
 
 const siteHeader = document.getElementById("siteHeader");
 const heroMedia = document.getElementById("heroMedia");
@@ -25,8 +34,6 @@ const cartSubtotalEl = document.getElementById("cartSubtotal");
 const cartTotalEl = document.getElementById("cartTotal");
 const cartCountEl = document.getElementById("cartCount");
 const checkoutBtn = document.getElementById("checkoutBtn");
-const checkoutName = document.getElementById("checkoutName");
-const checkoutPhone = document.getElementById("checkoutPhone");
 
 const couponToggle = document.getElementById("couponToggle");
 const couponFieldWrap = document.getElementById("couponFieldWrap");
@@ -150,11 +157,11 @@ function productCardTemplate(p) {
           <span class="card-flip-hint">Toque para ver detalhes</span>
         </div>
         <div class="card-face card-face-back">
+          <div class="card-back-price">${priceMarkup(p, "product-price")}</div>
           <span class="product-category">${p.category}</span>
           <h3>${p.name}</h3>
           <p class="product-notes">${p.notes}</p>
           <div class="product-footer">
-            ${priceMarkup(p, "product-price")}
             ${addButton(p, "Adicionar")}
           </div>
         </div>
@@ -164,17 +171,29 @@ function productCardTemplate(p) {
 
 function featuredCardTemplate(p) {
   const hasImage = Boolean(p.image);
+  const toneClass = hasImage ? "" : ` ${p.tone}`;
   const style = hasImage ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
   return `
-    <article class="featured-card${hasImage ? " has-image" : ""}"${style}>
-      ${wishlistHeart(p.id)}
-      ${stockBadge(p)}
-      ${hasImage ? "" : `<div class="featured-media">${mediaContent(p)}</div>`}
-      <div class="featured-body">
-        <span class="featured-category">${p.category}</span>
-        <h3 class="featured-name">${p.name}</h3>
-        ${priceMarkup(p, "featured-price")}
-        ${addButton(p, "Comprar")}
+    <article class="featured-card">
+      <div class="card-flip">
+        <div class="card-face card-face-front${toneClass}"${style}>
+          ${wishlistHeart(p.id)}
+          ${stockBadge(p)}
+          ${hasImage ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
+          <span class="card-flip-hint">Toque para ver detalhes</span>
+          <div class="featured-body">
+            <span class="featured-category">${p.category}</span>
+            <h3 class="featured-name">${p.name}</h3>
+            ${priceMarkup(p, "featured-price")}
+          </div>
+        </div>
+        <div class="card-face card-face-back">
+          <div class="card-back-price">${priceMarkup(p, "featured-price")}</div>
+          <span class="featured-category">${p.category}</span>
+          <h3 class="featured-name">${p.name}</h3>
+          <p class="product-notes">${p.notes}</p>
+          <div class="product-footer">${addButton(p, "Comprar")}</div>
+        </div>
       </div>
     </article>`;
 }
@@ -192,11 +211,11 @@ function carouselCardTemplate(p) {
           <span class="card-flip-hint">Toque para ver detalhes</span>
         </div>
         <div class="card-face card-face-back">
+          <div class="card-back-price">${priceMarkup(p, "carousel-price")}</div>
           <span class="carousel-category">${p.category}</span>
           <h3>${p.name}</h3>
           <p class="carousel-notes">${p.notes}</p>
           <div class="carousel-footer">
-            ${priceMarkup(p, "carousel-price")}
             ${addButton(p, "Adicionar")}
           </div>
         </div>
@@ -229,7 +248,12 @@ function renderFeatured() {
 
 function renderCarousel() {
   if (!carouselTrack) return;
-  carouselTrack.innerHTML = PRODUCTS.filter((p) => isVisible(p) && p.bestseller).map(carouselCardTemplate).join("");
+  const cards = PRODUCTS.filter((p) => isVisible(p) && p.bestseller).map(carouselCardTemplate).join("");
+  carouselTrack.innerHTML = `${cards}
+    <a href="colecao.html" class="carousel-end-card">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <span>Ver todos<br>os produtos</span>
+    </a>`;
 }
 
 // ---------- Coupons ----------
@@ -527,31 +551,6 @@ function closeWishlist() {
   wishlistOverlay.classList.remove("open");
 }
 
-function buildWhatsAppMessage() {
-  const ids = Object.keys(cart);
-  let subtotal = 0;
-  const lines = ids.map((id) => {
-    const p = PRODUCTS.find((x) => x.id === Number(id));
-    const qty = cart[id];
-    const itemSubtotal = effectivePrice(p) * qty;
-    subtotal += itemSubtotal;
-    return `• ${p.name} x${qty} — ${money(itemSubtotal)}`;
-  });
-  const discount = couponDiscountAmount(subtotal);
-  const total = Math.max(0, subtotal - discount);
-  const message = [
-    "Olá! Gostaria de finalizar este pedido na Mushy Perfume:",
-    "",
-    ...lines,
-    "",
-    discount > 0 ? `Cupom: ${appliedCoupon.code} (-${money(discount)})` : null,
-    `Total: ${money(total)}`,
-  ]
-    .filter((line) => line !== null)
-    .join("\n");
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
-
 // ---------- Delegated click handling (grid / featured / carousel / cart / wishlist / filters) ----------
 document.body.addEventListener("click", (e) => {
   const addBtn = e.target.closest("[data-add]");
@@ -610,7 +609,7 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
-  const flipCard = e.target.closest(".product-card, .carousel-card");
+  const flipCard = e.target.closest(".product-card, .carousel-card, .featured-card");
   if (flipCard) flipCard.classList.toggle("flipped");
 });
 
@@ -642,14 +641,12 @@ async function initCustomerSession() {
   if (!session) return;
   const { data } = await supabaseClient.from("customers").select("*").eq("id", session.user.id).maybeSingle();
   currentCustomer = data;
-  if (data) {
-    if (checkoutName) checkoutName.value = data.full_name || "";
-    if (checkoutPhone) checkoutPhone.value = data.phone || "";
-  }
 }
 initCustomerSession();
 
-async function logOrder(name, phone) {
+// Called from js/checkout.js once the receipt has been uploaded to Storage;
+// receiptPath is the object's path within the private "receipts" bucket.
+async function logOrder(name, phone, receiptPath) {
   const ids = Object.keys(cart);
   let subtotal = 0;
   const items = ids.map((id) => {
@@ -662,52 +659,43 @@ async function logOrder(name, phone) {
   const discount = couponDiscountAmount(subtotal);
   const total = Math.max(0, subtotal - discount);
   const usedCoupon = discount > 0 ? appliedCoupon.code : null;
-  try {
-    await supabaseClient.from("orders").insert({
-      items,
-      total,
-      status: "pending",
-      customer_id: currentCustomer?.id || null,
-      customer_name: name,
-      customer_phone: phone,
-      customer_email: currentCustomer?.email || null,
-      discount,
-      coupon_code: usedCoupon,
-    });
-    if (usedCoupon) {
-      await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
-      removeCoupon();
-    }
-  } catch (err) {
-    console.error("Falha ao registrar pedido no Supabase:", err);
+
+  await supabaseClient.from("orders").insert({
+    items,
+    total,
+    status: "pending",
+    customer_id: currentCustomer?.id || null,
+    customer_name: name,
+    customer_phone: phone,
+    customer_email: currentCustomer?.email || null,
+    discount,
+    coupon_code: usedCoupon,
+    receipt_url: receiptPath,
+  });
+  if (usedCoupon) {
+    await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
+    removeCoupon();
   }
 }
 
-checkoutBtn?.addEventListener("click", (e) => {
-  if (Object.keys(cart).length === 0) {
-    e.preventDefault();
-    return;
-  }
-
-  const name = checkoutName?.value.trim() || "";
-  const phone = checkoutPhone?.value.trim() || "";
-  checkoutName?.classList.toggle("field-error", !name);
-  checkoutPhone?.classList.toggle("field-error", !phone);
-  if (!name || !phone) {
-    e.preventDefault();
-    (name ? checkoutPhone : checkoutName)?.focus();
-    return;
-  }
-
-  logOrder(name, phone);
-  checkoutBtn.setAttribute("href", buildWhatsAppMessage());
-  checkoutBtn.setAttribute("target", "_blank");
-  checkoutBtn.setAttribute("rel", "noopener");
-});
-
 menuBtn?.addEventListener("click", () => mainNav.classList.toggle("open"));
 
+// Mobile overflow ("...") menu: holds search + account so the header row
+// only shows wishlist/cart directly, per the phone-declutter pass.
+const moreBtn = document.getElementById("moreBtn");
+const moreMenuPanel = document.getElementById("moreMenuPanel");
+moreBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  moreMenuPanel?.classList.toggle("open");
+});
+document.addEventListener("click", (e) => {
+  if (moreMenuPanel?.classList.contains("open") && !e.target.closest(".more-menu")) {
+    moreMenuPanel.classList.remove("open");
+  }
+});
+
 searchBtn?.addEventListener("click", () => {
+  moreMenuPanel?.classList.remove("open");
   searchBar.classList.toggle("open");
   if (searchBar.classList.contains("open")) searchInput.focus();
 });
@@ -772,6 +760,31 @@ if (revealEls.length) {
     revealEls.forEach((el) => el.classList.add("in-view"));
   }
 }
+
+// ---------- Idle autoplay for the reviews strip (mobile) ----------
+// Advances one card at a time while the shopper isn't touching it; any
+// manual scroll/touch pauses it for a while so it doesn't fight the user.
+function initIdleCarousel(container, intervalMs) {
+  if (!container) return;
+  let paused = false;
+  let resumeTimer = null;
+  const pause = () => {
+    paused = true;
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(() => { paused = false; }, intervalMs * 2);
+  };
+  ["touchstart", "pointerdown", "wheel"].forEach((evt) => container.addEventListener(evt, pause, { passive: true }));
+
+  setInterval(() => {
+    if (paused || container.scrollWidth <= container.clientWidth + 4) return;
+    const card = container.firstElementChild;
+    if (!card) return;
+    const step = card.getBoundingClientRect().width + parseFloat(getComputedStyle(container).gap || "0");
+    const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 10;
+    container.scrollTo({ left: atEnd ? 0 : container.scrollLeft + step, behavior: "smooth" });
+  }, intervalMs);
+}
+initIdleCarousel(document.getElementById("reviewsGrid"), 3500);
 
 const searchQueryParam = new URLSearchParams(window.location.search).get("q");
 if (searchQueryParam && searchInput) {

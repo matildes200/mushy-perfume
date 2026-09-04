@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedidos | Painel Mushy Perfume</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Pedidos | Painel Mushy Parfum</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,12 @@
 <body class="admin-body page-loaded">
 
 <aside class="admin-sidebar">
-  <a href="index.html" class="logo">Mushy<span>Admin</span></a>
+  <div class="admin-sidebar-top">
+    <a href="index.html" class="logo">Mushy<span>Admin</span></a>
+    <button type="button" class="admin-mobile-toggle" id="adminMobileToggle" aria-label="Abrir menu">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
   <p class="admin-eyebrow">Painel administrativo</p>
   <nav class="admin-nav">
     <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Visão geral</a>
@@ -24,6 +29,7 @@
     <a href="estoque.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 6.5 12 11l9-4.5L12 2z"/><path d="M3 11.5 12 16l9-4.5"/><path d="M3 16.5 12 21l9-4.5"/></svg> Stock</a>
     <a href="analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18"/><path d="M6 21v-7"/><path d="M12 21V7"/><path d="M18 21v-11"/></svg> Análises</a>
     <a href="cupons.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 13.5 13.5 20a2 2 0 0 1-2.8 0L4 13.3a2 2 0 0 1 0-2.8L10.5 4H18a2 2 0 0 1 2 2v7.5z"/><circle cx="14.5" cy="9.5" r="1.3" fill="currentColor" stroke="none"/></svg> Cupons</a>
+    <a href="pagamentos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg> Pagamentos</a>
     <a href="administradores.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg> Administradores</a>
     <a href="assinaturas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6 8 7 8-7"/></svg> Assinaturas</a>
   </nav>
@@ -132,6 +138,10 @@
           <option value="failed">Falhou</option>
           <option value="refunded">Reembolsado</option>
         </select>
+      </div>
+      <div class="form-field span-2">
+        <label>Comprovativo</label>
+        <p id="odReceiptLink" style="font-size:13px;color:var(--text-muted);">—</p>
       </div>
     </div>
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sobre | Mushy Perfume</title>
-<meta name="description" content="Conheça a Mushy Perfume — perfumaria fina com fragrâncias importadas e nacionais selecionadas.">
+<title>Sobre | Mushy Parfum</title>
+<meta name="description" content="Conheça a Mushy Parfum — perfumaria fina com fragrâncias importadas e nacionais selecionadas.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,21 +14,15 @@
 
 <header class="site-header scrolled" id="siteHeader">
   <div class="container header-inner">
-    <a href="index.html#topo" class="logo">Mushy<span>Perfume</span></a>
+    <a href="index.html#topo" class="logo">Mushy<span>Parfum</span></a>
 
     <nav class="main-nav" id="mainNav">
-      <a href="colecao.html">Coleções</a>
-      <a href="sobre.html">Sobre</a>
-      <a href="index.html#contato">Contato</a>
+      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Coleções</a>
+      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> Sobre</a>
+      <a href="index.html#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> Contato</a>
     </nav>
 
     <div class="header-actions">
-      <button class="icon-btn" id="searchBtn" aria-label="Buscar">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      </button>
-      <a href="conta.html" class="icon-btn" id="accountBtn" aria-label="Minha conta">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-      </a>
       <button class="icon-btn" id="wishlistBtn" aria-label="Abrir favoritos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span class="badge-count" id="wishlistCount">0</span>
@@ -37,6 +31,21 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
         <span class="badge-count" id="cartCount">0</span>
       </button>
+      <div class="more-menu">
+        <button class="icon-btn more-btn" id="moreBtn" aria-label="Mais opções" aria-haspopup="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="more-menu-panel" id="moreMenuPanel">
+          <button class="more-menu-item" id="searchBtn" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+            <span>Buscar</span>
+          </button>
+          <a href="conta.html" class="more-menu-item" id="accountBtn" aria-label="Minha conta">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+            <span>Minha conta</span>
+          </a>
+        </div>
+      </div>
       <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menu">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
@@ -56,7 +65,7 @@
 
   <section class="sobre-banner reveal" id="sobre">
     <div class="sobre-banner-media">
-      <img src="img/hero-mobile-bg.png" alt="Frasco Mushy Perfume em destaque" loading="lazy">
+      <img src="img/hero-mobile-bg.png" alt="Frasco Mushy Parfum em destaque" loading="lazy">
       <div class="sobre-banner-overlay">
         <div class="container">
           <p class="eyebrow">Quem somos</p>
@@ -113,7 +122,7 @@
   <section class="processo reveal" id="processo">
     <div class="container processo-inner">
       <div class="processo-media">
-        <img src="img/eclipse.png" alt="Perfume Eclipse da Mushy Perfume" loading="lazy">
+        <img src="img/eclipse.png" alt="Perfume Eclipse da Mushy Parfum" loading="lazy">
       </div>
       <div class="processo-content">
         <p class="eyebrow">Como escolhemos</p>
@@ -130,7 +139,7 @@
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <a href="index.html#topo" class="logo">Mushy<span>Perfume</span></a>
+      <a href="index.html#topo" class="logo">Mushy<span>Parfum</span></a>
       <div class="footer-social">
         <a href="https://www.instagram.com/mushy_parfum?igsh=eGd1Ym4yNGVkaG9t" target="_blank" rel="noopener" aria-label="Instagram">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -146,13 +155,13 @@
     <nav class="footer-links">
       <a href="colecao.html">Coleções</a>
       <a href="sobre.html">Sobre</a>
-      <a href="#">Envio</a>
-      <a href="#">Devoluções</a>
-      <a href="#">Política de Privacidade</a>
+      <a href="politicas.html#envio">Envio</a>
+      <a href="politicas.html#devolucoes">Devoluções</a>
+      <a href="politicas.html#privacidade">Política de Privacidade</a>
     </nav>
   </div>
   <div class="container footer-bottom">
-    <span>© 2026 Mushy Perfume. Todos os direitos reservados.</span>
+    <span>© 2026 Mushy Parfum. Todos os direitos reservados.</span>
     <span>Feito com carinho para quem ama perfumaria.</span>
   </div>
 </footer>
@@ -185,12 +194,8 @@
       <span>Total</span>
       <strong id="cartTotal">0,00 Kz</strong>
     </div>
-    <div class="checkout-details">
-      <input type="text" id="checkoutName" class="checkout-input" placeholder="Seu nome">
-      <input type="tel" id="checkoutPhone" class="checkout-input" placeholder="Seu contacto">
-    </div>
-    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar no WhatsApp</a>
-    <p class="cart-note">Pagamento e entrega combinados pelo WhatsApp.</p>
+    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar Compra</a>
+    <p class="cart-note">Pagamento por transferência bancária.</p>
   </div>
 </aside>
 
@@ -219,9 +224,68 @@
   </div>
 </div>
 
+<div class="checkout-overlay" id="checkoutOverlay">
+  <div class="checkout-modal">
+    <button class="pd-close" id="checkoutClose" aria-label="Fechar">&times;</button>
+
+    <div class="checkout-step" id="checkoutStepAuth">
+      <h2>Entre para continuar</h2>
+      <p class="checkout-step-sub">Você precisa estar conectado para finalizar o pedido.</p>
+      <div class="account-tabs">
+        <button type="button" class="account-tab active" data-checkout-tab="login">Entrar</button>
+        <button type="button" class="account-tab" data-checkout-tab="register">Criar conta</button>
+      </div>
+      <div id="checkoutAuthAlert"></div>
+      <form id="checkoutLoginForm" class="account-form-panel active">
+        <div class="account-field"><label>E-mail</label><input type="email" id="ckLoginEmail" required></div>
+        <div class="account-field"><label>Senha</label><input type="password" id="ckLoginPassword" required></div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      </form>
+      <form id="checkoutRegisterForm" class="account-form-panel">
+        <div class="account-field"><label>Nome completo</label><input type="text" id="ckRegName" required></div>
+        <div class="account-field"><label>E-mail</label><input type="email" id="ckRegEmail" required></div>
+        <div class="account-field"><label>Senha</label><input type="password" id="ckRegPassword" minlength="6" required></div>
+        <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+      </form>
+    </div>
+
+    <div class="checkout-step" id="checkoutStepPayment">
+      <h2>Pagamento por transferência</h2>
+      <p class="checkout-step-sub">Transfira o valor total e envie o comprovativo abaixo.</p>
+      <div class="payment-details">
+        <div><span>Banco</span><strong id="pdBankName">—</strong></div>
+        <div><span>Titular</span><strong id="pdAccountHolder">—</strong></div>
+        <div><span>IBAN / Conta</span><strong id="pdAccountNumber">—</strong></div>
+        <div><span>Valor a transferir</span><strong id="pdAmount">—</strong></div>
+      </div>
+      <div id="checkoutPaymentAlert"></div>
+      <form id="checkoutPaymentForm">
+        <div class="checkout-details">
+          <input type="text" id="ckName" class="checkout-input" placeholder="Seu nome" required>
+          <input type="tel" id="ckPhone" class="checkout-input" placeholder="Seu contacto" required>
+        </div>
+        <label class="receipt-upload" for="ckReceipt">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF)</span>
+        </label>
+        <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn">Confirmar pedido</button>
+      </form>
+    </div>
+
+    <div class="checkout-step" id="checkoutStepDone">
+      <div class="checkout-success-icon">✓</div>
+      <h2>Pedido confirmado!</h2>
+      <p class="checkout-step-sub">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
+      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn">Concluir</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/products.js"></script>
 <script src="js/main.js"></script>
+<script src="js/checkout.js"></script>
 </body>
 </html>

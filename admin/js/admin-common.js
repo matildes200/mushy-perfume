@@ -21,6 +21,16 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+// Mobile sidebar: hamburger toggles the nav + account section open/closed.
+document.getElementById("adminMobileToggle")?.addEventListener("click", () => {
+  document.querySelector(".admin-sidebar")?.classList.toggle("open");
+});
+// Closing the drawer after picking a destination avoids it staying open
+// (and blocking the page) once the next page loads with the same class state.
+document.querySelector(".admin-nav")?.addEventListener("click", (e) => {
+  if (e.target.closest("a")) document.querySelector(".admin-sidebar")?.classList.remove("open");
+});
+
 function renderBarChart(el, points, formatValue = money) {
   const max = Math.max(1, ...points.map((p) => p.value));
   el.innerHTML = points

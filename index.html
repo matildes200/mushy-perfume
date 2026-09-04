@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mushy Perfume | Perfumaria Fina</title>
-<meta name="description" content="Mushy Perfume — perfumes importados e nacionais selecionados. Fragrâncias masculinas, femininas e unissex.">
+<title>Mushy Parfum | Perfumaria Fina</title>
+<meta name="description" content="Mushy Parfum — perfumes importados e nacionais selecionados. Fragrâncias masculinas, femininas e unissex.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,21 +14,15 @@
 
 <header class="site-header" id="siteHeader">
   <div class="container header-inner">
-    <a href="#topo" class="logo">Mushy<span>Perfume</span></a>
+    <a href="#topo" class="logo">Mushy<span>Parfum</span></a>
 
     <nav class="main-nav" id="mainNav">
-      <a href="colecao.html">Coleções</a>
-      <a href="sobre.html">Sobre</a>
-      <a href="#contato">Contato</a>
+      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Coleções</a>
+      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> Sobre</a>
+      <a href="#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> Contato</a>
     </nav>
 
     <div class="header-actions">
-      <button class="icon-btn" id="searchBtn" aria-label="Buscar">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      </button>
-      <a href="conta.html" class="icon-btn" id="accountBtn" aria-label="Minha conta">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-      </a>
       <button class="icon-btn" id="wishlistBtn" aria-label="Abrir favoritos">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span class="badge-count" id="wishlistCount">0</span>
@@ -37,6 +31,21 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
         <span class="badge-count" id="cartCount">0</span>
       </button>
+      <div class="more-menu">
+        <button class="icon-btn more-btn" id="moreBtn" aria-label="Mais opções" aria-haspopup="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="more-menu-panel" id="moreMenuPanel">
+          <button class="more-menu-item" id="searchBtn" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+            <span>Buscar</span>
+          </button>
+          <a href="conta.html" class="more-menu-item" id="accountBtn" aria-label="Minha conta">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+            <span>Minha conta</span>
+          </a>
+        </div>
+      </div>
       <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menu">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
@@ -67,8 +76,8 @@
   <section class="featured reveal" id="destaque">
     <div class="container">
       <div class="section-head">
-        <h2>Coleção Assinatura</h2>
-        <p>As fragrâncias que definem a Mushy Perfume</p>
+        <h2>Nossa Seleção</h2>
+        <p>Perfumes escolhidos a dedo pela nossa equipe</p>
       </div>
       <div class="featured-grid" id="featuredGrid"></div>
     </div>
@@ -77,7 +86,7 @@
   <section class="historia reveal" id="historia">
     <div class="container historia-inner">
       <div class="historia-media">
-        <img src="img/hero-mobile-bg.png" alt="Frasco Mushy Perfume em destaque" loading="lazy">
+        <img src="img/hero-mobile-bg.png" alt="Frasco Mushy Parfum em destaque" loading="lazy">
       </div>
       <div class="historia-content">
         <p class="eyebrow">Sobre nós</p>
@@ -110,38 +119,40 @@
         <h2>Descubra as Fragrâncias</h2>
         <p>Conheça as notas aromáticas que compõem cada perfume e descubra a essência por trás de cada fragrância.</p>
       </div>
-      <div class="notas-grid">
-        <div class="notas-col">
-          <h3>Notas de Saída</h3>
-          <p>Os primeiros aromas que sentimos ao aplicar o perfume.</p>
-          <ul>
-            <li>Bergamota</li>
-            <li>Limão Siciliano</li>
-            <li>Hortelã</li>
-            <li>Chá Verde</li>
-          </ul>
-        </div>
-        <div class="notas-divider" aria-hidden="true"></div>
-        <div class="notas-col">
-          <h3>Notas de Coração</h3>
-          <p>Os aromas que revelam a verdadeira personalidade da fragrância.</p>
-          <ul>
-            <li>Rosa</li>
-            <li>Jasmim</li>
-            <li>Orquídea</li>
-            <li>Framboesa</li>
-          </ul>
-        </div>
-        <div class="notas-divider" aria-hidden="true"></div>
-        <div class="notas-col">
-          <h3>Notas de Fundo</h3>
-          <p>Os aromas que permanecem na pele e dão profundidade ao perfume.</p>
-          <ul>
-            <li>Sândalo</li>
-            <li>Âmbar</li>
-            <li>Baunilha</li>
-            <li>Almíscar</li>
-          </ul>
+      <div class="notas-card">
+        <div class="notas-grid" id="notasGrid">
+          <div class="notas-col">
+            <h3>Notas de Saída</h3>
+            <p>Os primeiros aromas que sentimos ao aplicar o perfume.</p>
+            <ul>
+              <li>Bergamota</li>
+              <li>Limão Siciliano</li>
+              <li>Hortelã</li>
+              <li>Chá Verde</li>
+            </ul>
+          </div>
+          <div class="notas-divider" aria-hidden="true"></div>
+          <div class="notas-col">
+            <h3>Notas de Coração</h3>
+            <p>Os aromas que revelam a verdadeira personalidade da fragrância.</p>
+            <ul>
+              <li>Rosa</li>
+              <li>Jasmim</li>
+              <li>Orquídea</li>
+              <li>Framboesa</li>
+            </ul>
+          </div>
+          <div class="notas-divider" aria-hidden="true"></div>
+          <div class="notas-col">
+            <h3>Notas de Fundo</h3>
+            <p>Os aromas que permanecem na pele e dão profundidade ao perfume.</p>
+            <ul>
+              <li>Sândalo</li>
+              <li>Âmbar</li>
+              <li>Baunilha</li>
+              <li>Almíscar</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -152,7 +163,7 @@
       <div class="section-head">
         <h2>Experiências reais</h2>
       </div>
-      <div class="reviews-grid">
+      <div class="reviews-grid" id="reviewsGrid">
         <div class="review-card">
           <div class="stars">★★★★★</div>
           <p>"Essa fragrância é inesquecível."</p>
@@ -162,6 +173,16 @@
           <div class="stars">★★★★★</div>
           <p>"Só a embalagem já parece um luxo."</p>
           <span>— Tiago R.</span>
+        </div>
+        <div class="review-card">
+          <div class="stars">★★★★★</div>
+          <p>"Atendimento impecável e entrega rápida. Já virei cliente fiel."</p>
+          <span>— Ana P.</span>
+        </div>
+        <div class="review-card">
+          <div class="stars">★★★★★</div>
+          <p>"Recebi tantos elogios no primeiro dia que já pedi outro frasco."</p>
+          <span>— Bruno C.</span>
         </div>
       </div>
     </div>
@@ -190,7 +211,7 @@
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.38a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.8-.11-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.65.5.24.58.82 2 .89 2.15.07.15.12.32.02.51-.1.19-.15.31-.3.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.75 1.24 1.61 2.01 1.11 1 2.05 1.31 2.34 1.46.29.15.46.13.63-.08.17-.2.72-.84.91-1.13.19-.29.38-.24.63-.14.26.1 1.64.77 1.92.91.29.15.48.22.55.34.07.13.07.75-.17 1.43z"/></svg>
           <span>WhatsApp</span>
         </a>
-        <a href="mailto:contato@mushyperfume.com.br" class="contato-card">
+        <a href="mailto:contato@mushyparfum.com.br" class="contato-card">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg>
           <span>E-mail</span>
         </a>
@@ -207,7 +228,7 @@
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <a href="#topo" class="logo">Mushy<span>Perfume</span></a>
+      <a href="#topo" class="logo">Mushy<span>Parfum</span></a>
       <div class="footer-social">
         <a href="https://www.instagram.com/mushy_parfum?igsh=eGd1Ym4yNGVkaG9t" target="_blank" rel="noopener" aria-label="Instagram">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -223,13 +244,13 @@
     <nav class="footer-links">
       <a href="colecao.html">Coleções</a>
       <a href="sobre.html">Sobre</a>
-      <a href="#">Envio</a>
-      <a href="#">Devoluções</a>
-      <a href="#">Política de Privacidade</a>
+      <a href="politicas.html#envio">Envio</a>
+      <a href="politicas.html#devolucoes">Devoluções</a>
+      <a href="politicas.html#privacidade">Política de Privacidade</a>
     </nav>
   </div>
   <div class="container footer-bottom">
-    <span>© 2026 Mushy Perfume. Todos os direitos reservados.</span>
+    <span>© 2026 Mushy Parfum. Todos os direitos reservados.</span>
     <span>Feito com carinho para quem ama perfumaria.</span>
   </div>
 </footer>
@@ -262,12 +283,8 @@
       <span>Total</span>
       <strong id="cartTotal">0,00 Kz</strong>
     </div>
-    <div class="checkout-details">
-      <input type="text" id="checkoutName" class="checkout-input" placeholder="Seu nome">
-      <input type="tel" id="checkoutPhone" class="checkout-input" placeholder="Seu contacto">
-    </div>
-    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar no WhatsApp</a>
-    <p class="cart-note">Pagamento e entrega combinados pelo WhatsApp.</p>
+    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar Compra</a>
+    <p class="cart-note">Pagamento por transferência bancária.</p>
   </div>
 </aside>
 
@@ -296,9 +313,68 @@
   </div>
 </div>
 
+<div class="checkout-overlay" id="checkoutOverlay">
+  <div class="checkout-modal">
+    <button class="pd-close" id="checkoutClose" aria-label="Fechar">&times;</button>
+
+    <div class="checkout-step" id="checkoutStepAuth">
+      <h2>Entre para continuar</h2>
+      <p class="checkout-step-sub">Você precisa estar conectado para finalizar o pedido.</p>
+      <div class="account-tabs">
+        <button type="button" class="account-tab active" data-checkout-tab="login">Entrar</button>
+        <button type="button" class="account-tab" data-checkout-tab="register">Criar conta</button>
+      </div>
+      <div id="checkoutAuthAlert"></div>
+      <form id="checkoutLoginForm" class="account-form-panel active">
+        <div class="account-field"><label>E-mail</label><input type="email" id="ckLoginEmail" required></div>
+        <div class="account-field"><label>Senha</label><input type="password" id="ckLoginPassword" required></div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      </form>
+      <form id="checkoutRegisterForm" class="account-form-panel">
+        <div class="account-field"><label>Nome completo</label><input type="text" id="ckRegName" required></div>
+        <div class="account-field"><label>E-mail</label><input type="email" id="ckRegEmail" required></div>
+        <div class="account-field"><label>Senha</label><input type="password" id="ckRegPassword" minlength="6" required></div>
+        <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+      </form>
+    </div>
+
+    <div class="checkout-step" id="checkoutStepPayment">
+      <h2>Pagamento por transferência</h2>
+      <p class="checkout-step-sub">Transfira o valor total e envie o comprovativo abaixo.</p>
+      <div class="payment-details">
+        <div><span>Banco</span><strong id="pdBankName">—</strong></div>
+        <div><span>Titular</span><strong id="pdAccountHolder">—</strong></div>
+        <div><span>IBAN / Conta</span><strong id="pdAccountNumber">—</strong></div>
+        <div><span>Valor a transferir</span><strong id="pdAmount">—</strong></div>
+      </div>
+      <div id="checkoutPaymentAlert"></div>
+      <form id="checkoutPaymentForm">
+        <div class="checkout-details">
+          <input type="text" id="ckName" class="checkout-input" placeholder="Seu nome" required>
+          <input type="tel" id="ckPhone" class="checkout-input" placeholder="Seu contacto" required>
+        </div>
+        <label class="receipt-upload" for="ckReceipt">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF)</span>
+        </label>
+        <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn">Confirmar pedido</button>
+      </form>
+    </div>
+
+    <div class="checkout-step" id="checkoutStepDone">
+      <div class="checkout-success-icon">✓</div>
+      <h2>Pedido confirmado!</h2>
+      <p class="checkout-step-sub">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
+      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn">Concluir</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/products.js"></script>
 <script src="js/main.js"></script>
+<script src="js/checkout.js"></script>
 </body>
 </html>
