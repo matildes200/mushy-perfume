@@ -64,13 +64,12 @@ button { font-family: var(--font-body); }
   right: 0;
   z-index: 60;
   background: transparent;
-  border-bottom: 1px solid transparent;
-  transition: background 0.35s ease, border-color 0.35s ease;
+  transition: background 0.35s ease;
+  transform: translateZ(0);
 }
 .site-header.scrolled {
   background: rgba(250, 245, 234, 0.96);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
 }
 
 .header-inner {
@@ -146,6 +145,24 @@ button { font-family: var(--font-body); }
 }
 
 .menu-btn { display: none; }
+
+/* ---------- Overflow ("more") menu: search + account tucked away on mobile ---------- */
+.more-menu { position: relative; display: flex; align-items: center; }
+.more-btn { display: none; }
+.more-menu-panel { display: flex; align-items: center; gap: 4px; }
+.more-menu-item {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--on-hero);
+  transition: opacity 0.2s;
+}
+.more-menu-item:hover { opacity: 0.6; }
+.more-menu-item span { display: none; }
+.site-header.scrolled .more-menu-item { color: var(--text); }
 
 /* ---------- Search bar ---------- */
 .search-bar {
@@ -256,59 +273,33 @@ button { font-family: var(--font-body); }
 .section-head h2 { font-weight: 400; font-size: 30px; margin-bottom: 10px; }
 .section-head p { color: var(--text-muted); font-size: 13.5px; letter-spacing: 0.3px; }
 
-/* ---------- Featured / Signature Collection ---------- */
+/* ---------- Featured / "Nossa Seleção" ---------- */
+/* Shares the .card-flip / .card-face(-front/-back) flip mechanics defined
+   further below with .product-card and .carousel-card, so it flips on tap
+   just like the rest of the catalog. */
 .featured { padding: 110px 0 100px; }
 .featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); }
 .featured-card {
   position: relative;
-  background: var(--surface);
-  border: none;
-  border-radius: 12px;
-  padding: 40px 24px 34px;
-  text-align: center;
-  transition: opacity 0.3s ease;
-}
-.featured-card:hover { opacity: 0.94; }
-
-/* Photo fills the whole card edge-to-edge, with a dark gradient so text stays readable */
-.featured-card.has-image {
   min-height: 520px;
-  display: flex;
-  align-items: flex-end;
-  padding: 0;
-  overflow: hidden;
+  cursor: pointer;
+  perspective: 1400px;
+  transition: transform 0.25s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.featured-card.has-image::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: var(--card-image, none);
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.6s ease;
-  z-index: 0;
+.featured-card:hover { transform: translateY(-2px); }
+.featured-card .card-face-front { display: flex; align-items: flex-end; }
+.featured-card .card-face-front::after {
+  background: linear-gradient(180deg, rgba(38, 26, 15, 0.05) 0%, rgba(38, 26, 15, 0.12) 40%, rgba(38, 26, 15, 0.8) 100%);
 }
-.featured-card.has-image:hover::before { transform: scale(1.04); }
-.featured-card.has-image::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.04) 0%, rgba(38, 26, 15, 0.16) 45%, rgba(38, 26, 15, 0.74) 100%);
-  z-index: 1;
-}
-.featured-body { position: relative; z-index: 2; width: 100%; }
-.featured-card.has-image .featured-body { padding: 0 24px 28px; }
-
-.featured-media { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; }
-.featured-media .bottle-icon { position: relative; width: 68px; height: auto; }
-.featured-media .product-photo { position: relative; width: auto; height: 100%; object-fit: contain; transition: transform 0.4s ease; }
-.featured-card:hover .featured-media .product-photo { transform: scale(1.04); }
-.featured-category { font-size: 10.5px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); }
-.featured-card.has-image .featured-category { color: rgba(251, 243, 228, 0.7); }
-.featured-name { font-family: var(--font-head); font-weight: 400; font-size: 19px; margin: 10px 0 6px; color: var(--text); }
-.featured-card.has-image .featured-name { color: var(--on-hero); }
-.featured-price { color: var(--text-muted); font-family: var(--font-body); font-weight: 400; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 20px; display: block; }
-.featured-card.has-image .featured-price { color: rgba(251, 243, 228, 0.75); }
+.featured-body { position: relative; z-index: 2; width: 100%; padding: 0 24px 26px; }
+.featured-category { font-size: 10.5px; text-transform: uppercase; letter-spacing: 2px; color: rgba(251, 243, 228, 0.75); }
+.featured-name { font-family: var(--font-head); font-weight: 400; font-size: 19px; margin: 10px 0 6px; color: var(--on-hero); }
+.featured-price { color: rgba(251, 243, 228, 0.85); font-family: var(--font-body); font-weight: 400; font-size: 13px; letter-spacing: 0.4px; display: block; }
+.card-face-back .featured-category { color: var(--text-muted); }
+.card-face-back .featured-name { color: var(--text); }
+.card-face-back .featured-price { color: var(--text-muted); }
 
 /* ---------- Brand story ---------- */
 .historia { padding: 120px 0; }
@@ -414,8 +405,31 @@ button { font-family: var(--font-body); }
   cursor: pointer;
   perspective: 1400px;
   transition: transform 0.3s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .carousel-card:hover { transform: translateY(-2px); }
+.carousel-end-card {
+  scroll-snap-align: start;
+  width: 270px;
+  min-height: 510px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  text-align: center;
+  font-size: 12.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s;
+}
+.carousel-end-card:hover { border-color: var(--text); }
+
 .carousel-controls { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 .carousel-controls button {
   width: 42px;
@@ -486,6 +500,8 @@ button { font-family: var(--font-body); }
   cursor: pointer;
   perspective: 1400px;
   transition: transform 0.25s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .product-card:hover { transform: translateY(-2px); }
 
@@ -496,7 +512,7 @@ button { font-family: var(--font-body); }
   transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
   transform-style: preserve-3d;
 }
-.product-card.flipped .card-flip, .carousel-card.flipped .card-flip { transform: rotateY(180deg); }
+.product-card.flipped .card-flip, .carousel-card.flipped .card-flip, .featured-card.flipped .card-flip { transform: rotateY(180deg); }
 
 .card-face {
   position: absolute;
@@ -508,7 +524,7 @@ button { font-family: var(--font-body); }
   overflow: hidden;
   transition: border-color 0.25s;
 }
-.product-card:hover .card-face, .carousel-card:hover .card-face { border-color: var(--text); }
+.product-card:hover .card-face, .carousel-card:hover .card-face, .featured-card:hover .card-face { border-color: var(--text); }
 
 /* Front face: full-bleed photo (or tone-N gradient fallback) + zoom-on-hover layer */
 .card-face-front {
@@ -517,7 +533,7 @@ button { font-family: var(--font-body); }
   background-position: center;
   transition: transform 0.5s ease;
 }
-.product-card:hover .card-face-front, .carousel-card:hover .card-face-front { transform: scale(1.03); }
+.product-card:hover .card-face-front, .carousel-card:hover .card-face-front, .featured-card:hover .card-face-front { transform: scale(1.03); }
 .card-face-front::after {
   content: "";
   position: absolute;
@@ -542,16 +558,45 @@ button { font-family: var(--font-body); }
   pointer-events: none;
 }
 
-/* Back face: full details, revealed after the flip */
+/* Back face: full details, revealed after the flip. The price sits in its
+   own banded row up top (not buried near the button) with a thin gold
+   accent bar along the top edge, since the plain white/centered layout
+   this replaced read as empty and lifeless. */
 .card-face-back {
   transform: rotateY(180deg);
-  background: var(--surface);
+  background: linear-gradient(165deg, var(--surface) 0%, var(--bg-alt) 100%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 26px;
+  padding: 30px 26px 26px;
   text-align: center;
+  gap: 4px;
 }
+.card-face-back::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ink) 0%, #c9a15a 50%, var(--ink) 100%);
+}
+.card-back-price {
+  width: 100%;
+  margin-bottom: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.card-back-price .product-price, .card-back-price .carousel-price, .card-back-price .featured-price {
+  font-family: var(--font-head);
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.card-face-back h3 { font-size: 19px; }
+.card-face-back .product-notes, .card-face-back .carousel-notes { max-width: 220px; }
+.card-face-back .product-footer, .card-face-back .carousel-footer { margin-top: 20px; }
 
 /* Watermark bottle icon shown only when a product has no real photo (tone-N gradient card) */
 .product-card-icon {
@@ -651,6 +696,13 @@ button { font-family: var(--font-body); }
 
 /* ---------- Fragrance notes ---------- */
 .notas { padding: 100px 0; }
+.notas-card {
+  border: 1px solid transparent;
+  border-radius: 18px;
+  padding: 40px 6px 6px;
+  background: linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(120deg, #c9a15a 0%, #f3dfa9 45%, #c9a15a 100%) border-box;
+}
 .notas-grid { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
 .notas-col { flex: 1; min-width: 200px; text-align: center; padding: 0 30px; }
 .notas-col h3 { font-size: 11.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 2.4px; color: var(--text); margin-bottom: 12px; }
@@ -704,6 +756,16 @@ button { font-family: var(--font-body); }
   transition: all 0.2s;
 }
 .contato-card:hover { border-color: var(--text); }
+
+/* ---------- Policies page (Envio / Devoluções / Privacidade) ---------- */
+.policies { padding: 90px 0 110px; }
+.policies-intro { max-width: 640px; margin: 0 auto 60px; text-align: center; }
+.policy-block { max-width: 680px; margin: 0 auto 50px; scroll-margin-top: 100px; }
+.policy-block:last-child { margin-bottom: 0; }
+.policy-block h3 { font-family: var(--font-head); font-weight: 400; font-size: 22px; margin-bottom: 14px; }
+.policy-block p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 14px; }
+.policy-block p:last-child { margin-bottom: 0; }
+.policy-block ul { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin: 0 0 14px; padding-left: 20px; }
 
 /* ---------- Footer ---------- */
 .site-footer { border-top: 1px solid var(--border); padding: 60px 0 26px; }
@@ -950,8 +1012,94 @@ button { font-family: var(--font-body); }
 .cart-total-final { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
 .cart-total-final strong { font-family: var(--font-head); font-size: 17px; color: var(--text); }
 
+/* ---------- Checkout modal (login-gated, bank transfer) ---------- */
+.checkout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(38, 26, 15, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.checkout-overlay.open { opacity: 1; pointer-events: auto; }
+.checkout-modal {
+  position: relative;
+  background: var(--surface);
+  border-radius: 14px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 40px 32px;
+}
+.checkout-modal .pd-close { top: 14px; right: 14px; }
+.checkout-step { display: none; }
+.checkout-step.active { display: block; }
+.checkout-step h2 { font-weight: 400; font-size: 21px; margin-bottom: 8px; text-align: center; }
+.checkout-step-sub { color: var(--text-muted); font-size: 13px; text-align: center; margin-bottom: 26px; }
+
+.payment-details {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.payment-details div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
+.payment-details span { color: var(--text-muted); }
+.payment-details strong { font-weight: 500; color: var(--text); text-align: right; }
+
+.receipt-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.receipt-upload:hover { border-color: var(--ink); color: var(--text); }
+
+.checkout-success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-hero);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  animation: checkout-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes checkout-pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 /* ---------- Page offset (pages without a full-bleed hero) ---------- */
 .page-offset { padding-top: 84px; }
+
+/* ---------- Inline alerts (auth forms, checkout) ----------
+   Mirrors admin/css/admin.css's .admin-alert — reused by js/conta.js and
+   js/checkout.js, neither of which loads the admin stylesheet. */
+.admin-alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; }
+.admin-alert-error { background: rgba(138, 59, 43, 0.1); color: #8a3b2b; }
+.admin-alert-success { background: rgba(74, 124, 89, 0.12); color: #3d6b4c; }
 
 /* ---------- Account (login / register / profile) ---------- */
 .account-section { padding: 90px 0 110px; min-height: 68vh; }
@@ -1003,26 +1151,102 @@ button { font-family: var(--font-body); }
 .account-profile-row span:first-child { color: var(--text-muted); }
 .account-profile-row span:last-child { text-align: right; }
 
+/* ---------- Account: extended profile (stats / orders / favorites / referrals) ---------- */
+.account-extra { max-width: 640px; margin: 30px auto 0; display: flex; flex-direction: column; gap: 20px; }
+.account-block { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 30px 28px; }
+.account-block h3 { font-family: var(--font-head); font-weight: 400; font-size: 18px; margin-bottom: 18px; }
+.account-order-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.account-order-row:last-child { border-bottom: none; }
+.account-order-row .order-status { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+.account-recs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.account-rec-card { display: block; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; text-align: center; padding: 14px 10px; transition: border-color 0.2s; }
+.account-rec-card:hover { border-color: var(--text); }
+.account-rec-card img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; }
+.account-rec-card strong { display: block; font-size: 12.5px; font-weight: 400; margin-bottom: 4px; }
+.account-rec-card span { font-size: 11.5px; color: var(--text-muted); }
+.referral-coupon-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+.referral-coupon-row:last-child { border-bottom: none; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
+  /* Cut down the desktop-sized vertical gaps between sections — they read
+     as broken/empty space on a phone screen. */
+  .featured { padding: 60px 0 50px; }
+  .bestsellers { padding: 54px 0 44px; }
+  .notas { padding: 54px 0; }
+  .reviews { padding: 54px 0; }
+  .newsletter { padding: 60px 0; }
+  .contato { padding: 54px 0; }
+  .processo { padding: 60px 0; }
+  .valores { padding: 56px 0; }
+  .colecao-banner { padding: 70px 0 48px; margin-bottom: 36px; }
+  .sobre-banner-body { padding: 44px 0 60px; }
+  .section-head { margin-bottom: 30px; }
+
   .main-nav {
     position: absolute;
-    top: 84px;
-    left: 0;
-    right: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
+    top: calc(100% + 10px);
+    left: 16px;
+    right: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(38, 26, 15, 0.16);
     flex-direction: column;
-    padding: 18px 24px;
-    gap: 16px;
+    padding: 10px;
+    gap: 2px;
     display: none;
   }
   .main-nav.open { display: flex; }
-  .main-nav a { color: var(--text-muted); }
+  .main-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+    padding: 13px 14px;
+    border-radius: 9px;
+    letter-spacing: 1px;
+  }
+  .main-nav a svg { flex-shrink: 0; color: var(--ink); }
+  .main-nav a:hover { background: var(--bg-alt); }
   .menu-btn { display: flex; }
   .header-actions { gap: 0; }
   .icon-btn { width: 36px; height: 36px; }
   .logo { font-size: 17px; }
+
+  #searchBtn, #accountBtn { display: none; }
+  .more-btn { display: flex; }
+  .more-menu-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(38, 26, 15, 0.16);
+    padding: 8px;
+    min-width: 190px;
+    gap: 2px;
+    z-index: 80;
+  }
+  .more-menu-panel.open { display: flex; }
+  .more-menu-item {
+    width: auto;
+    height: auto;
+    border-radius: 9px;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 13px 14px;
+    color: var(--text) !important;
+    font-size: 13.5px;
+    letter-spacing: 0.4px;
+  }
+  .more-menu-item:hover { background: var(--bg-alt); opacity: 1; }
+  .more-menu-item span { display: inline; }
+  .more-menu-item svg { flex-shrink: 0; color: var(--ink); }
 
   .hero { min-height: 68vh; align-items: flex-end; }
   .hero-inner { padding-top: 70px; padding-bottom: 56px; }
@@ -1035,8 +1259,52 @@ button { font-family: var(--font-body); }
 
   .featured-grid { grid-template-columns: 1fr; }
 
-  .historia-inner { grid-template-columns: 1fr; gap: 30px; }
-  .historia-media img { height: 300px; }
+  /* A dense grid so several perfumes are visible at once, instead of one
+     giant card filling the whole screen per scroll. */
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .product-card { min-height: 280px; }
+  .card-flip-hint { font-size: 8.5px; top: 10px; left: 12px; right: 42px; height: 26px; letter-spacing: 1px; }
+  .wishlist-btn { width: 28px; height: 28px; top: 8px; right: 8px; }
+  .wishlist-btn svg { width: 13px; height: 13px; }
+  .card-face-front .stock-badge { top: 40px; font-size: 9px; padding: 4px 8px; }
+  .card-face-back { padding: 16px 12px 14px; gap: 2px; }
+  .card-face-back h3 { font-size: 13.5px; margin: 3px 0 2px; }
+  .card-back-price { margin-bottom: 6px; padding-bottom: 8px; }
+  .card-back-price .product-price, .card-back-price .carousel-price, .card-back-price .featured-price { font-size: 15px; }
+  .card-face-back .product-notes, .card-face-back .carousel-notes {
+    font-size: 10.5px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-face-back .product-footer, .card-face-back .carousel-footer { margin-top: 10px; }
+  .card-face-back .btn-small { padding: 8px 16px; font-size: 9.5px; }
+
+  /* Full-bleed photo with the story text overlaid on top, instead of a
+     stacked image-then-gap-then-text layout with dead white space between. */
+  .historia { padding: 0; }
+  .historia-inner { position: relative; display: block; min-height: 82vh; gap: 0; }
+  .historia-media { position: absolute; inset: 0; }
+  .historia-media img { height: 100%; }
+  .historia-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(38, 26, 15, 0.08) 0%, rgba(38, 26, 15, 0.18) 45%, rgba(38, 26, 15, 0.84) 100%);
+  }
+  .historia-content {
+    position: relative;
+    z-index: 1;
+    min-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 24px 50px;
+  }
+  .historia-content .eyebrow, .historia-content h2 { color: var(--on-hero); }
+  .historia-content p { color: rgba(251, 243, 228, 0.85); max-width: none; }
+  .historia-content .btn-outline-gold { align-self: flex-start; }
   .sobre-stats { gap: 26px; flex-wrap: wrap; }
 
   .sobre-banner-media { height: 48vh; min-height: 340px; }
@@ -1049,10 +1317,41 @@ button { font-family: var(--font-body); }
   .processo-media img { height: 320px; }
   .processo-quote, .processo-content h2, .processo-content p { max-width: none; }
 
-  .notas-grid { flex-direction: column; gap: 34px; }
+  /* Both "Descubra as Fragrâncias" and "Experiências reais" become
+     swipeable, center-snapped strips on mobile instead of a stacked column
+     (notas) or a cramped 1-col grid (reviews) — see js/main.js for the
+     idle-autoplay behavior on the reviews strip. */
+  .notas-card { padding: 30px 0 4px; border-radius: 16px; }
+  .notas-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    gap: 0;
+    padding-bottom: 26px;
+  }
+  .notas-grid::-webkit-scrollbar { display: none; }
+  .notas-col { flex: 0 0 84%; scroll-snap-align: center; }
   .notas-divider { display: none; }
 
-  .reviews-grid { grid-template-columns: 1fr; }
+  /* Center-snap carousel: the active card sits in the middle with the next
+     one peeking on each side, instead of stacking flush against the left edge. */
+  .carousel-track { gap: 16px; padding: 30px calc(50% - 118px) 10px; }
+  .carousel-card, .carousel-end-card { width: 236px; min-height: 420px; scroll-snap-align: center; }
+  .carousel-controls { justify-content: center; }
+
+  .reviews-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    gap: 14px;
+    padding: 4px 6vw 6px;
+    background: none;
+  }
+  .reviews-grid::-webkit-scrollbar { display: none; }
+  .review-card { flex: 0 0 82%; scroll-snap-align: center; border-radius: 12px; }
 
   .newsletter-form { flex-direction: column; }
   .newsletter-inner { padding: 44px 26px; }
@@ -1063,4 +1362,7 @@ button { font-family: var(--font-body); }
 
   .account-card { padding: 32px 22px; }
   .phone-field { grid-template-columns: 108px 1fr; }
+
+  .checkout-modal { padding: 30px 22px; }
+  .checkout-details { grid-template-columns: 1fr; }
 }

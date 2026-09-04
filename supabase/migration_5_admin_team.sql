@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Perfume — Manage admins/staff from the dashboard
+-- Mushy Parfum — Manage admins/staff from the dashboard
 -- Run after migration_4_coupon_redemption.sql.
 -- ============================================================
 

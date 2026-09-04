@@ -9,11 +9,16 @@ const productFormAlert = document.getElementById("productFormAlert");
 
 const textFields = [
   "name", "brand", "sku", "short_description", "description",
-  "category", "fragrance_family", "concentration", "tone",
+  "category", "fragrance_family", "concentration",
   "notes", "notes_top", "notes_heart", "notes_base", "image",
 ];
 const numberFields = ["price", "discount_percent", "volume_ml", "stock", "low_stock_threshold"];
 const checkboxFields = ["active", "featured", "bestseller", "new_arrival"];
+
+function resolveAdminImageSrc(path) {
+  if (!path) return "";
+  return /^https?:\/\//i.test(path) ? path : `../${path}`;
+}
 
 function showAlert(el, message, type = "error") {
   el.innerHTML = message ? `<div class="admin-alert admin-alert-${type === "error" ? "error" : "success"}">${escapeHtml(message)}</div>` : "";
@@ -42,6 +47,16 @@ function openModal(product) {
   });
   document.getElementById("images").value = (product?.images || []).join("\n");
 
+  document.getElementById("imageFile").value = "";
+  document.getElementById("imageUploadStatus").textContent = "";
+  const previewWrap = document.getElementById("imagePreviewWrap");
+  if (product?.image) {
+    document.getElementById("imagePreview").src = resolveAdminImageSrc(product.image);
+    previewWrap.style.display = "block";
+  } else {
+    previewWrap.style.display = "none";
+  }
+
   modalOverlay.classList.add("open");
 }
 
@@ -58,6 +73,34 @@ document.getElementById("sale_price").addEventListener("input", (e) => {
   }
 });
 
+document.getElementById("imageFile").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById("imageUploadStatus");
+  const previewWrap = document.getElementById("imagePreviewWrap");
+  const previewImg = document.getElementById("imagePreview");
+
+  statusEl.textContent = "Enviando imagem…";
+  const ext = file.name.split(".").pop().toLowerCase();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from("product-images")
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+
+  if (uploadError) {
+    statusEl.textContent = "Não foi possível enviar a imagem. Tente novamente.";
+    return;
+  }
+
+  const { data } = supabaseClient.storage.from("product-images").getPublicUrl(path);
+  document.getElementById("image").value = data.publicUrl;
+  previewImg.src = data.publicUrl;
+  previewWrap.style.display = "block";
+  statusEl.textContent = "Imagem enviada.";
+});
+
 function productStatus(p) {
   if (p.active === false) return { label: "Oculto", cls: "pill-inactive" };
   if ((p.stock ?? 0) <= 0) return { label: "Esgotado", cls: "pill-inactive" };
@@ -72,7 +115,7 @@ function renderRow(p) {
     : money(p.price);
   return `
     <tr data-id="${p.id}">
-      <td>${p.image ? `<img class="admin-table-thumb" src="../${escapeHtml(p.image)}" alt="">` : ""}</td>
+      <td>${p.image ? `<img class="admin-table-thumb" src="${escapeHtml(resolveAdminImageSrc(p.image))}" alt="">` : ""}</td>
       <td class="wrap">${escapeHtml(p.name)}${p.brand ? `<br><span style="color:var(--text-muted);font-size:11.5px;">${escapeHtml(p.brand)}</span>` : ""}</td>
       <td>${escapeHtml(p.category)}</td>
       <td>${priceCell}</td>
