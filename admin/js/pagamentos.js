@@ -14,6 +14,7 @@ async function loadPaymentSettings() {
   document.getElementById("bank_name").value = data?.bank_name || "";
   document.getElementById("account_holder").value = data?.account_holder || "";
   document.getElementById("account_number").value = data?.account_number || "";
+  document.getElementById("express_phone").value = data?.express_phone || "";
 }
 
 paymentForm.addEventListener("submit", async (e) => {
@@ -27,6 +28,7 @@ paymentForm.addEventListener("submit", async (e) => {
     bank_name: document.getElementById("bank_name").value.trim(),
     account_holder: document.getElementById("account_holder").value.trim(),
     account_number: document.getElementById("account_number").value.trim(),
+    express_phone: document.getElementById("express_phone").value.trim(),
     updated_at: new Date().toISOString(),
   };
 

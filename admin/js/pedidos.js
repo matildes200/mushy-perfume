@@ -7,11 +7,20 @@ const orderModalAlert = document.getElementById("orderModalAlert");
 
 const PIPELINE = ["pending", "confirmed", "processing", "shipped", "delivered"];
 
+const PAYMENT_STATUS_LABELS = {
+  pending: "Pendente de Verificação",
+  paid: "Pagamento Confirmado",
+  failed: "Pagamento Recusado",
+  refunded: "Reembolsado",
+};
+const PAYMENT_STATUS_PILL = { pending: "pill-pending", paid: "pill-active", failed: "pill-inactive", refunded: "pill-inactive" };
+
 function showOrdersAlert(message, type = "error") {
   ordersAlert.innerHTML = message ? `<div class="admin-alert admin-alert-${type}">${escapeHtml(message)}</div>` : "";
 }
 
 function renderOrderRow(o) {
+  const paymentStatus = o.payment_status || "pending";
   return `
     <tr data-id="${o.id}">
       <td>${orderCode(o.id)}</td>
@@ -19,7 +28,7 @@ function renderOrderRow(o) {
       <td>${formatDate(o.created_at)}</td>
       <td>${(o.items || []).length}</td>
       <td>${money(o.total)}</td>
-      <td><span class="pill ${o.payment_status === "paid" ? "pill-active" : "pill-inactive"}">${o.payment_status || "pending"}</span></td>
+      <td><span class="pill ${PAYMENT_STATUS_PILL[paymentStatus] || "pill-pending"}">${PAYMENT_STATUS_LABELS[paymentStatus] || paymentStatus}</span></td>
       <td>${o.delivery_status || "pending"}</td>
       <td><span class="status-${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
       <td><button class="btn-admin btn-admin-outline" data-open="${o.id}">Ver</button></td>

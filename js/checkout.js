@@ -34,13 +34,34 @@ async function enterPaymentStep() {
   document.getElementById("pdBankName").textContent = settings?.bank_name || "A combinar";
   document.getElementById("pdAccountHolder").textContent = settings?.account_holder || "A combinar";
   document.getElementById("pdAccountNumber").textContent = settings?.account_number || "A combinar";
+  document.getElementById("pdExpressPhone").textContent = settings?.express_phone || "A combinar";
 
   const subtotal = cartSubtotal();
   const discount = couponDiscountAmount(subtotal);
   document.getElementById("pdAmount").textContent = money(Math.max(0, subtotal - discount));
 
+  resetPaymentMethodTabs();
   showCheckoutStep(checkoutStepPayment);
 }
+
+// ---------- Payment method selection ----------
+function resetPaymentMethodTabs() {
+  const tabs = document.querySelectorAll(".payment-method-tab");
+  tabs.forEach((t) => t.classList.toggle("active", t.dataset.method === "Transferência Bancária"));
+  document.getElementById("ckPaymentMethod").value = "Transferência Bancária";
+  document.getElementById("paymentRowsBank").hidden = false;
+  document.getElementById("paymentRowsExpress").hidden = true;
+}
+
+document.querySelectorAll(".payment-method-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".payment-method-tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("ckPaymentMethod").value = tab.dataset.method;
+    document.getElementById("paymentRowsBank").hidden = tab.dataset.method !== "Transferência Bancária";
+    document.getElementById("paymentRowsExpress").hidden = tab.dataset.method !== "Express";
+  });
+});
 
 async function openCheckout() {
   if (!checkoutOverlay || Object.keys(cart).length === 0) return;
@@ -55,6 +76,22 @@ checkoutBtn?.addEventListener("click", (e) => {
   e.preventDefault();
   openCheckout();
 });
+
+// Calls a Supabase Edge Function (send-order-confirmation) that emails and/or
+// texts the customer their order confirmation. The order is already saved by
+// the time this runs, so a missing/undeployed function never blocks checkout
+// — see supabase/functions/send-order-confirmation for the function itself
+// and what it needs to actually send anything.
+async function notifyOrderConfirmation(order, email, name, phone) {
+  if (!order) return;
+  try {
+    await supabaseClient.functions.invoke("send-order-confirmation", {
+      body: { order_id: order.id, email, name, phone },
+    });
+  } catch (err) {
+    console.warn("Confirmação de pedido não enviada (função ainda não configurada):", err);
+  }
+}
 
 document.getElementById("checkoutClose")?.addEventListener("click", closeCheckout);
 checkoutOverlay?.addEventListener("click", (e) => { if (e.target === checkoutOverlay) closeCheckout(); });
@@ -85,6 +122,25 @@ document.getElementById("checkoutLoginForm")?.addEventListener("submit", async (
   const password = document.getElementById("ckLoginPassword").value;
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   btn.disabled = false;
+
+  // See js/conta.js for why "email not confirmed" needs its own message
+  // instead of falling into the generic wrong-password case.
+  if (error?.message?.toLowerCase().includes("email not confirmed")) {
+    showCheckoutAuthAlert(
+      `Sua conta ainda não foi confirmada. Verifique seu e-mail ou <a href="#" id="ckResendConfirmLink" style="text-decoration:underline;">reenvie a confirmação</a>.`,
+      "error"
+    );
+    document.getElementById("ckResendConfirmLink")?.addEventListener("click", async (evt) => {
+      evt.preventDefault();
+      const { error: resendError } = await supabaseClient.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/conta.html` },
+      });
+      showCheckoutAuthAlert(resendError ? "Não foi possível reenviar o e-mail. Tente novamente." : "E-mail de confirmação reenviado! Verifique sua caixa de entrada.", resendError ? "error" : "success");
+    });
+    return;
+  }
 
   if (error || !data.session) {
     showCheckoutAuthAlert("E-mail ou senha incorretos.");
@@ -130,10 +186,15 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
 });
 
 // ---------- Payment step ----------
+// The submit button starts disabled (see the HTML) and only becomes
+// clickable once a receipt is actually attached — the mandatory-upload
+// rule is enforced by the control itself, not just a submit-time check.
 document.getElementById("ckReceipt")?.addEventListener("change", (e) => {
   const file = e.target.files?.[0];
   const label = document.getElementById("ckReceiptLabel");
-  if (label) label.textContent = file ? file.name : "Enviar comprovativo (imagem ou PDF)";
+  if (label) label.textContent = file ? file.name : "Enviar comprovativo (imagem ou PDF) — obrigatório";
+  const submitBtn = document.getElementById("ckSubmitBtn");
+  if (submitBtn) submitBtn.disabled = !file;
 });
 
 function showCheckoutPaymentAlert(message, type = "error") {
@@ -148,6 +209,7 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
 
   const name = document.getElementById("ckName").value.trim();
   const phone = document.getElementById("ckPhone").value.trim();
+  const paymentMethod = document.getElementById("ckPaymentMethod").value;
   const file = document.getElementById("ckReceipt").files?.[0];
   if (!name || !phone) {
     showCheckoutPaymentAlert("Preencha seu nome e contacto.");
@@ -171,12 +233,12 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     const { error: uploadError } = await supabaseClient.storage.from("receipts").upload(path, file);
     if (uploadError) throw uploadError;
 
-    await logOrder(name, phone, path);
+    const order = await logOrder(name, phone, path, paymentMethod);
+    await notifyOrderConfirmation(order, session.user.email, name, phone);
     showCheckoutStep(checkoutStepDone);
   } catch (err) {
     console.error("Falha ao finalizar pedido:", err);
     showCheckoutPaymentAlert("Não foi possível enviar seu pedido. Tente novamente.");
-  } finally {
     btn.disabled = false;
   }
 });
@@ -187,6 +249,8 @@ document.getElementById("checkoutDoneBtn")?.addEventListener("click", () => {
   updateCartUI();
   closeCheckout();
   document.getElementById("checkoutPaymentForm")?.reset();
+  resetPaymentMethodTabs();
   const label = document.getElementById("ckReceiptLabel");
-  if (label) label.textContent = "Enviar comprovativo (imagem ou PDF)";
+  if (label) label.textContent = "Enviar comprovativo (imagem ou PDF) — obrigatório";
+  document.getElementById("ckSubmitBtn").disabled = true;
 });

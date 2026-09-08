@@ -133,6 +133,7 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .pill-active { background: rgba(74, 124, 89, 0.14); color: #3d6b4c; }
 .pill-inactive { background: rgba(138, 59, 43, 0.12); color: #8a3b2b; }
 .pill-low { background: rgba(138, 59, 43, 0.12); color: #8a3b2b; }
+.pill-pending { background: rgba(180, 140, 60, 0.16); color: #8a6a1f; }
 
 .status-select {
   border: 1px solid var(--border);

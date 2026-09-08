@@ -54,7 +54,7 @@
   <div id="paymentAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Dados para transferência</h2></div>
+    <div class="admin-panel-head"><h2>Transferência bancária</h2></div>
     <form id="paymentForm" style="padding:24px;">
       <div class="form-grid">
         <div class="form-field span-2">
@@ -70,6 +70,15 @@
           <input type="text" id="account_number" placeholder="AO06 0000 0000 0000 0000 0000 0">
         </div>
       </div>
+
+      <h3 class="form-section">Express</h3>
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="express_phone">Número de telefone Express</label>
+          <input type="text" id="express_phone" placeholder="9XX XXX XXX">
+        </div>
+      </div>
+
       <div class="modal-actions" style="justify-content:flex-start;">
         <button type="submit" class="btn-admin" id="savePaymentBtn">Salvar</button>
       </div>

@@ -1,3 +1,5 @@
+const WHATSAPP_NUMBER = "5511999999999"; // TODO: substitua pelo número real da loja
+
 // Referral links point to conta.html?ref=CODE; the code is stashed until the
 // visitor actually finishes creating an account (see showProfile() in conta.js).
 const refParam = new URLSearchParams(window.location.search).get("ref");
@@ -144,84 +146,56 @@ function mediaContent(p) {
     : bottleIcon();
 }
 
-function productCardTemplate(p) {
+const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+// "Floral · Feminino" — whichever of these two pieces of metadata exist.
+// fragrance_family is admin-entered free text and often blank on older
+// products, so this degrades gracefully to just the category, or nothing.
+function familyLabel(p) {
+  return [p.fragrance_family, p.category ? capitalize(p.category) : null].filter(Boolean).join(" · ");
+}
+
+// Only ever one badge (never both at once, to avoid cluttering the corner),
+// and only when the product's own flag supports it — never hard-coded.
+function badgeMarkup(p) {
+  if (p.bestseller) return `<span class="perfume-badge badge-bestseller">Mais Vendido</span>`;
+  if (p.new_arrival) return `<span class="perfume-badge badge-new">Novidade</span>`;
+  return "";
+}
+
+// Shared by .product-card / .carousel-card / .featured-card: a bordered
+// image panel (zoom on hover) plus a body where name/family/description/
+// price stay visible at all times — no flip, nothing hidden behind hover.
+function perfumeCardTemplate(p, wrapClass, addLabel) {
   const toneClass = p.image ? "" : ` ${p.tone}`;
   const style = p.image ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
+  const description = p.short_description || p.notes || "";
+  const family = familyLabel(p);
   return `
-    <article class="product-card">
-      <div class="card-flip">
-        <div class="card-face card-face-front${toneClass}"${style}>
-          ${wishlistHeart(p.id)}
-          ${stockBadge(p)}
+    <article class="${wrapClass}" data-open="${p.id}">
+      <div class="perfume-card-media-wrap">
+        <div class="perfume-card-media${toneClass}"${style}>
           ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
-          <span class="card-flip-hint">Toque para ver detalhes</span>
         </div>
-        <div class="card-face card-face-back">
-          <div class="card-back-price">${priceMarkup(p, "product-price")}</div>
-          <span class="product-category">${p.category}</span>
-          <h3>${p.name}</h3>
-          <p class="product-notes">${p.notes}</p>
-          <div class="product-footer">
-            ${addButton(p, "Adicionar")}
-          </div>
+        ${badgeMarkup(p)}
+        ${stockBadge(p)}
+        ${wishlistHeart(p.id)}
+      </div>
+      <div class="perfume-card-body">
+        ${family ? `<span class="perfume-card-family">${family}</span>` : ""}
+        <h3 class="perfume-card-name">${p.name}</h3>
+        ${description ? `<p class="perfume-card-desc">${description}</p>` : ""}
+        <div class="perfume-card-footer">
+          ${priceMarkup(p, "perfume-card-price")}
+          ${addButton(p, addLabel)}
         </div>
       </div>
     </article>`;
 }
 
-function featuredCardTemplate(p) {
-  const hasImage = Boolean(p.image);
-  const toneClass = hasImage ? "" : ` ${p.tone}`;
-  const style = hasImage ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
-  return `
-    <article class="featured-card">
-      <div class="card-flip">
-        <div class="card-face card-face-front${toneClass}"${style}>
-          ${wishlistHeart(p.id)}
-          ${stockBadge(p)}
-          ${hasImage ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
-          <span class="card-flip-hint">Toque para ver detalhes</span>
-          <div class="featured-body">
-            <span class="featured-category">${p.category}</span>
-            <h3 class="featured-name">${p.name}</h3>
-            ${priceMarkup(p, "featured-price")}
-          </div>
-        </div>
-        <div class="card-face card-face-back">
-          <div class="card-back-price">${priceMarkup(p, "featured-price")}</div>
-          <span class="featured-category">${p.category}</span>
-          <h3 class="featured-name">${p.name}</h3>
-          <p class="product-notes">${p.notes}</p>
-          <div class="product-footer">${addButton(p, "Comprar")}</div>
-        </div>
-      </div>
-    </article>`;
-}
-
-function carouselCardTemplate(p) {
-  const toneClass = p.image ? "" : ` ${p.tone}`;
-  const style = p.image ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
-  return `
-    <article class="carousel-card">
-      <div class="card-flip">
-        <div class="card-face card-face-front${toneClass}"${style}>
-          ${wishlistHeart(p.id)}
-          ${stockBadge(p)}
-          ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
-          <span class="card-flip-hint">Toque para ver detalhes</span>
-        </div>
-        <div class="card-face card-face-back">
-          <div class="card-back-price">${priceMarkup(p, "carousel-price")}</div>
-          <span class="carousel-category">${p.category}</span>
-          <h3>${p.name}</h3>
-          <p class="carousel-notes">${p.notes}</p>
-          <div class="carousel-footer">
-            ${addButton(p, "Adicionar")}
-          </div>
-        </div>
-      </div>
-    </article>`;
-}
+function productCardTemplate(p) { return perfumeCardTemplate(p, "product-card", "Adicionar"); }
+function featuredCardTemplate(p) { return perfumeCardTemplate(p, "featured-card", "Comprar"); }
+function carouselCardTemplate(p) { return perfumeCardTemplate(p, "carousel-card", "Adicionar"); }
 
 const CATEGORY_ORDER = { masculino: 0, feminino: 1, unissex: 2 };
 
@@ -507,6 +481,11 @@ function openProductDetail(p) {
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdNotes").textContent = p.notes;
   document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
+  const waBtn = document.getElementById("pdWhatsAppBtn");
+  if (waBtn) {
+    const message = `Olá, Mushy! Tenho interesse no perfume ${p.name}. Podem ajudar-me com a compra?`;
+    waBtn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  }
   productDetailOverlay.classList.add("open");
 }
 
@@ -609,8 +588,11 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
-  const flipCard = e.target.closest(".product-card, .carousel-card, .featured-card");
-  if (flipCard) flipCard.classList.toggle("flipped");
+  const openCard = e.target.closest("[data-open]");
+  if (openCard) {
+    const product = PRODUCTS.find((p) => p.id === Number(openCard.dataset.open));
+    if (product) openProductDetail(product);
+  }
 });
 
 searchInput?.addEventListener("input", renderProducts);
@@ -646,7 +628,7 @@ initCustomerSession();
 
 // Called from js/checkout.js once the receipt has been uploaded to Storage;
 // receiptPath is the object's path within the private "receipts" bucket.
-async function logOrder(name, phone, receiptPath) {
+async function logOrder(name, phone, receiptPath, paymentMethod) {
   const ids = Object.keys(cart);
   let subtotal = 0;
   const items = ids.map((id) => {
@@ -660,25 +642,52 @@ async function logOrder(name, phone, receiptPath) {
   const total = Math.max(0, subtotal - discount);
   const usedCoupon = discount > 0 ? appliedCoupon.code : null;
 
-  await supabaseClient.from("orders").insert({
-    items,
-    total,
-    status: "pending",
-    customer_id: currentCustomer?.id || null,
-    customer_name: name,
-    customer_phone: phone,
-    customer_email: currentCustomer?.email || null,
-    discount,
-    coupon_code: usedCoupon,
-    receipt_url: receiptPath,
-  });
+  const { data: order, error } = await supabaseClient
+    .from("orders")
+    .insert({
+      items,
+      total,
+      status: "pending",
+      payment_status: "pending",
+      payment_method: paymentMethod || null,
+      customer_id: currentCustomer?.id || null,
+      customer_name: name,
+      customer_phone: phone,
+      customer_email: currentCustomer?.email || null,
+      discount,
+      coupon_code: usedCoupon,
+      receipt_url: receiptPath,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+
   if (usedCoupon) {
     await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
     removeCoupon();
   }
+  return order;
 }
 
-menuBtn?.addEventListener("click", () => mainNav.classList.toggle("open"));
+menuBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  mainNav.classList.toggle("open");
+});
+// Closing on an outside click (rather than requiring the hamburger to be
+// clicked again) and on picking a link, so the dropdown never gets stuck open.
+document.addEventListener("click", (e) => {
+  if (mainNav.classList.contains("open") && !e.target.closest(".main-nav") && !e.target.closest(".menu-btn")) {
+    mainNav.classList.remove("open");
+  }
+});
+mainNav?.addEventListener("click", (e) => {
+  if (e.target.closest("a")) mainNav.classList.remove("open");
+});
+document.querySelector("[data-nav-search]")?.addEventListener("click", () => {
+  mainNav.classList.remove("open");
+  searchBar.classList.add("open");
+  searchInput.focus();
+});
 
 // Mobile overflow ("...") menu: holds search + account so the header row
 // only shows wishlist/cart directly, per the phone-declutter pass.

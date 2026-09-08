@@ -243,6 +243,14 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 });
 
 // ---------- Login ----------
+// Some accounts created before the Supabase Site URL was fixed to point at
+// the real deployment (it was pointing at http://localhost:3000) received a
+// confirmation email whose link could never work, so they never confirmed
+// and now sit permanently unconfirmed. Supabase correctly rejects those
+// sign-ins with a distinct "Email not confirmed" error, but showing the
+// generic "wrong password" message for it hides the real, fixable cause and
+// sends the shopper into a pointless retry loop. Detecting it here and
+// offering a resend (now using the corrected Site URL) self-heals those accounts.
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = document.getElementById("loginBtn");
@@ -254,6 +262,23 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   btn.disabled = false;
+
+  if (error?.message?.toLowerCase().includes("email not confirmed")) {
+    showAuthAlert(
+      `Sua conta ainda não foi confirmada. Verifique seu e-mail ou <a href="#" id="resendConfirmLink" style="text-decoration:underline;">reenvie a confirmação</a>.`,
+      "error"
+    );
+    document.getElementById("resendConfirmLink")?.addEventListener("click", async (evt) => {
+      evt.preventDefault();
+      const { error: resendError } = await supabaseClient.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/conta.html` },
+      });
+      showAuthAlert(resendError ? "Não foi possível reenviar o e-mail. Tente novamente." : "E-mail de confirmação reenviado! Verifique sua caixa de entrada.", resendError ? "error" : "success");
+    });
+    return;
+  }
 
   if (error || !data.session) {
     showAuthAlert("E-mail ou senha incorretos.");

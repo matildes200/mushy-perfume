@@ -20,6 +20,13 @@
       <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Coleções</a>
       <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> Sobre</a>
       <a href="index.html#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> Contato</a>
+<div class="main-nav-divider" aria-hidden="true"></div>
+      <button type="button" class="mobile-nav-action" data-nav-search>
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg> Buscar
+      </button>
+      <a href="conta.html" class="mobile-nav-action">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg> Minha conta
+      </a>
     </nav>
 
     <div class="header-actions">
@@ -176,6 +183,10 @@
       <p class="pd-notes" id="pdNotes"></p>
       <div class="pd-price" id="pdPrice"></div>
       <button class="btn btn-primary" id="pdAddToCart">Adicionar ao carrinho</button>
+      <a href="#" class="btn-whatsapp-inline" id="pdWhatsAppBtn" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 4.99L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.63 14.02c-.24.67-1.39 1.28-1.92 1.36-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.08 1-2.37.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.27.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.2 1.37.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.3z"/></svg>
+        Prefere comprar pelo WhatsApp?
+      </a>
     </div>
   </div>
 </div>
@@ -206,26 +217,39 @@
     </div>
 
     <div class="checkout-step" id="checkoutStepPayment">
-      <h2>Pagamento por transferência</h2>
-      <p class="checkout-step-sub">Transfira o valor total e envie o comprovativo abaixo.</p>
+      <h2>Pagamento</h2>
+      <p class="checkout-step-sub">Escolha como prefere pagar, transfira o valor e envie o comprovativo.</p>
+
+      <div class="payment-method-tabs">
+        <button type="button" class="payment-method-tab active" data-method="Transferência Bancária">Transferência Bancária</button>
+        <button type="button" class="payment-method-tab" data-method="Express">Express</button>
+      </div>
+
       <div class="payment-details">
-        <div><span>Banco</span><strong id="pdBankName">—</strong></div>
-        <div><span>Titular</span><strong id="pdAccountHolder">—</strong></div>
-        <div><span>IBAN / Conta</span><strong id="pdAccountNumber">—</strong></div>
+        <div class="payment-method-rows" id="paymentRowsBank">
+          <div><span>Banco</span><strong id="pdBankName">—</strong></div>
+          <div><span>Titular</span><strong id="pdAccountHolder">—</strong></div>
+          <div><span>IBAN / Conta</span><strong id="pdAccountNumber">—</strong></div>
+        </div>
+        <div class="payment-method-rows" id="paymentRowsExpress" hidden>
+          <div><span>Número Express</span><strong id="pdExpressPhone">—</strong></div>
+        </div>
         <div><span>Valor a transferir</span><strong id="pdAmount">—</strong></div>
       </div>
+
       <div id="checkoutPaymentAlert"></div>
       <form id="checkoutPaymentForm">
+        <input type="hidden" id="ckPaymentMethod" value="Transferência Bancária">
         <div class="checkout-details">
           <input type="text" id="ckName" class="checkout-input" placeholder="Seu nome" required>
           <input type="tel" id="ckPhone" class="checkout-input" placeholder="Seu contacto" required>
         </div>
         <label class="receipt-upload" for="ckReceipt">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF)</span>
+          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF) — obrigatório</span>
         </label>
         <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
-        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn">Confirmar pedido</button>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled>Confirmar pedido</button>
       </form>
     </div>
 
@@ -237,6 +261,11 @@
     </div>
   </div>
 </div>
+
+<a href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20perfumes%20Mushy%20Parfum." target="_blank" rel="noopener" class="whatsapp-float" id="whatsappFloat" aria-label="Falar no WhatsApp">
+  <span class="whatsapp-float-tooltip">Fala connosco</span>
+  <svg viewBox="0 0 24 24" width="27" height="27" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 4.99L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.63 14.02c-.24.67-1.39 1.28-1.92 1.36-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.08 1-2.37.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.27.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.2 1.37.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.3z"/></svg>
+</a>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>

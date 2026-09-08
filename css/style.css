@@ -94,6 +94,9 @@ button { font-family: var(--font-body); }
 .logo span { color: inherit; font-weight: 500; opacity: 0.6; }
 
 .main-nav { display: flex; gap: 34px; }
+/* Search/account only fold into the nav dropdown on mobile (see the
+   860px media query) — on desktop they stay as icons in .header-actions. */
+.mobile-nav-action, .main-nav-divider { display: none; }
 .main-nav a {
   font-size: 11.5px;
   letter-spacing: 1.6px;
@@ -208,6 +211,9 @@ button { font-family: var(--font-body); }
 .btn-outline-gold { background: transparent; border: 1px solid var(--on-hero); color: var(--on-hero); }
 .btn-outline-gold:hover { background: var(--on-hero); color: var(--text); }
 
+.btn-solid-cream { background: var(--on-hero); border: 1px solid var(--on-hero); color: var(--text); }
+.btn-solid-cream:hover { background: transparent; color: var(--on-hero); }
+
 /* Same shape as btn-outline-gold, but for use on light surfaces (cards, not hero photos). */
 .btn-outline-dark { background: transparent; border: 1px solid var(--btn); color: var(--btn); }
 .btn-outline-dark:hover { background: var(--btn); color: #fff; }
@@ -247,14 +253,24 @@ button { font-family: var(--font-body); }
   background: url("../img/hero-mobile-bg.png") center 30% / cover no-repeat;
   will-change: transform;
 }
+/* Left-to-right fade instead of a flat top-to-bottom scrim: keeps the
+   bottle photography clear on the right while still grounding the text
+   on the left, where the source photo is already mostly plain backdrop. */
 .hero-media::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.32) 0%, rgba(38, 26, 15, 0.2) 42%, rgba(38, 26, 15, 0.66) 100%);
+  background: linear-gradient(100deg, rgba(20, 14, 8, 0.58) 0%, rgba(20, 14, 8, 0.32) 32%, rgba(20, 14, 8, 0.06) 55%, rgba(20, 14, 8, 0) 70%);
 }
 
-.hero-inner { position: relative; z-index: 1; max-width: 620px; padding-top: 80px; color: var(--on-hero); }
+.hero-inner { position: relative; z-index: 1; max-width: 560px; padding-top: 80px; color: var(--on-hero); }
+.hero-inner > * { opacity: 0; transform: translateY(16px); animation: hero-rise 0.85s cubic-bezier(0.2, 0.6, 0.2, 1) forwards; }
+.hero-inner .eyebrow { animation-delay: 0.1s; }
+.hero-inner h1 { animation-delay: 0.25s; }
+.hero-inner .hero-text { animation-delay: 0.4s; }
+.hero-inner .hero-ctas { animation-delay: 0.55s; }
+@keyframes hero-rise { to { opacity: 1; transform: translateY(0); } }
+
 .eyebrow {
   color: inherit;
   opacity: 0.7;
@@ -264,9 +280,10 @@ button { font-family: var(--font-body); }
   margin-bottom: 18px;
   display: block;
 }
-.hero h1 { color: var(--on-hero); font-weight: 400; font-size: clamp(34px, 5.4vw, 56px); line-height: 1.15; margin-bottom: 22px; }
+.hero h1 { color: var(--on-hero); font-weight: 400; font-size: clamp(34px, 5.4vw, 58px); line-height: 1.15; margin-bottom: 22px; font-family: var(--font-head); font-style: italic; }
 .hero h1 em { color: inherit; font-style: italic; }
-.hero-text { color: rgba(251, 243, 228, 0.82); font-size: 15px; max-width: 440px; margin-bottom: 38px; }
+.hero-text { color: rgba(251, 243, 228, 0.85); font-size: 16px; max-width: 420px; margin-bottom: 38px; letter-spacing: 0.2px; }
+.hero-ctas { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
 /* ---------- Section head (shared) ---------- */
 .section-head { text-align: center; max-width: 520px; margin: 0 auto 46px; }
@@ -274,32 +291,8 @@ button { font-family: var(--font-body); }
 .section-head p { color: var(--text-muted); font-size: 13.5px; letter-spacing: 0.3px; }
 
 /* ---------- Featured / "Nossa Seleção" ---------- */
-/* Shares the .card-flip / .card-face(-front/-back) flip mechanics defined
-   further below with .product-card and .carousel-card, so it flips on tap
-   just like the rest of the catalog. */
 .featured { padding: 110px 0 100px; }
-.featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); }
-.featured-card {
-  position: relative;
-  min-height: 520px;
-  cursor: pointer;
-  perspective: 1400px;
-  transition: transform 0.25s;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.featured-card:hover { transform: translateY(-2px); }
-.featured-card .card-face-front { display: flex; align-items: flex-end; }
-.featured-card .card-face-front::after {
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.05) 0%, rgba(38, 26, 15, 0.12) 40%, rgba(38, 26, 15, 0.8) 100%);
-}
-.featured-body { position: relative; z-index: 2; width: 100%; padding: 0 24px 26px; }
-.featured-category { font-size: 10.5px; text-transform: uppercase; letter-spacing: 2px; color: rgba(251, 243, 228, 0.75); }
-.featured-name { font-family: var(--font-head); font-weight: 400; font-size: 19px; margin: 10px 0 6px; color: var(--on-hero); }
-.featured-price { color: rgba(251, 243, 228, 0.85); font-family: var(--font-body); font-weight: 400; font-size: 13px; letter-spacing: 0.4px; display: block; }
-.card-face-back .featured-category { color: var(--text-muted); }
-.card-face-back .featured-name { color: var(--text); }
-.card-face-back .featured-price { color: var(--text-muted); }
+.featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 
 /* ---------- Brand story ---------- */
 .historia { padding: 120px 0; }
@@ -494,109 +487,38 @@ button { font-family: var(--font-body); }
   gap: 26px;
 }
 
-.product-card {
+/* ---------- Perfume card ----------
+   One shared structure for .product-card / .carousel-card / .featured-card
+   (see perfumeCardTemplate() in js/main.js): a bordered image panel with
+   zoom-on-hover, plus a body underneath where name/family/description/price
+   stay visible at all times — no flip, no hover-only content, so the info
+   a shopper needs is there on first glance, mobile included. */
+.product-card, .carousel-card, .featured-card { display: block; cursor: pointer; }
+
+.perfume-card-media-wrap {
   position: relative;
-  min-height: 510px;
-  cursor: pointer;
-  perspective: 1400px;
-  transition: transform 0.25s;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.product-card:hover { transform: translateY(-2px); }
-
-/* ---------- Flip mechanics: click toggles .flipped, rotating the inner wrapper ---------- */
-.card-flip {
-  position: absolute;
-  inset: 0;
-  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-  transform-style: preserve-3d;
-}
-.product-card.flipped .card-flip, .carousel-card.flipped .card-flip, .featured-card.flipped .card-flip { transform: rotateY(180deg); }
-
-.card-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
   overflow: hidden;
-  transition: border-color 0.25s;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.25s ease;
 }
-.product-card:hover .card-face, .carousel-card:hover .card-face, .featured-card:hover .card-face { border-color: var(--text); }
+.product-card:hover .perfume-card-media-wrap,
+.carousel-card:hover .perfume-card-media-wrap,
+.featured-card:hover .perfume-card-media-wrap { border-color: var(--text); }
 
-/* Front face: full-bleed photo (or tone-N gradient fallback) + zoom-on-hover layer */
-.card-face-front {
+.perfume-card-media {
+  position: absolute;
+  inset: 0;
   background-image: var(--card-image, none);
   background-size: cover;
   background-position: center;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s ease;
 }
-.product-card:hover .card-face-front, .carousel-card:hover .card-face-front, .featured-card:hover .card-face-front { transform: scale(1.03); }
-.card-face-front::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.5) 0%, rgba(38, 26, 15, 0) 35%);
-}
-
-.card-flip-hint {
-  position: absolute;
-  left: 16px;
-  right: 54px;
-  top: 12px;
-  height: 34px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  text-align: left;
-  font-size: 10px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: rgba(251, 243, 228, 0.85);
-  pointer-events: none;
-}
-
-/* Back face: full details, revealed after the flip. The price sits in its
-   own banded row up top (not buried near the button) with a thin gold
-   accent bar along the top edge, since the plain white/centered layout
-   this replaced read as empty and lifeless. */
-.card-face-back {
-  transform: rotateY(180deg);
-  background: linear-gradient(165deg, var(--surface) 0%, var(--bg-alt) 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 26px 26px;
-  text-align: center;
-  gap: 4px;
-}
-.card-face-back::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--ink) 0%, #c9a15a 50%, var(--ink) 100%);
-}
-.card-back-price {
-  width: 100%;
-  margin-bottom: 10px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-.card-back-price .product-price, .card-back-price .carousel-price, .card-back-price .featured-price {
-  font-family: var(--font-head);
-  font-size: 21px;
-  font-weight: 500;
-  color: var(--ink);
-}
-.card-face-back h3 { font-size: 19px; }
-.card-face-back .product-notes, .card-face-back .carousel-notes { max-width: 220px; }
-.card-face-back .product-footer, .card-face-back .carousel-footer { margin-top: 20px; }
+.product-card:hover .perfume-card-media,
+.carousel-card:hover .perfume-card-media,
+.featured-card:hover .perfume-card-media { transform: scale(1.05); }
 
 /* Watermark bottle icon shown only when a product has no real photo (tone-N gradient card) */
 .product-card-icon {
@@ -605,11 +527,10 @@ button { font-family: var(--font-body); }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(251, 243, 228, 0.18);
+  color: rgba(251, 243, 228, 0.2);
   pointer-events: none;
 }
-.product-card-icon .bottle-icon { width: 46%; max-width: 130px; height: auto; }
-
+.product-card-icon .bottle-icon { width: 42%; max-width: 110px; height: auto; }
 .bottle-icon { width: 62px; height: auto; }
 .product-photo { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 
@@ -619,25 +540,53 @@ button { font-family: var(--font-body); }
 .tone-4 { background: linear-gradient(135deg, #3a281b, #5e4231); }
 .tone-5 { background: linear-gradient(135deg, #362a1a, #5a4938); }
 .tone-6 { background: linear-gradient(135deg, #2c2216, #4a3c2a); }
-.product-category, .carousel-category {
-  font-size: 10.5px;
+
+/* Best Seller / Novidade — only rendered when the product's own flag is set */
+.perfume-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  padding: 6px 11px;
+  border-radius: 3px;
+  color: var(--on-hero);
+}
+.badge-bestseller { background: var(--ink); }
+.badge-new { background: var(--text); }
+.stock-badge ~ .perfume-badge, .perfume-badge ~ .stock-badge { top: 46px; }
+
+.perfume-card-body { padding: 16px 2px 0; }
+.perfume-card-family {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
   color: var(--text-muted);
+  margin-bottom: 8px;
 }
-.card-face-back h3 { font-weight: 400; font-size: 18px; margin: 8px 0 6px; color: var(--text); }
-.product-notes, .carousel-notes { color: var(--text-muted); font-size: 12.5px; }
-.product-footer, .carousel-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 18px;
-  gap: 14px;
+.perfume-card-name { font-family: var(--font-head); font-weight: 400; font-size: 17px; color: var(--text); margin: 0 0 6px; }
+.perfume-card-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0 0 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.product-price, .carousel-price { font-family: var(--font-body); font-weight: 400; font-size: 14px; letter-spacing: 0.3px; color: var(--text); }
+.perfume-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.perfume-card-price { font-family: var(--font-body); font-weight: 500; font-size: 14.5px; color: var(--text); }
+.featured-card .perfume-card-name { font-size: 19px; }
+.featured-card .perfume-card-desc { font-size: 13px; -webkit-line-clamp: 3; }
+.featured-card .perfume-card-price { font-size: 15.5px; }
 
 /* ---------- Discount pricing ---------- */
-.price-discounted { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.price-discounted { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; justify-content: flex-start; }
 .price-original { font-size: 12px; color: var(--text-muted); text-decoration: line-through; }
 .price-final { color: var(--ink); font-weight: 500; }
 .price-badge {
@@ -649,7 +598,9 @@ button { font-family: var(--font-body); }
   padding: 2px 6px;
   border-radius: 3px;
 }
-.featured-price.price-discounted, .carousel-price.price-discounted { justify-content: center; }
+/* pd-modal and cart rows still want the price centered/inline rather than
+   left-anchored like a card body. */
+.pd-price.price-discounted, .cart-item-info .price-discounted { justify-content: flex-start; }
 
 /* ---------- Stock badge ---------- */
 .stock-badge {
@@ -665,10 +616,9 @@ button { font-family: var(--font-body); }
   padding: 5px 10px;
   border-radius: 3px;
 }
-/* Product/carousel front faces already use the top strip for the
-   "toque para ver detalhes" flip hint, so the badge sits just below
-   it instead of overlapping it (or the product label near the bottom). */
-.card-face-front .stock-badge { top: 54px; }
+/* Pushed down when a Best Seller/Novidade badge already occupies the
+   top-left corner of the same media panel. */
+.perfume-badge ~ .stock-badge { top: 46px; }
 .btn-small:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-small:disabled:hover { background: transparent; color: var(--btn); }
 
@@ -693,6 +643,19 @@ button { font-family: var(--font-body); }
 .wishlist-btn:hover { border-color: var(--on-hero); }
 .wishlist-btn.active { color: var(--on-hero); border-color: var(--on-hero); }
 .wishlist-btn svg { width: 16px; height: 16px; }
+
+/* ---------- Find Your Scent (quiz teaser) ---------- */
+.quiz-teaser {
+  padding: 100px 0;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.quiz-teaser-inner { max-width: 540px; margin: 0 auto; }
+.quiz-teaser .eyebrow { color: var(--ink); opacity: 1; }
+.quiz-teaser h2 { font-family: var(--font-head); font-style: italic; font-weight: 400; font-size: 30px; margin-bottom: 14px; }
+.quiz-teaser-inner > p:not(.eyebrow) { color: var(--text-muted); font-size: 15px; margin-bottom: 32px; }
 
 /* ---------- Fragrance notes ---------- */
 .notas { padding: 100px 0; }
@@ -1012,6 +975,87 @@ button { font-family: var(--font-body); }
 .cart-total-final { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
 .cart-total-final strong { font-family: var(--font-head); font-size: 17px; color: var(--text); }
 
+/* ---------- Find Your Scent (quiz modal) ---------- */
+.quiz-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(38, 26, 15, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.quiz-overlay.open { opacity: 1; pointer-events: auto; }
+.quiz-modal {
+  position: relative;
+  background: var(--surface);
+  border-radius: 14px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 46px 34px 38px;
+  text-align: center;
+}
+.quiz-modal .pd-close { top: 14px; right: 14px; }
+
+.quiz-progress { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; }
+.quiz-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.25s ease; }
+.quiz-dot.active { background: var(--ink); }
+
+.quiz-step { display: none; }
+.quiz-step.active { display: block; }
+.quiz-step h3 { font-family: var(--font-head); font-weight: 400; font-size: 21px; margin-bottom: 26px; }
+
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  padding: 15px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.quiz-option:hover { border-color: var(--ink); }
+.quiz-option.selected { border-color: var(--ink); background: var(--bg-alt); }
+
+.quiz-result-eyebrow { text-transform: uppercase; letter-spacing: 2.5px; font-size: 10.5px; color: var(--text-muted); margin-bottom: 18px; }
+.quiz-result-media {
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+.quiz-result-media img { width: 100%; height: 100%; object-fit: cover; }
+.quiz-result-media .bottle-icon { width: 40%; height: auto; color: var(--on-hero); }
+.quiz-result-name { font-family: var(--font-head); font-weight: 400; font-size: 22px; margin-bottom: 6px; }
+.quiz-result-family { font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--text-muted); margin-bottom: 14px; }
+.quiz-result-desc { color: var(--text-muted); font-size: 13.5px; line-height: 1.7; max-width: 360px; margin: 0 auto 16px; }
+.quiz-result-price { font-family: var(--font-head); font-size: 20px; color: var(--ink); margin-bottom: 24px; }
+.quiz-result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+.quiz-restart { background: none; border: none; color: var(--text-muted); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.quiz-restart:hover { color: var(--text); }
+
+@media (max-width: 640px) {
+  .quiz-modal { padding: 40px 22px 30px; }
+  .quiz-result-actions { flex-direction: column; }
+  .quiz-result-actions .btn { width: 100%; }
+}
+
 /* ---------- Checkout modal (login-gated, bank transfer) ---------- */
 .checkout-overlay {
   position: fixed;
@@ -1055,6 +1099,29 @@ button { font-family: var(--font-body); }
 .payment-details div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
 .payment-details span { color: var(--text-muted); }
 .payment-details strong { font-weight: 500; color: var(--text); text-align: right; }
+/* Wraps a group of rows (bank vs. Express) so toggling one method doesn't
+   need its own bordered box — it just disappears from the flex column.
+   Needs !important since ".payment-details div" above (element+class) is
+   otherwise more specific than the bare ".payment-method-rows" class. */
+.payment-method-rows { display: contents !important; }
+.payment-method-rows[hidden] { display: none !important; }
+
+.payment-method-tabs { display: flex; gap: 10px; margin-bottom: 18px; }
+.payment-method-tab {
+  flex: 1;
+  padding: 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.payment-method-tab:hover { border-color: var(--ink); }
+.payment-method-tab.active { border-color: var(--ink); background: var(--bg-alt); color: var(--text); font-weight: 500; }
 
 .receipt-upload {
   display: flex;
@@ -1090,6 +1157,80 @@ button { font-family: var(--font-body); }
   from { transform: scale(0); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* ---------- Floating WhatsApp button ----------
+   z-index sits below drawers/overlays (65+) on purpose, so it's naturally
+   covered whenever a modal or drawer is open instead of poking through it. */
+.whatsapp-float {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 58;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(37, 211, 102, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.whatsapp-float:hover, .whatsapp-float:focus-visible { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(37, 211, 102, 0.5); }
+.whatsapp-float::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #25D366;
+  z-index: -1;
+  animation: whatsapp-pulse 2.6s ease-out infinite;
+}
+@keyframes whatsapp-pulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.65); opacity: 0; }
+}
+.whatsapp-float-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text);
+  color: var(--on-hero);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.whatsapp-float:hover .whatsapp-float-tooltip,
+.whatsapp-float:focus-visible .whatsapp-float-tooltip { opacity: 1; }
+
+@media (max-width: 640px) {
+  .whatsapp-float { right: 16px; bottom: 16px; width: 50px; height: 50px; }
+}
+
+/* Product-detail CTA offering the WhatsApp alternative to adding to cart */
+.btn-whatsapp-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 13px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.btn-whatsapp-inline svg { color: #25D366; flex-shrink: 0; }
+.btn-whatsapp-inline:hover { border-color: #25D366; color: var(--text); }
 
 /* ---------- Page offset (pages without a full-bleed hero) ---------- */
 .page-offset { padding-top: 84px; }
@@ -1198,55 +1339,42 @@ button { font-family: var(--font-body); }
     display: none;
   }
   .main-nav.open { display: flex; }
-  .main-nav a {
+  /* Text-transform/font-size aren't reset by the base ".main-nav a" rule
+     above (it only sets color/spacing for the desktop horizontal layout),
+     so without overriding them here the dropdown rendered as tiny 11.5px
+     uppercase, low-contrast text — easy to mistake for an empty bar. The
+     !important matches the color specificity fix below: .site-header.scrolled
+     .main-nav a has higher specificity and would otherwise win and mute it. */
+  .main-nav a, .main-nav button.mobile-nav-action {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: var(--text);
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: var(--font-body);
+    text-transform: none !important;
+    color: var(--text) !important;
+    font-size: 14.5px !important;
     padding: 13px 14px;
     border-radius: 9px;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
   }
-  .main-nav a svg { flex-shrink: 0; color: var(--ink); }
-  .main-nav a:hover { background: var(--bg-alt); }
+  .main-nav a svg, .main-nav button.mobile-nav-action svg { flex-shrink: 0; color: var(--ink); }
+  .main-nav a:hover, .main-nav button.mobile-nav-action:hover { background: var(--bg-alt); }
+  .main-nav-divider { display: block; height: 1px; background: var(--border); margin: 6px 4px; }
   .menu-btn { display: flex; }
   .header-actions { gap: 0; }
   .icon-btn { width: 36px; height: 36px; }
   .logo { font-size: 17px; }
 
-  #searchBtn, #accountBtn { display: none; }
-  .more-btn { display: flex; }
-  .more-menu-panel {
-    display: none;
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 16px;
-    flex-direction: column;
-    align-items: stretch;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: 0 14px 34px rgba(38, 26, 15, 0.16);
-    padding: 8px;
-    min-width: 190px;
-    gap: 2px;
-    z-index: 80;
-  }
-  .more-menu-panel.open { display: flex; }
-  .more-menu-item {
-    width: auto;
-    height: auto;
-    border-radius: 9px;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 13px 14px;
-    color: var(--text) !important;
-    font-size: 13.5px;
-    letter-spacing: 0.4px;
-  }
-  .more-menu-item:hover { background: var(--bg-alt); opacity: 1; }
-  .more-menu-item span { display: inline; }
-  .more-menu-item svg { flex-shrink: 0; color: var(--ink); }
+  /* The "..." overflow menu only exists to keep search/account off the
+     header row on desktop; on mobile those two are folded straight into
+     the hamburger dropdown instead (see .mobile-nav-action above), so a
+     shopper has exactly one menu control, not two adjacent ones. */
+  .more-menu { display: none; }
 
   .hero { min-height: 68vh; align-items: flex-end; }
   .hero-inner { padding-top: 70px; padding-bottom: 56px; }
@@ -1262,24 +1390,17 @@ button { font-family: var(--font-body); }
   /* A dense grid so several perfumes are visible at once, instead of one
      giant card filling the whole screen per scroll. */
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .product-card { min-height: 280px; }
-  .card-flip-hint { font-size: 8.5px; top: 10px; left: 12px; right: 42px; height: 26px; letter-spacing: 1px; }
   .wishlist-btn { width: 28px; height: 28px; top: 8px; right: 8px; }
   .wishlist-btn svg { width: 13px; height: 13px; }
-  .card-face-front .stock-badge { top: 40px; font-size: 9px; padding: 4px 8px; }
-  .card-face-back { padding: 16px 12px 14px; gap: 2px; }
-  .card-face-back h3 { font-size: 13.5px; margin: 3px 0 2px; }
-  .card-back-price { margin-bottom: 6px; padding-bottom: 8px; }
-  .card-back-price .product-price, .card-back-price .carousel-price, .card-back-price .featured-price { font-size: 15px; }
-  .card-face-back .product-notes, .card-face-back .carousel-notes {
-    font-size: 10.5px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .card-face-back .product-footer, .card-face-back .carousel-footer { margin-top: 10px; }
-  .card-face-back .btn-small { padding: 8px 16px; font-size: 9.5px; }
+  .perfume-badge { font-size: 8.5px; padding: 5px 8px; top: 8px; left: 8px; }
+  .perfume-badge ~ .stock-badge { top: 38px; }
+  .perfume-card-body { padding: 12px 1px 0; }
+  .perfume-card-name { font-size: 14.5px; }
+  .featured-card .perfume-card-name { font-size: 16px; }
+  .perfume-card-family { font-size: 9px; margin-bottom: 5px; }
+  .perfume-card-desc { font-size: 11px; margin-bottom: 10px; }
+  .perfume-card-price { font-size: 13px; }
+  .perfume-card-footer .btn-small { padding: 8px 14px; font-size: 9.5px; }
 
   /* Full-bleed photo with the story text overlaid on top, instead of a
      stacked image-then-gap-then-text layout with dead white space between. */

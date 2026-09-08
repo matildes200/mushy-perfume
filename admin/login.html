@@ -57,6 +57,24 @@
 
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
+    if (error?.message?.toLowerCase().includes("email not confirmed")) {
+      alertEl.innerHTML = `<div class="admin-alert admin-alert-error">Sua conta ainda não foi confirmada. Verifique seu e-mail ou <a href="#" id="resendConfirmLink" style="text-decoration:underline;">reenvie a confirmação</a>.</div>`;
+      btn.disabled = false;
+      btn.textContent = "Entrar";
+      document.getElementById("resendConfirmLink")?.addEventListener("click", async (evt) => {
+        evt.preventDefault();
+        const { error: resendError } = await supabaseClient.auth.resend({
+          type: "signup",
+          email,
+          options: { emailRedirectTo: `${window.location.origin.replace(/\/admin$/, "")}/conta.html` },
+        });
+        alertEl.innerHTML = resendError
+          ? `<div class="admin-alert admin-alert-error">Não foi possível reenviar o e-mail. Tente novamente.</div>`
+          : `<div class="admin-alert admin-alert-success">E-mail de confirmação reenviado! Verifique sua caixa de entrada.</div>`;
+      });
+      return;
+    }
+
     if (error || !data.session) {
       alertEl.innerHTML = `<div class="admin-alert admin-alert-error">E-mail ou senha incorretos.</div>`;
       btn.disabled = false;
