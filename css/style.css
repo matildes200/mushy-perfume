@@ -16,6 +16,10 @@
 }
 
 * { box-sizing: border-box; }
+/* Stops the mobile browser's native pull-to-refresh/rubber-band overscroll,
+   which otherwise drags the whole layout viewport — fixed header included —
+   down with the gesture, landing it mid-screen instead of pinned to the top. */
+html, body { overscroll-behavior-y: none; }
 html { scroll-behavior: smooth; background: var(--bg); }
 
 /* ---------- Scrollbar ---------- */
@@ -730,12 +734,24 @@ button { font-family: var(--font-body); }
 /* ---------- Policies page (Envio / Devoluções / Privacidade) ---------- */
 .policies { padding: 90px 0 110px; }
 .policies-intro { max-width: 640px; margin: 0 auto 60px; text-align: center; }
-.policy-block { max-width: 680px; margin: 0 auto 50px; scroll-margin-top: 100px; }
+.policy-block {
+  max-width: 680px;
+  margin: 0 auto 32px;
+  scroll-margin-top: 100px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 28px;
+  background: var(--surface);
+}
 .policy-block:last-child { margin-bottom: 0; }
-.policy-block h3 { font-family: var(--font-head); font-weight: 400; font-size: 22px; margin-bottom: 14px; }
-.policy-block p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 14px; }
+.policy-block h3 { font-family: var(--font-head); font-weight: 400; font-size: 22px; margin-bottom: 14px; text-align: center; }
+.policy-block p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 14px; text-align: justify; }
 .policy-block p:last-child { margin-bottom: 0; }
 .policy-block ul { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin: 0 0 14px; padding-left: 20px; }
+
+@media (max-width: 640px) {
+  .policy-block { padding: 26px 20px; }
+}
 
 /* ---------- Footer ---------- */
 .site-footer { border-top: 1px solid var(--border); padding: 60px 0 26px; }
@@ -1164,80 +1180,6 @@ button { font-family: var(--font-body); }
   from { transform: scale(0); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-
-/* ---------- Floating WhatsApp button ----------
-   z-index sits below drawers/overlays (65+) on purpose, so it's naturally
-   covered whenever a modal or drawer is open instead of poking through it. */
-.whatsapp-float {
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  z-index: 58;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: #25D366;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 22px rgba(37, 211, 102, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.whatsapp-float:hover, .whatsapp-float:focus-visible { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(37, 211, 102, 0.5); }
-.whatsapp-float::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: #25D366;
-  z-index: -1;
-  animation: whatsapp-pulse 2.6s ease-out infinite;
-}
-@keyframes whatsapp-pulse {
-  0% { transform: scale(1); opacity: 0.55; }
-  100% { transform: scale(1.65); opacity: 0; }
-}
-.whatsapp-float-tooltip {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--text);
-  color: var(--on-hero);
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-.whatsapp-float:hover .whatsapp-float-tooltip,
-.whatsapp-float:focus-visible .whatsapp-float-tooltip { opacity: 1; }
-
-@media (max-width: 640px) {
-  .whatsapp-float { right: 16px; bottom: 16px; width: 50px; height: 50px; }
-}
-
-/* Product-detail CTA offering the WhatsApp alternative to adding to cart */
-.btn-whatsapp-inline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 13px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text-muted);
-  font-size: 12.5px;
-  letter-spacing: 0.3px;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-.btn-whatsapp-inline svg { color: #25D366; flex-shrink: 0; }
-.btn-whatsapp-inline:hover { border-color: #25D366; color: var(--text); }
 
 /* ---------- Page offset (pages without a full-bleed hero) ---------- */
 .page-offset { padding-top: 84px; }

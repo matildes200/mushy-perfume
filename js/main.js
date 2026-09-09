@@ -1,5 +1,3 @@
-const WHATSAPP_NUMBER = "5511999999999"; // TODO: substitua pelo número real da loja
-
 // Referral links point to conta.html?ref=CODE; the code is stashed until the
 // visitor actually finishes creating an account (see showProfile() in conta.js).
 const refParam = new URLSearchParams(window.location.search).get("ref");
@@ -486,11 +484,6 @@ function openProductDetail(p) {
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdNotes").textContent = p.notes;
   document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
-  const waBtn = document.getElementById("pdWhatsAppBtn");
-  if (waBtn) {
-    const message = `Olá, Mushy! Tenho interesse no perfume ${p.name}. Podem ajudar-me com a compra?`;
-    waBtn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-  }
   productDetailOverlay.classList.add("open");
 }
 
