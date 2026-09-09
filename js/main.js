@@ -138,20 +138,24 @@ function productHaystack(p) {
         .filter(Boolean)
         .join(" ")
     );
+    // Spaces stripped as well, so a name whose punctuation became a space still
+    // matches when someone types it closed up: "Éclat d'Or" normalises to
+    // "eclat d or", and only this compact form contains "dor".
+    p._haystackCompact = p._haystack.replace(/\s+/g, "");
   }
-  return p._haystack;
+  return p;
 }
 
-// Every word in the query has to appear somewhere, but only as a prefix of
-// some word — so partial typing narrows results as you go ("ecl" → Éclat,
-// "oud leg" → Oud Legacy) instead of dead-ending on an exact-phrase miss.
+// Every word in the query has to appear somewhere, matching partway into a
+// word — so typing narrows results as you go ("ecl" → Éclat, "oud leg" → Oud
+// Legacy) instead of dead-ending unless you get the whole phrase right.
 function productMatchesSearch(p, normalizedQuery) {
   if (!normalizedQuery) return true;
-  const haystack = productHaystack(p);
+  productHaystack(p);
   return normalizedQuery
     .split(/\s+/)
     .filter(Boolean)
-    .every((word) => haystack.includes(word));
+    .every((word) => p._haystack.includes(word) || p._haystackCompact.includes(word));
 }
 
 let cart = JSON.parse(localStorage.getItem("mushy-cart") || "{}");
