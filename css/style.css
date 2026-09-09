@@ -883,24 +883,124 @@ button { font-family: var(--font-body); }
 .newsletter-form input:focus { border-color: var(--text); }
 .newsletter-note { margin-top: 16px; font-size: 12.5px; color: var(--text-muted); min-height: 16px; }
 
-/* ---------- Contato ---------- */
-.contato { padding: 90px 0; text-align: center; }
-.contato h2 { font-weight: 400; font-size: 28px; margin-bottom: 12px; }
-.contato p { color: var(--text-muted); font-size: 14.5px; margin-bottom: 36px; }
-.contato-links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
-.contato-card {
+/* ---------- Contato ----------
+   Dark panel section sitting directly above the (also dark) footer, so the
+   page closes on one continuous dark band rather than a cream section butting
+   into a dark one. Local tokens keep the dark palette in one place. */
+.contato {
+  --ct-bg: #131313;
+  --ct-panel: #1b1b1b;
+  --ct-field: #202020;
+  --ct-line: #2e2e2e;
+  --ct-label: #9a94a6;
+  --ct-muted: #8d8d8d;
+  --ct-fg: #f2f0ec;
+  --ct-accent: #d4a437;
+  padding: 96px 0 104px;
+  background: var(--ct-bg);
+  color: var(--ct-fg);
+}
+.contato-grid { display: grid; grid-template-columns: 1.85fr 1fr; gap: 22px; align-items: start; }
+
+.contato-panel {
+  background: var(--ct-panel);
+  border: 1px solid var(--ct-line);
+  border-radius: 18px;
+  padding: 42px 40px;
+}
+.contato-panel h2 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--ct-fg);
+  margin: 0 0 8px;
+}
+.contato-panel-sub { color: var(--ct-muted); font-size: 14.5px; margin: 0 0 30px; }
+
+.contato-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.contato-field { margin-bottom: 20px; }
+.contato-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--ct-label);
+  margin-bottom: 10px;
+}
+.contato-field input,
+.contato-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  /* 16px so focusing a field doesn't zoom the page on iOS. */
+  font-size: 16px;
+  color: var(--ct-fg);
+  background: var(--ct-field);
+  border: 1px solid var(--ct-line);
+  border-radius: 12px;
+  padding: 15px 18px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+.contato-field textarea { resize: vertical; min-height: 140px; }
+.contato-field input::placeholder,
+.contato-field textarea::placeholder { color: #6d6d6d; }
+.contato-field input:focus,
+.contato-field textarea:focus { outline: none; border-color: var(--ct-accent); }
+.contato-panel .btn-primary {
+  margin-top: 4px;
+  border-radius: 12px;
+  background: var(--ct-fg);
+  border-color: var(--ct-fg);
+  color: #131313;
+}
+.contato-panel .btn-primary:hover { background: var(--ct-accent); border-color: var(--ct-accent); color: #131313; }
+
+.contato-aside { display: flex; flex-direction: column; gap: 22px; }
+.contato-info,
+.contato-hours {
+  background: var(--ct-panel);
+  border: 1px solid var(--ct-line);
+  border-radius: 18px;
+  padding: 22px 24px;
+}
+.contato-info { display: flex; align-items: flex-start; gap: 16px; }
+.contato-info-icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ct-field);
+  border: 1px solid var(--ct-line);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 28px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 13px;
-  letter-spacing: 0.4px;
-  color: var(--text);
-  transition: all 0.2s;
+  justify-content: center;
+  color: var(--ct-accent);
 }
-.contato-card:hover { border-color: var(--text); }
+.contato-info-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--ct-label);
+  margin-bottom: 7px;
+}
+.contato-info-value { color: var(--ct-fg); font-size: 15px; line-height: 1.5; margin: 0; }
+.contato-info-value a { color: var(--ct-fg); }
+.contato-info-value a:hover { color: var(--ct-accent); }
+
+.contato-hours-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 15px;
+  color: var(--ct-muted);
+  padding: 7px 0;
+}
+.contato-hours-row strong { color: var(--ct-fg); font-weight: 600; }
 
 /* ---------- Policies page (Envio / Devoluções / Privacidade) ---------- */
 .policies { padding: 90px 0 110px; }
@@ -1585,7 +1685,21 @@ button { font-family: var(--font-body); }
   .bestsellers { padding: 54px 0 44px; }
   .reviews { padding: 54px 0; }
   .newsletter { padding: 60px 0; }
-  .contato { padding: 54px 0; }
+  /* Single column, form first: the info cards are reference material, so on a
+     phone they belong under the thing you actually came here to do. */
+  .contato { padding: 54px 0 60px; }
+  .contato-grid { grid-template-columns: 1fr; gap: 16px; }
+  .contato-panel { padding: 28px 20px; border-radius: 16px; }
+  .contato-panel h2 { font-size: 21px; }
+  .contato-panel-sub { font-size: 13.5px; margin-bottom: 24px; }
+  .contato-field-row { grid-template-columns: 1fr; gap: 0; }
+  .contato-field { margin-bottom: 16px; }
+  .contato-field input, .contato-field textarea { padding: 13px 15px; border-radius: 10px; }
+  .contato-field textarea { min-height: 120px; }
+  .contato-aside { gap: 12px; }
+  .contato-info, .contato-hours { padding: 18px 18px; border-radius: 16px; }
+  .contato-info-icon { width: 40px; height: 40px; }
+  .contato-info-value, .contato-hours-row { font-size: 14px; }
   .processo { padding: 60px 0; }
   .valores { padding: 56px 0; }
   .colecao-banner { padding: 70px 0 48px; margin-bottom: 36px; }

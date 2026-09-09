@@ -178,19 +178,83 @@
   </section>
 
   <section class="contato reveal" id="contato">
-    <div class="container contato-inner">
-      <h2 data-i18n="contato.title">Fale connosco</h2>
-      <p data-i18n="contato.subtitle">Dúvidas sobre um perfume, prazo de entrega ou o seu pedido? Fale connosco.</p>
-      <div class="contato-links">
-        <a href="mailto:contato@mushyparfum.com.br" class="contato-card">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg>
-          <span>E-mail</span>
-        </a>
-        <a href="https://www.instagram.com/mushy_parfum?igsh=eGd1Ym4yNGVkaG9t" target="_blank" rel="noopener" class="contato-card">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
-          <span>Instagram</span>
-        </a>
+    <div class="container contato-grid">
+
+      <div class="contato-panel">
+        <h2 data-i18n="contato.form.title">Envie uma mensagem</h2>
+        <p class="contato-panel-sub" data-i18n="contato.form.sub">Preencha todos os campos abaixo.</p>
+
+        <form data-contact-form>
+          <div class="contato-field-row">
+            <div class="contato-field">
+              <label for="hcName" data-i18n="contato.field.nome">Nome</label>
+              <input type="text" id="hcName" name="name" placeholder="O seu nome" data-i18n-placeholder="contato.ph.nome" required>
+            </div>
+            <div class="contato-field">
+              <label for="hcSurname" data-i18n="contato.field.sobrenome">Sobrenome</label>
+              <input type="text" id="hcSurname" name="surname" placeholder="O seu sobrenome" data-i18n-placeholder="contato.ph.sobrenome">
+            </div>
+          </div>
+          <div class="contato-field">
+            <label for="hcEmail" data-i18n="contato.field.email">Email</label>
+            <input type="email" id="hcEmail" name="email" placeholder="oseu.email@exemplo.com" data-i18n-placeholder="contato.ph.email" required>
+          </div>
+          <div class="contato-field">
+            <label for="hcSubject" data-i18n="contato.field.assunto">Assunto</label>
+            <input type="text" id="hcSubject" name="subject" placeholder="Assunto da mensagem" data-i18n-placeholder="contato.ph.assunto">
+          </div>
+          <div class="contato-field">
+            <label for="hcMessage" data-i18n="contato.field.mensagem">Mensagem</label>
+            <textarea id="hcMessage" name="message" rows="5" placeholder="A sua mensagem..." data-i18n-placeholder="contato.ph.mensagem" required></textarea>
+          </div>
+          <div data-contact-alert></div>
+          <button type="submit" class="btn btn-primary btn-block" data-i18n="contato.form.submit">Enviar mensagem</button>
+        </form>
       </div>
+
+      <aside class="contato-aside">
+        <!-- PLACEHOLDER CONTACT DETAILS. The email and phone below are stand-ins
+             until the real ones exist; the number is in the reserved 900-000-000
+             range on purpose, so a visitor calling it can't reach a stranger.
+             No address card: this is an online store with no shopfront. -->
+        <div class="contato-info">
+          <span class="contato-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3 6.5 9 6.3 9-6.3"/></svg>
+          </span>
+          <div>
+            <span class="contato-info-label" data-i18n="contato.info.email">Email</span>
+            <p class="contato-info-value"><a href="mailto:geral@mushyparfum.ao">geral@mushyparfum.ao</a></p>
+          </div>
+        </div>
+
+        <div class="contato-info">
+          <span class="contato-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 16.9v2.6a1.8 1.8 0 0 1-2 1.8 17.8 17.8 0 0 1-7.7-2.8 17.5 17.5 0 0 1-5.4-5.4A17.8 17.8 0 0 1 3.1 5.4 1.8 1.8 0 0 1 4.9 3.4h2.6a1.8 1.8 0 0 1 1.8 1.6c.1.9.3 1.7.6 2.5a1.8 1.8 0 0 1-.4 1.9l-1.1 1.1a14.4 14.4 0 0 0 5.4 5.4l1.1-1.1a1.8 1.8 0 0 1 1.9-.4c.8.3 1.6.5 2.5.6a1.8 1.8 0 0 1 1.6 1.9z"/></svg>
+          </span>
+          <div>
+            <span class="contato-info-label" data-i18n="contato.info.telefone">Telefone</span>
+            <p class="contato-info-value"><a href="tel:+244900000000">+244 900 000 000</a></p>
+          </div>
+        </div>
+
+        <div class="contato-info">
+          <span class="contato-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <div>
+            <span class="contato-info-label" data-i18n="contato.info.instagram">Instagram</span>
+            <p class="contato-info-value"><a href="https://www.instagram.com/mushy_parfum?igsh=eGd1Ym4yNGVkaG9t" target="_blank" rel="noopener">@mushy_parfum</a></p>
+          </div>
+        </div>
+
+        <div class="contato-hours">
+          <span class="contato-info-label" data-i18n="contato.info.horario">Horário</span>
+          <div class="contato-hours-row"><span data-i18n="contato.hours.week">Seg &ndash; Sex</span><strong>9:00 &ndash; 18:00</strong></div>
+          <div class="contato-hours-row"><span data-i18n="contato.hours.sat">Sábado</span><strong>9:00 &ndash; 18:00</strong></div>
+          <div class="contato-hours-row"><span data-i18n="contato.hours.sun">Domingo</span><strong>9:00 &ndash; 18:00</strong></div>
+        </div>
+      </aside>
+
     </div>
   </section>
 
@@ -434,6 +498,7 @@
 <script src="js/main.js"></script>
 <script src="js/checkout.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/contacto.js"></script>
 <script src="js/quiz.js"></script>
 </body>
 </html>

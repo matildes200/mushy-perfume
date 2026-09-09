@@ -79,24 +79,24 @@
       </div>
 
       <div class="contacto-card-form">
-        <form id="contactForm">
+        <form id="contactForm" data-contact-form>
           <div class="account-field">
             <label for="ctName" data-i18n="contacto.name">Nome</label>
-            <input type="text" id="ctName" required>
+            <input type="text" id="ctName" name="name" required>
           </div>
           <div class="account-field">
             <label for="ctEmail" data-i18n="contacto.email">E-mail</label>
-            <input type="email" id="ctEmail" required>
+            <input type="email" id="ctEmail" name="email" required>
           </div>
           <div class="account-field">
             <label for="ctSubject" data-i18n="contacto.subject">Assunto</label>
-            <input type="text" id="ctSubject">
+            <input type="text" id="ctSubject" name="subject">
           </div>
           <div class="account-field">
             <label for="ctMessage" data-i18n="contacto.message">A sua pergunta</label>
-            <textarea id="ctMessage" rows="5" required></textarea>
+            <textarea id="ctMessage" name="message" rows="5" required></textarea>
           </div>
-          <div id="contactAlert"></div>
+          <div id="contactAlert" data-contact-alert></div>
           <button type="submit" class="btn btn-primary btn-block" id="ctSubmitBtn" data-i18n="contacto.submit">Enviar pergunta</button>
         </form>
       </div>
