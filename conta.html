@@ -135,17 +135,22 @@
 
           <div class="account-field">
             <label for="profileName" data-i18n="account.fullname">Nome completo</label>
-            <input type="text" id="profileName" autocomplete="name">
+            <input type="text" id="profileName" autocomplete="name" readonly>
           </div>
           <div class="account-field">
             <label for="profilePhone" data-i18n="account.contact">Contacto</label>
-            <input type="tel" id="profilePhone" autocomplete="tel">
+            <input type="tel" id="profilePhone" autocomplete="tel" readonly>
           </div>
           <div class="account-field">
             <label for="profileAddress" data-i18n="account.address.label">Endereço de entrega</label>
-            <input type="text" id="profileAddress" placeholder="Rua, número, bairro, cidade" data-i18n-placeholder="account.address.placeholder">
+            <input type="text" id="profileAddress" placeholder="Rua, número, bairro, cidade" data-i18n-placeholder="account.address.placeholder" readonly>
           </div>
-          <button type="button" class="btn btn-outline-dark btn-block" id="saveProfileBtn" data-i18n="account.save">Guardar alterações</button>
+
+          <button type="button" class="btn btn-outline-dark btn-block" id="editProfileBtn" data-i18n="account.edit">Alterar dados</button>
+          <div class="account-edit-actions">
+            <button type="button" class="btn btn-primary btn-block" id="saveProfileBtn" data-i18n="account.save">Guardar alterações</button>
+            <button type="button" class="btn btn-outline-dark btn-block" id="cancelProfileBtn" data-i18n="account.cancel">Cancelar</button>
+          </div>
           <p class="account-note" id="addressNote"></p>
 
           <a href="admin/index.html" class="btn btn-primary btn-block" id="adminPanelLink" style="display:none;margin-top:20px;" data-i18n="account.adminpanel">Painel Administrativo</a>

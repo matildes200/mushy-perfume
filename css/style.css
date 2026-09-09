@@ -1262,6 +1262,20 @@ button { font-family: var(--font-body); }
 .account-note { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 .account-note a { text-decoration: underline; color: var(--text); }
 
+/* The profile fields are real inputs at all times, but until "Alterar dados"
+   is pressed they're stripped of their box so they read as plain values —
+   otherwise the account page looks permanently mid-edit. The ID selector
+   outranks .account-field input, so no extra state class is needed. */
+#profileView:not(.editing) .account-field input {
+  border-color: transparent;
+  background: transparent;
+  padding-left: 0;
+  pointer-events: none;
+}
+.account-edit-actions { display: none; flex-direction: column; gap: 10px; }
+#profileView.editing .account-edit-actions { display: flex; }
+#profileView.editing #editProfileBtn { display: none; }
+
 .account-profile-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
 .account-profile-row:last-of-type { border-bottom: none; }
 .account-profile-row span:first-child { color: var(--text-muted); }

@@ -153,9 +153,42 @@ document.getElementById("copyReferralBtn")?.addEventListener("click", () => {
   setTimeout(() => { document.getElementById("referralCopyNote").textContent = ""; }, 2500);
 });
 
-// Name, phone and address are all editable here. Email deliberately isn't:
-// it's the Supabase auth identity, so changing it needs a re-verification
-// round trip rather than a plain table update.
+// Name, phone and address are all editable here, but only after "Alterar
+// dados" is pressed. Email deliberately isn't editable at all: it's the
+// Supabase auth identity, so changing it needs a re-verification round trip
+// rather than a plain table update.
+const PROFILE_FIELDS = ["profileName", "profilePhone", "profileAddress"];
+let profileSnapshot = null;
+
+function setProfileEditing(editing) {
+  document.getElementById("profileView")?.classList.toggle("editing", editing);
+  PROFILE_FIELDS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.readOnly = !editing;
+  });
+}
+
+document.getElementById("editProfileBtn")?.addEventListener("click", () => {
+  // Snapshot so Cancel can put back exactly what was there before.
+  profileSnapshot = Object.fromEntries(
+    PROFILE_FIELDS.map((id) => [id, document.getElementById(id)?.value ?? ""])
+  );
+  document.getElementById("addressNote").textContent = "";
+  setProfileEditing(true);
+  document.getElementById("profileName")?.focus();
+});
+
+document.getElementById("cancelProfileBtn")?.addEventListener("click", () => {
+  if (profileSnapshot) {
+    PROFILE_FIELDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = profileSnapshot[id];
+    });
+  }
+  document.getElementById("addressNote").textContent = "";
+  setProfileEditing(false);
+});
+
 document.getElementById("saveProfileBtn")?.addEventListener("click", async () => {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return;
@@ -184,9 +217,13 @@ document.getElementById("saveProfileBtn")?.addEventListener("click", async () =>
     ? window.t?.("account.save.error") || "Não foi possível guardar as alterações."
     : window.t?.("account.saved") || "Alterações guardadas.";
 
-  // Keeps the checkout prefill (js/main.js) in step with what was just saved,
-  // so the shopper doesn't see stale details on their next order.
-  if (!error && data) currentCustomer = data;
+  // Stay in edit mode on failure so the shopper doesn't lose what they typed.
+  if (!error) {
+    setProfileEditing(false);
+    // Keeps the checkout prefill (js/main.js) in step with what was just
+    // saved, so stale details don't show up on their next order.
+    if (data) currentCustomer = data;
+  }
 
   setTimeout(() => { note.textContent = ""; }, 3000);
 });
@@ -197,6 +234,7 @@ async function showProfile(session) {
   document.getElementById("profileEmail").textContent = session.user.email;
   document.getElementById("profilePhone").value = profile?.phone || session.user.user_metadata?.phone || "";
   document.getElementById("profileAddress").value = profile?.address || "";
+  setProfileEditing(false);
   authView.style.display = "none";
   profileView.style.display = "block";
   document.getElementById("accountExtra").style.display = "flex";
