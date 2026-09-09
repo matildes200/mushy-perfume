@@ -153,21 +153,49 @@ document.getElementById("copyReferralBtn")?.addEventListener("click", () => {
   setTimeout(() => { document.getElementById("referralCopyNote").textContent = ""; }, 2500);
 });
 
-document.getElementById("saveAddressBtn")?.addEventListener("click", async () => {
+// Name, phone and address are all editable here. Email deliberately isn't:
+// it's the Supabase auth identity, so changing it needs a re-verification
+// round trip rather than a plain table update.
+document.getElementById("saveProfileBtn")?.addEventListener("click", async () => {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return;
-  const address = document.getElementById("profileAddress").value.trim();
+
+  const btn = document.getElementById("saveProfileBtn");
   const note = document.getElementById("addressNote");
-  const { error } = await supabaseClient.from("customers").update({ address }).eq("id", session.user.id);
-  note.textContent = error ? "Não foi possível salvar o endereço." : "Endereço salvo.";
-  setTimeout(() => { note.textContent = ""; }, 2500);
+  const full_name = document.getElementById("profileName").value.trim();
+  const phone = document.getElementById("profilePhone").value.trim();
+  const address = document.getElementById("profileAddress").value.trim();
+
+  if (!full_name) {
+    note.textContent = window.t?.("account.name.required") || "Indique o seu nome.";
+    return;
+  }
+
+  btn.disabled = true;
+  const { data, error } = await supabaseClient
+    .from("customers")
+    .update({ full_name, phone, address })
+    .eq("id", session.user.id)
+    .select()
+    .maybeSingle();
+  btn.disabled = false;
+
+  note.textContent = error
+    ? window.t?.("account.save.error") || "Não foi possível guardar as alterações."
+    : window.t?.("account.saved") || "Alterações guardadas.";
+
+  // Keeps the checkout prefill (js/main.js) in step with what was just saved,
+  // so the shopper doesn't see stale details on their next order.
+  if (!error && data) currentCustomer = data;
+
+  setTimeout(() => { note.textContent = ""; }, 3000);
 });
 
 async function showProfile(session) {
   const profile = await ensureCustomerProfile(session);
-  document.getElementById("profileName").textContent = profile?.full_name || session.user.user_metadata?.full_name || "—";
+  document.getElementById("profileName").value = profile?.full_name || session.user.user_metadata?.full_name || "";
   document.getElementById("profileEmail").textContent = session.user.email;
-  document.getElementById("profilePhone").textContent = profile?.phone || session.user.user_metadata?.phone || "—";
+  document.getElementById("profilePhone").value = profile?.phone || session.user.user_metadata?.phone || "";
   document.getElementById("profileAddress").value = profile?.address || "";
   authView.style.display = "none";
   profileView.style.display = "block";

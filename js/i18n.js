@@ -194,7 +194,11 @@ const TRANSLATIONS = {
     "account.phone.placeholder": "Número de telefone",
     "account.address.label": "Endereço de entrega",
     "account.address.placeholder": "Rua, número, bairro, cidade",
-    "account.address.save": "Salvar endereço",
+    "account.save": "Guardar alterações",
+    "account.saved": "Alterações guardadas.",
+    "account.save.error": "Não foi possível guardar as alterações.",
+    "account.name.required": "Indique o seu nome.",
+    "account.email.note": "O e-mail não pode ser alterado aqui — é o seu início de sessão.",
     "account.adminpanel": "Painel Administrativo",
     "account.logout": "Sair",
     "account.orders.title": "Seus pedidos",
@@ -392,7 +396,11 @@ const TRANSLATIONS = {
     "account.phone.placeholder": "Phone number",
     "account.address.label": "Delivery address",
     "account.address.placeholder": "Street, number, area, city",
-    "account.address.save": "Save address",
+    "account.save": "Save changes",
+    "account.saved": "Changes saved.",
+    "account.save.error": "Couldn't save your changes.",
+    "account.name.required": "Please enter your name.",
+    "account.email.note": "Email can't be changed here — it's your sign-in.",
     "account.adminpanel": "Admin Panel",
     "account.logout": "Sign out",
     "account.orders.title": "Your orders",
@@ -407,6 +415,13 @@ const TRANSLATIONS = {
 
 function getLang() {
   return localStorage.getItem("mushy-lang") || "pt";
+}
+
+// For strings built in JS (status messages, etc.) rather than sitting in the
+// markup behind a data-i18n attribute.
+function t(key) {
+  const dict = TRANSLATIONS[getLang()] || TRANSLATIONS.pt;
+  return dict[key] ?? TRANSLATIONS.pt[key] ?? key;
 }
 
 function applyTranslations(lang) {

@@ -127,15 +127,25 @@
         <!-- Signed in: profile -->
         <div id="profileView" style="display:none;">
           <h2 data-i18n="account.title">Minha conta</h2>
-          <div class="account-profile-row"><span data-i18n="account.name">Nome</span><span id="profileName"></span></div>
-          <div class="account-profile-row"><span data-i18n="account.email">E-mail</span><span id="profileEmail"></span></div>
-          <div class="account-profile-row"><span data-i18n="account.contact">Contacto</span><span id="profilePhone"></span></div>
 
-          <div class="account-field" style="margin-top:20px;">
+          <div class="account-profile-row">
+            <span data-i18n="account.email">E-mail</span><span id="profileEmail"></span>
+          </div>
+          <p class="account-note" style="text-align:left;margin:6px 0 18px;" data-i18n="account.email.note">O e-mail não pode ser alterado aqui — é o seu início de sessão.</p>
+
+          <div class="account-field">
+            <label for="profileName" data-i18n="account.fullname">Nome completo</label>
+            <input type="text" id="profileName" autocomplete="name">
+          </div>
+          <div class="account-field">
+            <label for="profilePhone" data-i18n="account.contact">Contacto</label>
+            <input type="tel" id="profilePhone" autocomplete="tel">
+          </div>
+          <div class="account-field">
             <label for="profileAddress" data-i18n="account.address.label">Endereço de entrega</label>
             <input type="text" id="profileAddress" placeholder="Rua, número, bairro, cidade" data-i18n-placeholder="account.address.placeholder">
           </div>
-          <button type="button" class="btn btn-outline-dark btn-block" id="saveAddressBtn" data-i18n="account.address.save">Salvar endereço</button>
+          <button type="button" class="btn btn-outline-dark btn-block" id="saveProfileBtn" data-i18n="account.save">Guardar alterações</button>
           <p class="account-note" id="addressNote"></p>
 
           <a href="admin/index.html" class="btn btn-primary btn-block" id="adminPanelLink" style="display:none;margin-top:20px;" data-i18n="account.adminpanel">Painel Administrativo</a>
