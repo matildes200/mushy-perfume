@@ -362,14 +362,33 @@ button { font-family: var(--font-body); }
 /* ---------- Sobre: hero banner ---------- */
 .sobre-banner-media { position: relative; height: 64vh; min-height: 440px; max-height: 620px; overflow: hidden; }
 .sobre-banner-media img { width: 100%; height: 100%; object-fit: cover; object-position: 70% center; }
+/* The gradient used to start almost clear, which left the top-left corner an
+   empty wash of photo. A caption pinned up there and a touch more shade at the
+   top give that corner something to hold. */
 .sobre-banner-overlay {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-end;
-  padding-bottom: 60px;
   color: var(--on-hero);
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.05) 0%, rgba(38, 26, 15, 0.2) 45%, rgba(38, 26, 15, 0.76) 100%);
+  background: linear-gradient(180deg, rgba(38, 26, 15, 0.45) 0%, rgba(38, 26, 15, 0.22) 40%, rgba(38, 26, 15, 0.8) 100%);
+}
+.sobre-banner-overlay-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 96px;
+  padding-bottom: 60px;
+}
+.sobre-banner-mark {
+  font-size: 10.5px;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+  color: var(--on-hero);
+  opacity: 0.9;
+  margin: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--on-hero);
 }
 .sobre-banner-overlay h2 {
   font-family: var(--font-head);
@@ -380,9 +399,10 @@ button { font-family: var(--font-body); }
   line-height: 1.25;
   max-width: 660px;
 }
-.sobre-banner-body { padding: 64px 0 120px; }
-/* Same bordered-card treatment as the policy blocks, so the story text sits
-   inside a contained column instead of running edge-to-edge on a phone. */
+.sobre-banner-body { padding: 72px 0 120px; }
+/* Follows the "Como escolhemos" section's layout: an eyebrow, a pull quote,
+   then the body copy in a contained column. Generous padding and line-height
+   because the old card had the text pressed right up against its border. */
 .sobre-banner-text {
   max-width: 660px;
   width: 100%;
@@ -391,14 +411,28 @@ button { font-family: var(--font-body); }
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
-  padding: 34px 30px;
+  padding: 48px 44px;
 }
-.sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin-bottom: 22px; text-align: justify; }
+.sobre-banner-text .eyebrow { margin-bottom: 18px; }
+.sobre-banner-text .processo-quote { margin-bottom: 28px; }
+.sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 2; margin-bottom: 26px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
-/* Horizontal padding matches .sobre-banner-text's card padding so the stats
-   line up with the story text above them rather than sitting flush against
-   the card's outer edge. */
-.sobre-banner-body .sobre-stats { max-width: 660px; width: 100%; margin: 44px auto 0; box-sizing: border-box; padding: 0 30px; }
+/* The stats sit centred under the story, in the same 660px column and with
+   the card's own horizontal padding, so the three figures line up with the
+   text above them instead of drifting to one side. */
+.sobre-banner-body .sobre-stats {
+  max-width: 660px;
+  width: 100%;
+  margin: 40px auto 0;
+  box-sizing: border-box;
+  padding: 30px 44px 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.sobre-banner-body .sobre-stats div { align-items: center; }
 
 /* ---------- Processo (Como escolhemos) ---------- */
 .processo { padding: 120px 0; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -428,14 +462,23 @@ button { font-family: var(--font-body); }
 .processo-content p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 20px; max-width: 460px; text-align: justify; }
 .processo-content p:last-of-type { margin-bottom: 0; }
 
-/* ---------- Values (Sobre page) ---------- */
+/* ---------- Values (Sobre page) ----------
+   Left-aligned with a rule down the side, so this section reads in the same
+   voice as "Como escolhemos" further down rather than as a row of centred
+   icon tiles in a different style. */
 .valores { padding: 110px 0; }
-.valores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); }
-.valor-card { background: var(--surface); border-radius: 12px; padding: 40px 30px; text-align: center; }
+.valores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.valor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 38px 32px;
+  text-align: left;
+}
 .valor-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 22px;
+  width: 48px;
+  height: 48px;
+  margin: 0 0 22px;
   border-radius: 50%;
   border: 1px solid var(--border);
   display: flex;
@@ -443,7 +486,7 @@ button { font-family: var(--font-body); }
   justify-content: center;
   color: var(--ink);
 }
-.valor-card h3 { font-family: var(--font-head); font-weight: 400; font-size: 18px; margin-bottom: 12px; }
+.valor-card h3 { font-family: var(--font-head); font-weight: 400; font-size: 18px; margin-bottom: 12px; border-left: 2px solid var(--ink); padding-left: 14px; }
 .valor-card p { color: var(--text-muted); font-size: 14px; line-height: 1.75; }
 
 /* ---------- Best sellers carousel ---------- */
@@ -897,35 +940,137 @@ button { font-family: var(--font-body); }
   .policy-block { padding: 26px 20px; }
 }
 
-/* ---------- Footer ---------- */
-.site-footer { border-top: 1px solid var(--border); padding: 60px 0 26px; }
+/* ---------- Contacto page ---------- */
+.contacto-page { padding: 90px 0 110px; }
+.contacto-card-form {
+  max-width: 680px;
+  margin: 0 auto 56px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 36px 32px;
+  background: var(--surface);
+}
+.contacto-card-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.contacto-card-form textarea:focus { outline: none; border-color: var(--ink); }
+.contacto-card-form .btn { margin-top: 6px; }
+
+.faq-block { max-width: 680px; margin: 0 auto; scroll-margin-top: 100px; }
+.faq-block h3 {
+  font-family: var(--font-head);
+  font-weight: 400;
+  font-size: 22px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 4px 22px;
+  margin-bottom: 10px;
+}
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 28px 16px 0;
+  font-size: 14.5px;
+  color: var(--text);
+  position: relative;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+/* A chevron drawn from a rotated corner, so no icon font or SVG per row. */
+.faq-item summary::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.25s ease;
+}
+.faq-item[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+.faq-item p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.85;
+  margin: 0 0 18px;
+  padding-right: 10px;
+}
+
+@media (max-width: 640px) {
+  .contacto-page { padding: 40px 0 60px; }
+  .contacto-card-form { padding: 26px 20px; margin-bottom: 40px; }
+  .faq-item { padding: 2px 18px; }
+  .faq-item summary { font-size: 14px; padding: 15px 26px 15px 0; }
+}
+
+/* ---------- Footer ----------
+   Sits on the dark ink ground so it reads as the end of the page rather than
+   as one more cream section, and the links are grouped into named columns
+   (Loja / Ajuda / Fale connosco) instead of one undifferentiated list. */
+.site-footer {
+  background: var(--ink);
+  color: var(--on-hero);
+  padding: 60px 0 26px;
+}
+.site-footer a { color: var(--on-hero); opacity: 0.78; transition: opacity 0.2s; }
+.site-footer a:hover { opacity: 1; }
 .footer-grid {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 1fr 1.2fr;
   gap: 40px;
-  flex-wrap: wrap;
   padding-bottom: 40px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(251, 243, 228, 0.18);
   margin-bottom: 22px;
 }
+.footer-col { display: flex; flex-direction: column; gap: 12px; font-size: 13px; letter-spacing: 0.3px; }
+.footer-col h4 {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin: 0 0 4px;
+}
+.footer-contact p { font-size: 12.5px; line-height: 1.75; opacity: 0.75; margin: 0 0 6px; }
+.footer-contact .btn-small {
+  align-self: flex-start;
+  border-color: var(--on-hero);
+  color: var(--on-hero);
+  opacity: 1;
+}
+.footer-contact .btn-small:hover { background: var(--on-hero); color: var(--ink); }
 .footer-brand { display: flex; flex-direction: column; gap: 18px; }
-.footer-brand .logo { color: var(--text); }
-.footer-brand .logo span { color: var(--ink); opacity: 1; }
+.footer-brand .logo { color: var(--on-hero); opacity: 1; }
+.footer-brand .logo span { color: var(--on-hero); opacity: 0.7; }
 .footer-social { display: flex; gap: 14px; }
 .footer-social a {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(251, 243, 228, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
   transition: all 0.2s;
 }
-.footer-social a:hover { border-color: var(--text); color: var(--text); }
-.footer-links { display: flex; flex-direction: column; gap: 12px; font-size: 13px; letter-spacing: 0.3px; color: var(--text-muted); }
-.footer-links a:hover { color: var(--text); }
+.footer-social a:hover { border-color: var(--on-hero); }
 .footer-bottom {
   display: flex;
   justify-content: space-between;
@@ -933,8 +1078,11 @@ button { font-family: var(--font-body); }
   gap: 8px;
   font-size: 11.5px;
   letter-spacing: 0.3px;
-  color: var(--text-muted);
+  opacity: 0.66;
 }
+/* Build credit, set apart from the copyright it shares a line with. */
+.footer-credit { letter-spacing: 1.4px; text-transform: uppercase; opacity: 0.85; }
+.footer-credit::before { content: "· "; }
 
 /* ---------- Cart / Wishlist Drawer ---------- */
 .cart-overlay, .wishlist-overlay {
@@ -1577,12 +1725,16 @@ button { font-family: var(--font-body); }
   .sobre-banner-media { height: 48vh; min-height: 340px; }
   .sobre-banner-overlay { padding-bottom: 36px; }
   .sobre-banner-body { padding: 40px 0 56px; }
-  .sobre-banner-text { padding: 26px 20px; }
-  .sobre-banner-body .sobre-stats { padding: 0 20px; }
-  .sobre-banner-text p { font-size: 14.5px; line-height: 1.95; margin-bottom: 24px; }
-  .valor-card { padding: 30px 22px; }
+  /* Roomier than it was: the story used to sit hard against the card border,
+     which is what made this page feel claustrophobic on a phone. */
+  .sobre-banner-text { padding: 34px 24px; }
+  .sobre-banner-body .sobre-stats { padding: 24px 24px 0; gap: 12px; }
+  .sobre-banner-text p { font-size: 14.5px; line-height: 2.05; margin-bottom: 26px; }
+  .sobre-banner-overlay-inner { padding-top: 84px; padding-bottom: 40px; }
+  .sobre-banner-mark { font-size: 9px; letter-spacing: 2px; padding-left: 12px; }
+  .valor-card { padding: 30px 24px; }
 
-  .valores-grid { grid-template-columns: 1fr; gap: 1px; }
+  .valores-grid { grid-template-columns: 1fr; gap: 14px; }
 
   .processo-inner { grid-template-columns: 1fr; gap: 30px; }
   .processo-media::before { display: none; }
@@ -1636,7 +1788,13 @@ button { font-family: var(--font-body); }
   .newsletter-form { flex-direction: column; }
   .newsletter-inner { padding: 44px 26px; }
 
-  .footer-grid { flex-direction: column; }
+  /* Brand across the top, then Loja and Ajuda side by side, then the contact
+     block full width — one column each would make the footer endless. */
+  .site-footer { padding: 44px 0 22px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px 24px; padding-bottom: 30px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-contact { grid-column: 1 / -1; }
+  .footer-col { font-size: 12.5px; gap: 10px; }
 
   .footer-bottom { flex-direction: column; text-align: center; }
 
