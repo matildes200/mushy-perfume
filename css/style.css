@@ -70,9 +70,12 @@ button { font-family: var(--font-body); }
   background: transparent;
   transition: background 0.35s ease;
 }
+/* No backdrop-filter here on purpose: it promotes the fixed header to its own
+   composited layer, and iOS Safari can strand that layer mid-screen after a
+   rubber-band/pull-to-refresh gesture instead of repainting it back to the
+   top. The background is 98% opaque, so the blur was invisible regardless. */
 .site-header.scrolled {
-  background: rgba(250, 245, 234, 0.96);
-  backdrop-filter: blur(10px);
+  background: rgba(250, 245, 234, 0.98);
 }
 
 .header-inner {

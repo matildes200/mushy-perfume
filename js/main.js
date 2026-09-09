@@ -832,3 +832,21 @@ document.body.addEventListener("click", (e) => {
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) document.body.classList.add("page-loaded");
 });
+
+// Belt and braces for the same iOS Safari bug the .scrolled rule above avoids:
+// after a rubber-band/pull-to-refresh gesture the fixed header can occasionally
+// be left painted mid-screen until something forces the compositor to
+// re-evaluate it. A sub-pixel nudge once the gesture settles does that, and is
+// invisible if the header was never displaced in the first place.
+let headerRepaintTimer;
+function nudgeHeaderRepaint() {
+  if (!siteHeader) return;
+  siteHeader.style.top = "-0.5px";
+  requestAnimationFrame(() => { siteHeader.style.top = ""; });
+}
+["touchend", "touchcancel"].forEach((evt) => {
+  window.addEventListener(evt, () => {
+    clearTimeout(headerRepaintTimer);
+    headerRepaintTimer = setTimeout(nudgeHeaderRepaint, 80);
+  }, { passive: true });
+});
