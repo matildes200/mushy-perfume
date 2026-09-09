@@ -855,22 +855,6 @@ button { font-family: var(--font-body); }
 .quiz-teaser h2 { font-family: var(--font-head); font-style: italic; font-weight: 400; font-size: 30px; margin-bottom: 14px; }
 .quiz-teaser-inner > p:not(.eyebrow) { color: var(--text-muted); font-size: 15px; margin-bottom: 32px; }
 
-/* ---------- Fragrance notes ---------- */
-.notas { padding: 100px 0; }
-.notas-card {
-  border: 1px solid transparent;
-  border-radius: 18px;
-  padding: 40px 6px 6px;
-  background: linear-gradient(var(--bg), var(--bg)) padding-box,
-    linear-gradient(120deg, #c9a15a 0%, #f3dfa9 45%, #c9a15a 100%) border-box;
-}
-.notas-grid { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
-.notas-col { flex: 1; min-width: 200px; text-align: center; padding: 0 30px; }
-.notas-col h3 { font-size: 11.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 2.4px; color: var(--text); margin-bottom: 12px; }
-.notas-col p { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 22px; }
-.notas-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; color: var(--text-muted); font-size: 14.5px; }
-.notas-divider { width: 1px; align-self: stretch; background: var(--border); }
-
 /* ---------- Reviews ---------- */
 .reviews { padding: 100px 0; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .reviews-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--border); }
@@ -1599,7 +1583,6 @@ button { font-family: var(--font-body); }
      as broken/empty space on a phone screen. */
   .featured { padding: 60px 0 50px; }
   .bestsellers { padding: 54px 0 44px; }
-  .notas { padding: 54px 0; }
   .reviews { padding: 54px 0; }
   .newsletter { padding: 60px 0; }
   .contato { padding: 54px 0; }
@@ -1741,26 +1724,9 @@ button { font-family: var(--font-body); }
   .processo-media img { height: 320px; }
   .processo-quote, .processo-content h2, .processo-content p { max-width: none; }
 
-  /* Both "Descubra as Fragrâncias" and "Experiências reais" become
-     swipeable, center-snapped strips on mobile instead of a stacked column
-     (notas) or a cramped 1-col grid (reviews) — see js/main.js for the
-     idle-autoplay behavior on the reviews strip. */
-  .notas-card { padding: 30px 0 4px; border-radius: 16px; }
-  .notas-grid {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    gap: 0;
-    padding-bottom: 26px;
-  }
-  .notas-grid::-webkit-scrollbar { display: none; }
-  /* Exactly one panel per swipe. At the previous 84% the neighbouring column
-     was always 16% on screen, so text from the middle panel bled into the
-     view of the first and last. scroll-snap-stop keeps a fast flick from
-     skipping straight past a panel. */
-  .notas-col { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; }
-  .notas-divider { display: none; }
+  /* "Experiências reais" becomes a swipeable, centre-snapped strip on mobile
+     instead of a cramped 1-col grid — see js/main.js for the auto-advance
+     that walks it round on a loop. */
 
   /* Center-snap carousel: the active card sits in the middle with the next
      one peeking on each side, instead of stacking flush against the left edge. */

@@ -9,7 +9,7 @@ const contactAlert = document.getElementById("contactAlert");
 
 function showContactAlert(message, type = "error") {
   if (!contactAlert) return;
-  contactAlert.innerHTML = message ? `<div class="admin-alert ${type}">${message}</div>` : "";
+  contactAlert.innerHTML = message ? `<div class="admin-alert admin-alert-${type}">${message}</div>` : "";
 }
 
 contactForm?.addEventListener("submit", async (e) => {
