@@ -80,9 +80,28 @@ async function renderAccountOrders(customerId) {
   el.innerHTML = orders
     .map((o) => {
       const date = o.created_at ? new Date(o.created_at).toLocaleDateString("pt-PT") : "—";
-      return `<div class="account-order-row">
-        <span>${date} · ${(o.items || []).length} item(ns)</span>
-        <span><strong>${money(o.total)}</strong><br><span class="order-status">${orderStatusLabel(o.status)}</span></span>
+      const items = o.items || [];
+      // Orders placed before the image was snapshotted onto the line fall back
+      // to the live product, so old orders still show a bottle where they can.
+      const lines = items
+        .map((it) => {
+          const image = it.image || PRODUCTS.find((p) => p.id === it.id)?.image || "";
+          const thumb = image
+            ? `<img src="${image}" alt="${it.name}" loading="lazy">`
+            : `<span class="account-order-thumb-empty" aria-hidden="true"></span>`;
+          return `<li class="account-order-item">
+            <span class="account-order-thumb">${thumb}</span>
+            <span class="account-order-item-name">${it.name}<small>${it.qty} × ${money(it.price)}</small></span>
+          </li>`;
+        })
+        .join("");
+      return `<div class="account-order">
+        <div class="account-order-row">
+          <span>${date}</span>
+          <span><strong>${money(o.total)}</strong><br><span class="order-status">${orderStatusLabel(o.status)}</span></span>
+        </div>
+        <ul class="account-order-items">${lines}</ul>
+        ${o.customer_address ? `<p class="account-order-address">${o.customer_address}${o.customer_city ? `, ${o.customer_city}` : ""}</p>` : ""}
       </div>`;
     })
     .join("");

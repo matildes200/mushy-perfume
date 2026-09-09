@@ -29,6 +29,10 @@ async function enterPaymentStep() {
   }
   document.getElementById("ckName").value = currentCustomer?.full_name || "";
   document.getElementById("ckPhone").value = currentCustomer?.phone || "";
+  // Prefilled from the saved profile so a returning customer doesn't retype
+  // their address; still editable, since this order may go somewhere else.
+  const addressField = document.getElementById("ckAddress");
+  if (addressField && !addressField.value) addressField.value = currentCustomer?.address || "";
 
   const { data: settings } = await supabaseClient.from("payment_settings").select("*").eq("id", 1).maybeSingle();
   document.getElementById("pdBankName").textContent = settings?.bank_name || "A combinar";
@@ -209,10 +213,17 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
 
   const name = document.getElementById("ckName").value.trim();
   const phone = document.getElementById("ckPhone").value.trim();
+  const street = document.getElementById("ckAddress").value.trim();
+  const city = document.getElementById("ckCity").value.trim();
+  const district = document.getElementById("ckDistrict").value.trim();
   const paymentMethod = document.getElementById("ckPaymentMethod").value;
   const file = document.getElementById("ckReceipt").files?.[0];
   if (!name || !phone) {
     showCheckoutPaymentAlert(window.t?.("checkout.err.namephone"));
+    return;
+  }
+  if (!street || !city) {
+    showCheckoutPaymentAlert(window.t?.("checkout.err.address"));
     return;
   }
   if (!file) {
@@ -233,7 +244,9 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     const { error: uploadError } = await supabaseClient.storage.from("receipts").upload(path, file);
     if (uploadError) throw uploadError;
 
-    const order = await logOrder(name, phone, path, paymentMethod);
+    // District is optional, so it's only appended when there's something there.
+    const address = district ? `${street}, ${district}` : street;
+    const order = await logOrder(name, phone, path, paymentMethod, address, city);
     await notifyOrderConfirmation(order, session.user.email, name, phone);
     showCheckoutStep(checkoutStepDone);
   } catch (err) {

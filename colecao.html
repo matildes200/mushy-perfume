@@ -221,7 +221,7 @@
         <div class="payment-method-rows" id="paymentRowsBank">
           <div><span data-i18n="checkout.bank.label">Banco</span><strong id="pdBankName">—</strong></div>
           <div><span data-i18n="checkout.holder.label">Titular</span><strong id="pdAccountHolder">—</strong></div>
-          <div><span data-i18n="checkout.iban.label">IBAN / Conta</span><strong id="pdAccountNumber">—</strong></div>
+          <div><span data-i18n="checkout.iban.label">IBAN</span><strong id="pdAccountNumber">—</strong></div>
         </div>
         <div class="payment-method-rows" id="paymentRowsExpress" hidden>
           <div><span data-i18n="checkout.express.label">Número Express</span><strong id="pdExpressPhone">—</strong></div>
@@ -235,6 +235,9 @@
         <div class="checkout-details">
           <input type="text" id="ckName" class="checkout-input" placeholder="Seu nome" data-i18n-placeholder="checkout.name.placeholder" required>
           <input type="tel" id="ckPhone" class="checkout-input" placeholder="Seu contacto" data-i18n-placeholder="checkout.phone.placeholder" required>
+          <input type="text" id="ckAddress" class="checkout-input checkout-input-wide" placeholder="Morada de entrega (rua e número)" data-i18n-placeholder="checkout.address.placeholder" required>
+          <input type="text" id="ckCity" class="checkout-input" placeholder="Cidade" data-i18n-placeholder="checkout.city.placeholder" required>
+          <input type="text" id="ckDistrict" class="checkout-input" placeholder="Bairro / Município" data-i18n-placeholder="checkout.district.placeholder">
         </div>
         <label class="receipt-upload" for="ckReceipt">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>

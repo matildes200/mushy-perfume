@@ -723,7 +723,7 @@ initCustomerSession();
 
 // Called from js/checkout.js once the receipt has been uploaded to Storage;
 // receiptPath is the object's path within the private "receipts" bucket.
-async function logOrder(name, phone, receiptPath, paymentMethod) {
+async function logOrder(name, phone, receiptPath, paymentMethod, address, city) {
   const ids = Object.keys(cart);
   let subtotal = 0;
   const items = ids.map((id) => {
@@ -731,7 +731,9 @@ async function logOrder(name, phone, receiptPath, paymentMethod) {
     const qty = cart[id];
     const unitPrice = effectivePrice(p);
     subtotal += unitPrice * qty;
-    return { id: p.id, name: p.name, price: unitPrice, qty };
+    // The image is snapshotted onto the order line so "os meus pedidos" can
+    // still show the bottle after the product is edited or delisted.
+    return { id: p.id, name: p.name, price: unitPrice, qty, image: p.image || null };
   });
   const discount = couponDiscountAmount(subtotal);
   const total = Math.max(0, subtotal - discount);
@@ -748,6 +750,8 @@ async function logOrder(name, phone, receiptPath, paymentMethod) {
       customer_id: currentCustomer?.id || null,
       customer_name: name,
       customer_phone: phone,
+      customer_address: address || null,
+      customer_city: city || null,
       customer_email: currentCustomer?.email || null,
       discount,
       coupon_code: usedCoupon,

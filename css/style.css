@@ -1099,6 +1099,8 @@ button { font-family: var(--font-body); }
 .cart-note { font-size: 10.5px; color: var(--text-muted); text-align: center; margin-top: 8px; }
 
 .checkout-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+/* The street line needs the full width; city and district share the row below. */
+.checkout-input-wide { grid-column: 1 / -1; }
 .checkout-input {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1254,6 +1256,8 @@ button { font-family: var(--font-body); }
 .checkout-step h2 { font-weight: 400; font-size: 21px; margin-bottom: 8px; text-align: center; }
 .checkout-step-sub { color: var(--text-muted); font-size: 13px; text-align: center; margin-bottom: 26px; }
 
+/* min-height is sized to the taller (bank) variant so the box doesn't shrink
+   and jolt the form when you switch to Express, which has only one row. */
 .payment-details {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1261,7 +1265,9 @@ button { font-family: var(--font-body); }
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 10px;
+  min-height: 130px;
 }
 .payment-details div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
 .payment-details span { color: var(--text-muted); }
@@ -1406,6 +1412,30 @@ button { font-family: var(--font-body); }
 .account-order-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
 .account-order-row:last-child { border-bottom: none; }
 .account-order-row .order-status { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+
+/* Each order lists what was actually in it, with the bottle alongside — a
+   date and an item count don't tell you which perfume you bought. */
+.account-order { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px; }
+.account-order:last-child { border-bottom: none; }
+.account-order .account-order-row { border-bottom: none; padding-bottom: 4px; }
+.account-order-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.account-order-item { display: flex; align-items: center; gap: 12px; }
+.account-order-thumb {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 58px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.account-order-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.account-order-item-name { font-size: 13px; color: var(--text); display: flex; flex-direction: column; gap: 2px; }
+.account-order-item-name small { font-size: 11.5px; color: var(--text-muted); }
+.account-order-address { font-size: 11.5px; color: var(--text-muted); margin: 10px 0 0; }
 .account-recs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .account-rec-card { display: block; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; text-align: center; padding: 14px 10px; transition: border-color 0.2s; }
 .account-rec-card:hover { border-color: var(--text); }
