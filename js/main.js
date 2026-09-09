@@ -80,13 +80,13 @@ function priceMarkup(p, className) {
 }
 
 function stockBadge(p) {
-  return isOutOfStock(p) ? `<span class="stock-badge">Esgotado</span>` : "";
+  return isOutOfStock(p) ? `<span class="stock-badge" data-i18n="product.soldout">Esgotado</span>` : "";
 }
 
-function addButton(p, label) {
+function addButton(p, label, labelKey) {
   return isOutOfStock(p)
-    ? `<button class="btn btn-small" disabled>Esgotado</button>`
-    : `<button class="btn btn-small" data-add="${p.id}">${label}</button>`;
+    ? `<button class="btn btn-small" disabled data-i18n="product.soldout">Esgotado</button>`
+    : `<button class="btn btn-small" data-add="${p.id}" data-i18n="${labelKey}">${label}</button>`;
 }
 
 // Resolved to an absolute URL: a relative url() stored in a CSS custom property
@@ -159,15 +159,15 @@ function familyLabel(p) {
 // Only ever one badge (never both at once, to avoid cluttering the corner),
 // and only when the product's own flag supports it — never hard-coded.
 function badgeMarkup(p) {
-  if (p.bestseller) return `<span class="perfume-badge badge-bestseller">Mais Vendido</span>`;
-  if (p.new_arrival) return `<span class="perfume-badge badge-new">Novidade</span>`;
+  if (p.bestseller) return `<span class="perfume-badge badge-bestseller" data-i18n="badge.bestseller">Mais Vendido</span>`;
+  if (p.new_arrival) return `<span class="perfume-badge badge-new" data-i18n="badge.new">Novidade</span>`;
   return "";
 }
 
 // Shared by .product-card / .carousel-card / .featured-card: a bordered
 // image panel (zoom on hover) plus a body where name/family/description/
 // price stay visible at all times — no flip, nothing hidden behind hover.
-function perfumeCardTemplate(p, wrapClass, addLabel) {
+function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
   const toneClass = p.image ? "" : ` ${p.tone}`;
   const style = p.image ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
   const description = p.short_description || p.notes || "";
@@ -188,15 +188,15 @@ function perfumeCardTemplate(p, wrapClass, addLabel) {
         ${description ? `<p class="perfume-card-desc">${description}</p>` : ""}
         <div class="perfume-card-footer">
           ${priceMarkup(p, "perfume-card-price")}
-          ${addButton(p, addLabel)}
+          ${addButton(p, addLabel, addLabelKey)}
         </div>
       </div>
     </article>`;
 }
 
-function productCardTemplate(p) { return perfumeCardTemplate(p, "product-card", "Adicionar"); }
-function featuredCardTemplate(p) { return perfumeCardTemplate(p, "featured-card", "Comprar"); }
-function carouselCardTemplate(p) { return perfumeCardTemplate(p, "carousel-card", "Adicionar"); }
+function productCardTemplate(p) { return perfumeCardTemplate(p, "product-card", "Adicionar", "product.add"); }
+function featuredCardTemplate(p) { return perfumeCardTemplate(p, "featured-card", "Comprar", "product.buy"); }
+function carouselCardTemplate(p) { return perfumeCardTemplate(p, "carousel-card", "Adicionar", "product.add"); }
 
 const CATEGORY_ORDER = { masculino: 0, feminino: 1, unissex: 2 };
 
@@ -213,7 +213,10 @@ function renderProducts() {
   }).sort((a, b) => CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category]);
   grid.innerHTML = items.length
     ? items.map(productCardTemplate).join("")
-    : `<p class="cart-empty">Nenhum perfume encontrado.</p>`;
+    : `<p class="cart-empty" data-i18n="product.notfound">Nenhum perfume encontrado.</p>`;
+  // Re-render happens on every filter/search change, so the freshly built
+  // cards need another translation pass to pick the current language back up.
+  window.applyTranslations?.(window.getLang?.());
 }
 
 function renderFeatured() {

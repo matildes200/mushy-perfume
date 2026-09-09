@@ -69,7 +69,6 @@ button { font-family: var(--font-body); }
   z-index: 60;
   background: transparent;
   transition: background 0.35s ease;
-  transform: translateZ(0);
 }
 .site-header.scrolled {
   background: rgba(250, 245, 234, 0.96);
@@ -339,8 +338,19 @@ button { font-family: var(--font-body); }
   max-width: 660px;
 }
 .sobre-banner-body { padding: 64px 0 120px; }
-.sobre-banner-text { max-width: 660px; width: 100%; margin: 0 auto; overflow-wrap: break-word; }
-.sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin-bottom: 22px; }
+/* Same bordered-card treatment as the policy blocks, so the story text sits
+   inside a contained column instead of running edge-to-edge on a phone. */
+.sobre-banner-text {
+  max-width: 660px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-wrap: break-word;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 34px 30px;
+}
+.sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin-bottom: 22px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
 .sobre-banner-body .sobre-stats { max-width: 660px; width: 100%; margin: 44px auto 0; box-sizing: border-box; }
 
@@ -369,7 +379,7 @@ button { font-family: var(--font-body); }
   max-width: 440px;
 }
 .processo-content h2 { font-weight: 400; font-size: 28px; margin-bottom: 20px; max-width: 460px; }
-.processo-content p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 20px; max-width: 460px; }
+.processo-content p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 20px; max-width: 460px; text-align: justify; }
 .processo-content p:last-of-type { margin-bottom: 0; }
 
 /* ---------- Values (Sobre page) ---------- */
@@ -1380,7 +1390,9 @@ button { font-family: var(--font-body); }
   .sobre-banner-media { height: 48vh; min-height: 340px; }
   .sobre-banner-overlay { padding-bottom: 36px; }
   .sobre-banner-body { padding: 40px 0 56px; }
-  .sobre-banner-text p { font-size: 14.5px; line-height: 2; margin-bottom: 28px; }
+  .sobre-banner-text { padding: 26px 20px; }
+  .sobre-banner-text p { font-size: 14.5px; line-height: 1.95; margin-bottom: 24px; }
+  .valor-card { padding: 30px 22px; }
 
   .valores-grid { grid-template-columns: 1fr; gap: 1px; }
 

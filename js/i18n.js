@@ -1,11 +1,11 @@
 // ---------- Language toggle (PT-PT default / EN) ----------
-// Covers site chrome: header, hero, section headings, buttons, cart/wishlist/
-// checkout drawers, the quiz, and the footer — the parts every page shares.
-// Long-form paragraphs (the Sobre/Quem somos story, policy text, product
-// descriptions from the database) are intentionally left Portuguese-only:
-// translating flowing prose well is a different job than UI strings, and
-// shipping a rushed machine-ish English version of that copy would read worse
-// than not translating it at all.
+// Covers the whole storefront: header, hero, every section heading and body
+// paragraph, the Sobre story, all policy text, fragrance notes, reviews,
+// cart/wishlist/checkout, the quiz, the account page and the footer.
+//
+// Deliberately NOT translated: the brand name ("Mushy Parfum") and product
+// names/descriptions, which come from the database and stay as the admin
+// entered them. Admin panel pages are Portuguese-only.
 const TRANSLATIONS = {
   pt: {
     "nav.colecoes": "Coleções",
@@ -102,6 +102,7 @@ const TRANSLATIONS = {
     "product.add": "Adicionar",
     "product.buy": "Comprar",
     "product.soldout": "Esgotado",
+    "product.notfound": "Nenhum perfume encontrado.",
     "badge.bestseller": "Mais Vendido",
     "badge.new": "Novidade",
 
@@ -173,6 +174,26 @@ const TRANSLATIONS = {
     "review2": "\"Só a embalagem já parece um luxo.\"",
     "review3": "\"Atendimento impecável e entrega rápida. Já virei cliente fiel.\"",
     "review4": "\"Recebi tantos elogios no primeiro dia que já pedi outro frasco.\"",
+
+    "account.title": "Minha conta",
+    "account.name": "Nome",
+    "account.email": "E-mail",
+    "account.contact": "Contacto",
+    "account.fullname": "Nome completo",
+    "account.password": "Senha",
+    "account.phone.placeholder": "Número de telefone",
+    "account.address.label": "Endereço de entrega",
+    "account.address.placeholder": "Rua, número, bairro, cidade",
+    "account.address.save": "Salvar endereço",
+    "account.adminpanel": "Painel Administrativo",
+    "account.logout": "Sair",
+    "account.orders.title": "Seus pedidos",
+    "account.orders.empty": "Você ainda não fez nenhum pedido.",
+    "account.recs.title": "Recomendado para você",
+    "account.referral.title": "Indique um amigo",
+    "account.referral.desc": "Partilhe o seu link. Quando um amigo criar a conta pelo seu link, ganha um cupão de 10% de desconto.",
+    "account.referral.copy": "Copiar",
+    "account.referral.empty": "Nenhum amigo se registou pelo seu link ainda.",
   },
   en: {
     "nav.colecoes": "Collections",
@@ -269,6 +290,7 @@ const TRANSLATIONS = {
     "product.add": "Add",
     "product.buy": "Buy",
     "product.soldout": "Sold out",
+    "product.notfound": "No perfumes found.",
     "badge.bestseller": "Best Seller",
     "badge.new": "New",
 
@@ -340,6 +362,26 @@ const TRANSLATIONS = {
     "review2": "\"Just the packaging already feels like luxury.\"",
     "review3": "\"Impeccable service and fast delivery. I'm a loyal customer now.\"",
     "review4": "\"I got so many compliments on day one that I already ordered another bottle.\"",
+
+    "account.title": "My account",
+    "account.name": "Name",
+    "account.email": "Email",
+    "account.contact": "Contact",
+    "account.fullname": "Full name",
+    "account.password": "Password",
+    "account.phone.placeholder": "Phone number",
+    "account.address.label": "Delivery address",
+    "account.address.placeholder": "Street, number, area, city",
+    "account.address.save": "Save address",
+    "account.adminpanel": "Admin Panel",
+    "account.logout": "Sign out",
+    "account.orders.title": "Your orders",
+    "account.orders.empty": "You haven't placed any orders yet.",
+    "account.recs.title": "Recommended for you",
+    "account.referral.title": "Refer a friend",
+    "account.referral.desc": "Share your link. When a friend creates an account through it, you get a 10% discount code.",
+    "account.referral.copy": "Copy",
+    "account.referral.empty": "No friend has signed up through your link yet.",
   },
 };
 

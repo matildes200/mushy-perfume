@@ -78,8 +78,8 @@
         <!-- Signed out: register / login -->
         <div id="authView">
           <div class="account-tabs">
-            <button type="button" class="account-tab active" data-tab="register">Criar conta</button>
-            <button type="button" class="account-tab" data-tab="login">Entrar</button>
+            <button type="button" class="account-tab active" data-tab="register" data-i18n="checkout.tab.register">Criar conta</button>
+            <button type="button" class="account-tab" data-tab="login" data-i18n="checkout.tab.login">Entrar</button>
           </div>
 
           <div id="authAlert"></div>
@@ -87,85 +87,85 @@
           <div class="account-form-panel active" id="registerPanel">
             <form id="registerForm">
               <div class="account-field">
-                <label for="fullName">Nome completo</label>
+                <label for="fullName" data-i18n="account.fullname">Nome completo</label>
                 <input type="text" id="fullName" autocomplete="name" required>
               </div>
               <div class="account-field">
-                <label for="registerEmail">E-mail</label>
+                <label for="registerEmail" data-i18n="account.email">E-mail</label>
                 <input type="email" id="registerEmail" autocomplete="email" required>
               </div>
               <div class="account-field">
-                <label for="countryCode">Contacto</label>
+                <label for="countryCode" data-i18n="account.contact">Contacto</label>
                 <div class="phone-field">
                   <select id="countryCode" autocomplete="tel-country-code"></select>
-                  <input type="tel" id="phone" placeholder="Número de telefone" autocomplete="tel-national" required>
+                  <input type="tel" id="phone" placeholder="Número de telefone" data-i18n-placeholder="account.phone.placeholder" autocomplete="tel-national" required>
                 </div>
               </div>
               <div class="account-field">
-                <label for="registerPassword">Senha</label>
+                <label for="registerPassword" data-i18n="account.password">Senha</label>
                 <input type="password" id="registerPassword" autocomplete="new-password" minlength="6" required>
               </div>
-              <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Criar conta</button>
+              <button type="submit" class="btn btn-primary btn-block" id="registerBtn" data-i18n="checkout.tab.register">Criar conta</button>
             </form>
           </div>
 
           <div class="account-form-panel" id="loginPanel">
             <form id="loginForm">
               <div class="account-field">
-                <label for="loginEmail">E-mail</label>
+                <label for="loginEmail" data-i18n="account.email">E-mail</label>
                 <input type="email" id="loginEmail" autocomplete="email" required>
               </div>
               <div class="account-field">
-                <label for="loginPassword">Senha</label>
+                <label for="loginPassword" data-i18n="account.password">Senha</label>
                 <input type="password" id="loginPassword" autocomplete="current-password" required>
               </div>
-              <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Entrar</button>
+              <button type="submit" class="btn btn-primary btn-block" id="loginBtn" data-i18n="checkout.tab.login">Entrar</button>
             </form>
           </div>
         </div>
 
         <!-- Signed in: profile -->
         <div id="profileView" style="display:none;">
-          <h2>Minha conta</h2>
-          <div class="account-profile-row"><span>Nome</span><span id="profileName"></span></div>
-          <div class="account-profile-row"><span>E-mail</span><span id="profileEmail"></span></div>
-          <div class="account-profile-row"><span>Contacto</span><span id="profilePhone"></span></div>
+          <h2 data-i18n="account.title">Minha conta</h2>
+          <div class="account-profile-row"><span data-i18n="account.name">Nome</span><span id="profileName"></span></div>
+          <div class="account-profile-row"><span data-i18n="account.email">E-mail</span><span id="profileEmail"></span></div>
+          <div class="account-profile-row"><span data-i18n="account.contact">Contacto</span><span id="profilePhone"></span></div>
 
           <div class="account-field" style="margin-top:20px;">
-            <label for="profileAddress">Endereço de entrega</label>
-            <input type="text" id="profileAddress" placeholder="Rua, número, bairro, cidade">
+            <label for="profileAddress" data-i18n="account.address.label">Endereço de entrega</label>
+            <input type="text" id="profileAddress" placeholder="Rua, número, bairro, cidade" data-i18n-placeholder="account.address.placeholder">
           </div>
-          <button type="button" class="btn btn-outline-dark btn-block" id="saveAddressBtn">Salvar endereço</button>
+          <button type="button" class="btn btn-outline-dark btn-block" id="saveAddressBtn" data-i18n="account.address.save">Salvar endereço</button>
           <p class="account-note" id="addressNote"></p>
 
-          <a href="admin/index.html" class="btn btn-primary btn-block" id="adminPanelLink" style="display:none;margin-top:20px;">Painel Administrativo</a>
-          <button type="button" class="btn btn-outline-dark btn-block" id="logoutBtn" style="margin-top:14px;">Sair</button>
+          <a href="admin/index.html" class="btn btn-primary btn-block" id="adminPanelLink" style="display:none;margin-top:20px;" data-i18n="account.adminpanel">Painel Administrativo</a>
+          <button type="button" class="btn btn-outline-dark btn-block" id="logoutBtn" style="margin-top:14px;" data-i18n="account.logout">Sair</button>
         </div>
 
       </div>
 
       <div class="account-extra" id="accountExtra" style="display:none;">
         <div class="account-block">
-          <h3>Seus pedidos</h3>
-          <div id="accountOrders"><p class="cart-empty">Você ainda não fez nenhum pedido.</p></div>
+          <h3 data-i18n="account.orders.title">Seus pedidos</h3>
+          <div id="accountOrders"><p class="cart-empty" data-i18n="account.orders.empty">Você ainda não fez nenhum pedido.</p></div>
         </div>
 
         <div class="account-block">
           <h3 data-i18n="wishlist.title">Seus favoritos</h3>
-          <div id="accountFavorites"><p class="cart-empty">Você ainda não adicionou favoritos.</p></div>
+          <div id="accountFavorites"><p class="cart-empty" data-i18n="wishlist.empty">Você ainda não adicionou favoritos.</p></div>
         </div>
 
         <div class="account-block">
-          <h3>Recomendado para você</h3>
+          <h3 data-i18n="account.recs.title">Recomendado para você</h3>
           <div class="account-recs" id="accountRecs"></div>
         </div>
 
         <div class="account-block">
-          <h3>Indique um amigo</h3>
-          <p class="account-note" style="margin-bottom:14px;">Compartilhe seu link. Quando um amigo criar a conta pelo seu link, você ganha um cupom de 10% de desconto.</p>
+          <h3 data-i18n="account.referral.title">Indique um amigo</h3>
+          <p class="account-note" style="margin-bottom:14px;" data-i18n="account.referral.desc">Partilhe o seu link. Quando um amigo criar a conta pelo seu link, ganha um cupão de 10% de desconto.</p>
           <div class="coupon-field">
             <input type="text" id="referralLink" class="checkout-input" readonly>
-            <button type="button" class="btn btn-small" id="copyReferralBtn">Copiar</button>
+            <button type="button" class="btn btn-small" id="copyReferralBtn" data-i18n="account.referral.copy">Copiar</button>
           </div>
           <p class="account-note" id="referralCopyNote"></p>
           <div id="referralCoupons" style="margin-top:14px;"></div>

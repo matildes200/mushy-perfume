@@ -74,7 +74,8 @@ async function renderAccountOrders(customerId) {
     .order("created_at", { ascending: false });
 
   if (!orders || orders.length === 0) {
-    el.innerHTML = `<p class="cart-empty">Você ainda não fez nenhum pedido.</p>`;
+    el.innerHTML = `<p class="cart-empty" data-i18n="account.orders.empty">Você ainda não fez nenhum pedido.</p>`;
+    window.applyTranslations?.(window.getLang?.());
     return;
   }
   el.innerHTML = orders
@@ -100,7 +101,8 @@ function renderAccountFavorites() {
       </div>`
         )
         .join("")
-    : `<p class="cart-empty">Você ainda não adicionou favoritos.</p>`;
+    : `<p class="cart-empty" data-i18n="wishlist.empty">Você ainda não adicionou favoritos.</p>`;
+  window.applyTranslations?.(window.getLang?.());
 }
 
 function renderAccountRecommendations() {
@@ -131,7 +133,8 @@ async function renderReferral(profile) {
 
   const el = document.getElementById("referralCoupons");
   if (!coupons || coupons.length === 0) {
-    el.innerHTML = `<p class="cart-empty">Nenhum amigo se cadastrou pelo seu link ainda.</p>`;
+    el.innerHTML = `<p class="cart-empty" data-i18n="account.referral.empty">Nenhum amigo se registou pelo seu link ainda.</p>`;
+    window.applyTranslations?.(window.getLang?.());
     return;
   }
   el.innerHTML = coupons
