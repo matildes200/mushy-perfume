@@ -149,6 +149,13 @@ button { font-family: var(--font-body); }
 
 .menu-btn { display: none; }
 
+/* ---------- Language toggle ---------- */
+.lang-toggle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 /* ---------- Overflow ("more") menu: search + account tucked away on mobile ---------- */
 .more-menu { position: relative; display: flex; align-items: center; }
 .more-btn { display: none; }
@@ -1430,6 +1437,8 @@ button { font-family: var(--font-body); }
 
   .sobre-banner-media { height: 48vh; min-height: 340px; }
   .sobre-banner-overlay { padding-bottom: 36px; }
+  .sobre-banner-body { padding: 40px 0 56px; }
+  .sobre-banner-text p { font-size: 14.5px; line-height: 2; margin-bottom: 28px; }
 
   .valores-grid { grid-template-columns: 1fr; gap: 1px; }
 

@@ -88,7 +88,7 @@ function openOrderModal(order) {
 
   const receiptEl = document.getElementById("odReceiptLink");
   if (order.receipt_url) {
-    receiptEl.textContent = "Carregando…";
+    receiptEl.textContent = "A carregar…";
     supabaseClient.storage.from("receipts").createSignedUrl(order.receipt_url, 3600).then(({ data }) => {
       receiptEl.innerHTML = data?.signedUrl
         ? `<a href="${data.signedUrl}" target="_blank" rel="noopener" style="color:var(--ink);text-decoration:underline;">Ver comprovativo enviado</a>`

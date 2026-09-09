@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,15 +17,15 @@
     <a href="#topo" class="logo">Mushy<span>Parfum</span></a>
 
     <nav class="main-nav" id="mainNav">
-      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Coleções</a>
-      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> Sobre</a>
-      <a href="#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> Contato</a>
+      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> <span data-i18n="nav.colecoes">Coleções</span></a>
+      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> <span data-i18n="nav.sobre">Sobre</span></a>
+      <a href="#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> <span data-i18n="nav.contato">Contato</span></a>
 <div class="main-nav-divider" aria-hidden="true"></div>
       <button type="button" class="mobile-nav-action" data-nav-search>
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg> Buscar
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg> <span data-i18n="nav.buscar">Buscar</span>
       </button>
       <a href="conta.html" class="mobile-nav-action">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg> Minha conta
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg> <span data-i18n="nav.conta">Minha conta</span>
       </a>
     </nav>
 
@@ -38,6 +38,7 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
         <span class="badge-count" id="cartCount">0</span>
       </button>
+      <button type="button" class="icon-btn lang-toggle" id="langToggle" aria-label="Mudar idioma">PT</button>
       <div class="more-menu">
         <button class="icon-btn more-btn" id="moreBtn" aria-label="Mais opções" aria-haspopup="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -45,11 +46,11 @@
         <div class="more-menu-panel" id="moreMenuPanel">
           <button class="more-menu-item" id="searchBtn" aria-label="Buscar">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-            <span>Buscar</span>
+            <span data-i18n="nav.buscar">Buscar</span>
           </button>
           <a href="conta.html" class="more-menu-item" id="accountBtn" aria-label="Minha conta">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-            <span>Minha conta</span>
+            <span data-i18n="nav.conta">Minha conta</span>
           </a>
         </div>
       </div>
@@ -62,7 +63,7 @@
   <div class="search-bar" id="searchBar">
     <div class="container">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      <input type="text" id="searchInput" placeholder="Buscar perfumes por nome...">
+      <input type="text" id="searchInput" placeholder="Buscar perfumes por nome..." data-i18n-placeholder="search.placeholder">
       <button id="searchClose" aria-label="Fechar busca">&times;</button>
     </div>
   </div>
@@ -73,12 +74,12 @@
   <section class="hero">
     <div class="hero-media" id="heroMedia" aria-hidden="true"></div>
     <div class="container hero-inner">
-      <p class="eyebrow">Mushy Parfum</p>
-      <h1>Leave a little<br>Mushy behind.</h1>
-      <p class="hero-text">Fragrâncias para quem não passa despercebida.</p>
+      <p class="eyebrow" data-i18n="hero.eyebrow">Mushy Parfum</p>
+      <h1 data-i18n="hero.headline">Deixa um rasto<br>de Mushy.</h1>
+      <p class="hero-text" data-i18n="hero.text">Fragrâncias para quem não passa despercebida.</p>
       <div class="hero-ctas">
-        <a href="colecao.html" class="btn btn-solid-cream">Descobrir fragrâncias</a>
-        <a href="#destaque" class="btn btn-outline-gold">Explorar coleção</a>
+        <a href="colecao.html" class="btn btn-solid-cream" data-i18n="hero.cta.primary">Descobrir fragrâncias</a>
+        <a href="#destaque" class="btn btn-outline-gold" data-i18n="hero.cta.secondary">Explorar coleção</a>
       </div>
     </div>
   </section>
@@ -86,8 +87,8 @@
   <section class="featured reveal" id="destaque">
     <div class="container">
       <div class="section-head">
-        <h2>Nossa Seleção</h2>
-        <p>Perfumes escolhidos a dedo pela nossa equipe</p>
+        <h2 data-i18n="destaque.title">Nossa Seleção</h2>
+        <p data-i18n="destaque.subtitle">Perfumes escolhidos a dedo pela nossa equipa</p>
       </div>
       <div class="featured-grid" id="featuredGrid"></div>
     </div>
@@ -99,10 +100,10 @@
         <img src="img/hero-mobile-bg.png" alt="Frasco Mushy Parfum em destaque" loading="lazy">
       </div>
       <div class="historia-content">
-        <p class="eyebrow">Sobre nós</p>
-        <h2>Nossa história</h2>
-        <p>Inspirados pela elegância atemporal, por ingredientes raros e pelo luxo contemporâneo, criamos cada fragrância pensando em quem não se contenta em passar despercebido.</p>
-        <a href="sobre.html" class="btn btn-outline-gold">Saiba mais</a>
+        <p class="eyebrow" data-i18n="historia.eyebrow">Sobre nós</p>
+        <h2 data-i18n="historia.title">Nossa história</h2>
+        <p data-i18n="historia.text">Inspirados pela elegância atemporal, por ingredientes raros e pelo luxo contemporâneo, criamos cada fragrância pensando em quem não se contenta em passar despercebido.</p>
+        <a href="sobre.html" class="btn btn-outline-gold" data-i18n="historia.cta">Saiba mais</a>
       </div>
     </div>
   </section>
@@ -110,8 +111,8 @@
   <section class="bestsellers reveal" id="maisvendidos">
     <div class="container">
       <div class="section-head">
-        <h2>Mais Vendidos</h2>
-        <p>Os favoritos de quem já perfumou sua história com a gente</p>
+        <h2 data-i18n="maisvendidos.title">Mais Vendidos</h2>
+        <p data-i18n="maisvendidos.subtitle">Os favoritos de quem já perfumou a sua história connosco</p>
       </div>
     </div>
     <div class="carousel" id="carousel">
@@ -125,18 +126,18 @@
 
   <section class="quiz-teaser reveal" id="encontrar-fragrancia">
     <div class="container quiz-teaser-inner">
-      <p class="eyebrow">Find Your Scent</p>
-      <h2>Não sabes qual escolher?</h2>
-      <p>Encontra o perfume que combina contigo.</p>
-      <button type="button" class="btn btn-primary" id="openQuizBtn">Encontrar a minha fragrância</button>
+      <p class="eyebrow" data-i18n="quiz.eyebrow">Encontra o teu perfume</p>
+      <h2 data-i18n="quiz.title">Não sabes qual escolher?</h2>
+      <p data-i18n="quiz.subtitle">Encontra o perfume que combina contigo.</p>
+      <button type="button" class="btn btn-primary" id="openQuizBtn" data-i18n="quiz.cta">Encontrar a minha fragrância</button>
     </div>
   </section>
 
   <section class="notas reveal" id="notas">
     <div class="container">
       <div class="section-head">
-        <h2>Descubra as Fragrâncias</h2>
-        <p>Conheça as notas aromáticas que compõem cada perfume e descubra a essência por trás de cada fragrância.</p>
+        <h2 data-i18n="notas.title">Descubra as Fragrâncias</h2>
+        <p data-i18n="notas.subtitle">Conheça as notas aromáticas que compõem cada perfume e descubra a essência por trás de cada fragrância.</p>
       </div>
       <div class="notas-card">
         <div class="notas-grid" id="notasGrid">
@@ -180,7 +181,7 @@
   <section class="reviews reveal" id="avaliacoes">
     <div class="container">
       <div class="section-head">
-        <h2>Experiências reais</h2>
+        <h2 data-i18n="reviews.title">Experiências reais</h2>
       </div>
       <div class="reviews-grid" id="reviewsGrid">
         <div class="review-card">
@@ -210,11 +211,11 @@
   <section class="newsletter reveal" id="newsletter">
     <div class="container">
       <div class="newsletter-inner">
-        <h2>Faça parte da coleção</h2>
-        <p>Receba lançamentos exclusivos e ofertas privadas.</p>
+        <h2 data-i18n="newsletter.title">Faça parte da coleção</h2>
+        <p data-i18n="newsletter.subtitle">Receba lançamentos exclusivos e ofertas privadas.</p>
         <form class="newsletter-form" id="newsletterForm">
-          <input type="email" id="newsletterEmail" placeholder="Seu endereço de e-mail" required>
-          <button type="submit" class="btn btn-primary">Assinar</button>
+          <input type="email" id="newsletterEmail" placeholder="Seu endereço de e-mail" data-i18n-placeholder="newsletter.placeholder" required>
+          <button type="submit" class="btn btn-primary" data-i18n="newsletter.cta">Assinar</button>
         </form>
         <p class="newsletter-note" id="newsletterNote"></p>
       </div>
@@ -223,8 +224,8 @@
 
   <section class="contato reveal" id="contato">
     <div class="container contato-inner">
-      <h2>Fale conosco</h2>
-      <p>Dúvidas sobre um perfume, prazo de entrega ou seu pedido? Fale com a gente.</p>
+      <h2 data-i18n="contato.title">Fale connosco</h2>
+      <p data-i18n="contato.subtitle">Dúvidas sobre um perfume, prazo de entrega ou o seu pedido? Fale connosco.</p>
       <div class="contato-links">
         <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" class="contato-card">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.38a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.02c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.8-.11-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.65.5.24.58.82 2 .89 2.15.07.15.12.32.02.51-.1.19-.15.31-.3.48-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.75 1.24 1.61 2.01 1.11 1 2.05 1.31 2.34 1.46.29.15.46.13.63-.08.17-.2.72-.84.91-1.13.19-.29.38-.24.63-.14.26.1 1.64.77 1.92.91.29.15.48.22.55.34.07.13.07.75-.17 1.43z"/></svg>
@@ -269,48 +270,48 @@
     </nav>
   </div>
   <div class="container footer-bottom">
-    <span>© 2026 Mushy Parfum. Todos os direitos reservados.</span>
-    <span>Feito com carinho para quem ama perfumaria.</span>
+    <span>© 2026 Mushy Parfum. <span data-i18n="footer.direitos">Todos os direitos reservados.</span></span>
+    <span data-i18n="footer.tagline">Feito com carinho para quem ama perfumaria.</span>
   </div>
 </footer>
 
 <div class="cart-overlay" id="cartOverlay"></div>
 <aside class="cart-drawer" id="cartDrawer" aria-label="Carrinho de compras">
   <div class="cart-header">
-    <h3>Seu carrinho</h3>
+    <h3 data-i18n="cart.title">Seu carrinho</h3>
     <button class="icon-btn" id="cartClose" aria-label="Fechar carrinho">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
-    <button type="button" class="coupon-toggle" id="couponToggle">Tem um cupom de desconto?</button>
+    <button type="button" class="coupon-toggle" id="couponToggle" data-i18n="cart.coupon.toggle">Tem um cupom de desconto?</button>
     <div class="coupon-field" id="couponFieldWrap" style="display:none;">
       <input type="text" id="couponInput" class="checkout-input" placeholder="Código do cupom">
-      <button type="button" class="btn btn-small" id="applyCouponBtn">Aplicar</button>
+      <button type="button" class="btn btn-small" id="applyCouponBtn" data-i18n="cart.coupon.apply">Aplicar</button>
     </div>
     <p class="coupon-message" id="couponMessage"></p>
     <div class="cart-total" id="cartSubtotalRow" style="display:none;">
-      <span>Subtotal</span>
-      <strong id="cartSubtotal">0,00 Kz</strong>
+      <span data-i18n="cart.subtotal">Subtotal</span>
+      <strong id="cartSubtotal">0,00 Kz</strong>
     </div>
     <div class="cart-total coupon-discount-row" id="couponDiscountRow" style="display:none;">
       <span>Desconto <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · remover)</button></span>
-      <strong id="cartDiscount">-0,00 Kz</strong>
+      <strong id="cartDiscount">-0,00 Kz</strong>
     </div>
     <div class="cart-total cart-total-final">
-      <span>Total</span>
-      <strong id="cartTotal">0,00 Kz</strong>
+      <span data-i18n="cart.total">Total</span>
+      <strong id="cartTotal">0,00 Kz</strong>
     </div>
-    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar Compra</a>
-    <p class="cart-note">Pagamento por transferência bancária.</p>
+    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn" data-i18n="cart.checkout">Finalizar Compra</a>
+    <p class="cart-note" data-i18n="cart.note">Pagamento por transferência bancária.</p>
   </div>
 </aside>
 
 <div class="wishlist-overlay" id="wishlistOverlay"></div>
 <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Lista de favoritos">
   <div class="cart-header">
-    <h3>Seus favoritos</h3>
+    <h3 data-i18n="wishlist.title">Seus favoritos</h3>
     <button class="icon-btn" id="wishlistClose" aria-label="Fechar favoritos">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
@@ -327,11 +328,7 @@
       <h3 class="pd-name" id="pdName"></h3>
       <p class="pd-notes" id="pdNotes"></p>
       <div class="pd-price" id="pdPrice"></div>
-      <button class="btn btn-primary" id="pdAddToCart">Adicionar ao carrinho</button>
-      <a href="#" class="btn-whatsapp-inline" id="pdWhatsAppBtn" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 4.99L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.63 14.02c-.24.67-1.39 1.28-1.92 1.36-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.08 1-2.37.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.27.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.2 1.37.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.3z"/></svg>
-        Prefere comprar pelo WhatsApp?
-      </a>
+      <button class="btn btn-primary" id="pdAddToCart" data-i18n="pd.addToCart">Adicionar ao carrinho</button>
     </div>
   </div>
 </div>
@@ -341,33 +338,33 @@
     <button class="pd-close" id="checkoutClose" aria-label="Fechar">&times;</button>
 
     <div class="checkout-step" id="checkoutStepAuth">
-      <h2>Entre para continuar</h2>
-      <p class="checkout-step-sub">Você precisa estar conectado para finalizar o pedido.</p>
+      <h2 data-i18n="checkout.auth.title">Entre para continuar</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.auth.subtitle">Você precisa estar conectado para finalizar o pedido.</p>
       <div class="account-tabs">
-        <button type="button" class="account-tab active" data-checkout-tab="login">Entrar</button>
-        <button type="button" class="account-tab" data-checkout-tab="register">Criar conta</button>
+        <button type="button" class="account-tab active" data-checkout-tab="login" data-i18n="checkout.tab.login">Entrar</button>
+        <button type="button" class="account-tab" data-checkout-tab="register" data-i18n="checkout.tab.register">Criar conta</button>
       </div>
       <div id="checkoutAuthAlert"></div>
       <form id="checkoutLoginForm" class="account-form-panel active">
         <div class="account-field"><label>E-mail</label><input type="email" id="ckLoginEmail" required></div>
         <div class="account-field"><label>Senha</label><input type="password" id="ckLoginPassword" required></div>
-        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.login">Entrar</button>
       </form>
       <form id="checkoutRegisterForm" class="account-form-panel">
         <div class="account-field"><label>Nome completo</label><input type="text" id="ckRegName" required></div>
         <div class="account-field"><label>E-mail</label><input type="email" id="ckRegEmail" required></div>
         <div class="account-field"><label>Senha</label><input type="password" id="ckRegPassword" minlength="6" required></div>
-        <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.register">Criar conta</button>
       </form>
     </div>
 
     <div class="checkout-step" id="checkoutStepPayment">
-      <h2>Pagamento</h2>
-      <p class="checkout-step-sub">Escolha como prefere pagar, transfira o valor e envie o comprovativo.</p>
+      <h2 data-i18n="checkout.payment.title">Pagamento</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.payment.subtitle">Escolha como prefere pagar, transfira o valor e envie o comprovativo.</p>
 
       <div class="payment-method-tabs">
-        <button type="button" class="payment-method-tab active" data-method="Transferência Bancária">Transferência Bancária</button>
-        <button type="button" class="payment-method-tab" data-method="Express">Express</button>
+        <button type="button" class="payment-method-tab active" data-method="Transferência Bancária" data-i18n="checkout.method.bank">Transferência Bancária</button>
+        <button type="button" class="payment-method-tab" data-method="Express" data-i18n="checkout.method.express">Express</button>
       </div>
 
       <div class="payment-details">
@@ -391,18 +388,18 @@
         </div>
         <label class="receipt-upload" for="ckReceipt">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF) — obrigatório</span>
+          <span id="ckReceiptLabel" data-i18n="checkout.receipt.label">Enviar comprovativo (imagem ou PDF) — obrigatório</span>
         </label>
         <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
-        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled>Confirmar pedido</button>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled data-i18n="checkout.submit">Confirmar pedido</button>
       </form>
     </div>
 
     <div class="checkout-step" id="checkoutStepDone">
       <div class="checkout-success-icon">✓</div>
-      <h2>Pedido confirmado!</h2>
-      <p class="checkout-step-sub">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
-      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn">Concluir</button>
+      <h2 data-i18n="checkout.done.title">Pedido confirmado!</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.done.subtitle">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
+      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn" data-i18n="checkout.done.cta">Concluir</button>
     </div>
   </div>
 </div>
@@ -418,48 +415,48 @@
     </div>
 
     <div class="quiz-step active" data-quiz-step="0">
-      <h3>Como queres ser lembrada?</h3>
+      <h3 data-i18n="quiz.q1">Como queres ser lembrada?</h3>
       <div class="quiz-options" data-question="mood">
-        <button type="button" class="quiz-option" data-value="delicada">Delicada</button>
-        <button type="button" class="quiz-option" data-value="elegante">Elegante</button>
-        <button type="button" class="quiz-option" data-value="sensual">Sensual</button>
-        <button type="button" class="quiz-option" data-value="misteriosa">Misteriosa</button>
+        <button type="button" class="quiz-option" data-value="delicada" data-i18n="quiz.q1.delicada">Delicada</button>
+        <button type="button" class="quiz-option" data-value="elegante" data-i18n="quiz.q1.elegante">Elegante</button>
+        <button type="button" class="quiz-option" data-value="sensual" data-i18n="quiz.q1.sensual">Sensual</button>
+        <button type="button" class="quiz-option" data-value="misteriosa" data-i18n="quiz.q1.misteriosa">Misteriosa</button>
       </div>
     </div>
 
     <div class="quiz-step" data-quiz-step="1">
-      <h3>Que tipo de fragrância combina mais contigo?</h3>
+      <h3 data-i18n="quiz.q2">Que tipo de fragrância combina mais contigo?</h3>
       <div class="quiz-options" data-question="family">
-        <button type="button" class="quiz-option" data-value="floral">Floral</button>
-        <button type="button" class="quiz-option" data-value="frutada">Frutada</button>
-        <button type="button" class="quiz-option" data-value="fresca">Fresca</button>
-        <button type="button" class="quiz-option" data-value="amadeirada">Amadeirada</button>
-        <button type="button" class="quiz-option" data-value="oriental">Oriental</button>
+        <button type="button" class="quiz-option" data-value="floral" data-i18n="quiz.q2.floral">Floral</button>
+        <button type="button" class="quiz-option" data-value="frutada" data-i18n="quiz.q2.frutada">Frutada</button>
+        <button type="button" class="quiz-option" data-value="fresca" data-i18n="quiz.q2.fresca">Fresca</button>
+        <button type="button" class="quiz-option" data-value="amadeirada" data-i18n="quiz.q2.amadeirada">Amadeirada</button>
+        <button type="button" class="quiz-option" data-value="oriental" data-i18n="quiz.q2.oriental">Oriental</button>
       </div>
     </div>
 
     <div class="quiz-step" data-quiz-step="2">
-      <h3>Qual ambiente combina mais contigo?</h3>
+      <h3 data-i18n="quiz.q3">Qual ambiente combina mais contigo?</h3>
       <div class="quiz-options" data-question="moment">
-        <button type="button" class="quiz-option" data-value="brunch">Brunch &amp; sunshine</button>
-        <button type="button" class="quiz-option" data-value="date">Date night</button>
-        <button type="button" class="quiz-option" data-value="evening">Evening elegance</button>
-        <button type="button" class="quiz-option" data-value="everyday">Everyday chic</button>
+        <button type="button" class="quiz-option" data-value="brunch" data-i18n="quiz.q3.brunch">Brunch ao sol</button>
+        <button type="button" class="quiz-option" data-value="date" data-i18n="quiz.q3.date">Noite a dois</button>
+        <button type="button" class="quiz-option" data-value="evening" data-i18n="quiz.q3.evening">Elegância noturna</button>
+        <button type="button" class="quiz-option" data-value="everyday" data-i18n="quiz.q3.everyday">Chique do dia a dia</button>
       </div>
     </div>
 
     <div class="quiz-step" data-quiz-step="result">
-      <p class="quiz-result-eyebrow">A tua fragrância Mushy</p>
+      <p class="quiz-result-eyebrow" data-i18n="quiz.result.eyebrow">A tua fragrância Mushy</p>
       <div class="quiz-result-media" id="quizResultMedia"></div>
       <h3 class="quiz-result-name" id="quizResultName"></h3>
       <p class="quiz-result-family" id="quizResultFamily"></p>
       <p class="quiz-result-desc" id="quizResultDesc"></p>
       <div class="quiz-result-price" id="quizResultPrice"></div>
       <div class="quiz-result-actions">
-        <button type="button" class="btn btn-primary" id="quizBuyBtn">Comprar agora</button>
-        <button type="button" class="btn btn-outline-dark" id="quizViewBtn">Ver fragrância</button>
+        <button type="button" class="btn btn-primary" id="quizBuyBtn" data-i18n="quiz.result.buy">Comprar agora</button>
+        <button type="button" class="btn btn-outline-dark" id="quizViewBtn" data-i18n="quiz.result.view">Ver fragrância</button>
       </div>
-      <button type="button" class="quiz-restart" id="quizRestartBtn">Refazer o quiz</button>
+      <button type="button" class="quiz-restart" id="quizRestartBtn" data-i18n="quiz.result.restart">Refazer o questionário</button>
     </div>
   </div>
 </div>
@@ -474,6 +471,7 @@
 <script src="js/products.js"></script>
 <script src="js/main.js"></script>
 <script src="js/checkout.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/quiz.js"></script>
 </body>
 </html>

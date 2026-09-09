@@ -73,10 +73,6 @@ async function renderAccountOrders(customerId) {
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false });
 
-  document.getElementById("statOrderCount").textContent = orders?.length || 0;
-  const totalSpent = (orders || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
-  document.getElementById("statTotalSpent").textContent = money(totalSpent);
-
   if (!orders || orders.length === 0) {
     el.innerHTML = `<p class="cart-empty">Você ainda não fez nenhum pedido.</p>`;
     return;
@@ -95,7 +91,6 @@ async function renderAccountOrders(customerId) {
 function renderAccountFavorites() {
   const el = document.getElementById("accountFavorites");
   const items = (wishlist || []).map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
-  document.getElementById("statFavCount").textContent = items.length;
   el.innerHTML = items.length
     ? items
         .map(

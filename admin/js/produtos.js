@@ -81,7 +81,7 @@ document.getElementById("imageFile").addEventListener("change", async (e) => {
   const previewWrap = document.getElementById("imagePreviewWrap");
   const previewImg = document.getElementById("imagePreview");
 
-  statusEl.textContent = "Enviando imagem…";
+  statusEl.textContent = "A enviar imagem…";
   const ext = file.name.split(".").pop().toLowerCase();
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 

@@ -62,7 +62,10 @@ const newsletterForm = document.getElementById("newsletterForm");
 const newsletterEmail = document.getElementById("newsletterEmail");
 const newsletterNote = document.getElementById("newsletterNote");
 
-const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
+// A non-breaking space before "Kz" keeps the amount and currency together —
+// a plain space is a valid line-break point, and on narrow mobile cards the
+// number and "Kz" could end up wrapping onto separate lines.
+const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
 
 // Effective price after discount_percent (0 when the column doesn't exist yet
 // or hasn't been set, so pre-migration data still renders correctly).
@@ -226,7 +229,7 @@ function renderCarousel() {
   carouselTrack.innerHTML = `${cards}
     <a href="colecao.html" class="carousel-end-card">
       <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      <span>Ver todos<br>os produtos</span>
+      <span data-i18n="carousel.vertodos">Ver todos<br>os produtos</span>
     </a>`;
 }
 
@@ -338,7 +341,8 @@ function updateCartUI() {
   cartCountEl.style.display = totalCount > 0 ? "flex" : "none";
 
   if (ids.length === 0) {
-    cartItemsEl.innerHTML = `<p class="cart-empty">Seu carrinho está vazio.</p>`;
+    cartItemsEl.innerHTML = `<p class="cart-empty" data-i18n="cart.empty">Seu carrinho está vazio.</p>`;
+    window.applyTranslations?.(window.getLang?.());
     if (cartSubtotalEl) cartSubtotalEl.textContent = money(0);
     if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
     if (couponDiscountRow) couponDiscountRow.style.display = "none";
@@ -439,7 +443,8 @@ function setWishlistButtonState(id) {
 function renderWishlistDrawer() {
   if (!wishlistItemsEl) return;
   if (wishlist.length === 0) {
-    wishlistItemsEl.innerHTML = `<p class="cart-empty">Você ainda não adicionou favoritos.</p>`;
+    wishlistItemsEl.innerHTML = `<p class="cart-empty" data-i18n="wishlist.empty">Você ainda não adicionou favoritos.</p>`;
+    window.applyTranslations?.(window.getLang?.());
     return;
   }
   wishlistItemsEl.innerHTML = wishlist
@@ -822,4 +827,12 @@ document.body.addEventListener("click", (e) => {
   e.preventDefault();
   document.body.classList.remove("page-loaded");
   setTimeout(() => { window.location.href = href; }, 170);
+});
+
+// Using the browser's Back button restores the page exactly as the tab left
+// it (from bfcache) rather than reloading it — including the opacity:0 state
+// set right above just before navigating away. Without this, going back
+// lands on a page that's technically there but invisible: a blank screen.
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) document.body.classList.add("page-loaded");
 });

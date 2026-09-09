@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,15 +17,15 @@
     <a href="index.html#topo" class="logo">Mushy<span>Parfum</span></a>
 
     <nav class="main-nav" id="mainNav">
-      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Coleções</a>
-      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> Sobre</a>
-      <a href="index.html#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> Contato</a>
+      <a href="colecao.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> <span data-i18n="nav.colecoes">Coleções</span></a>
+      <a href="sobre.html"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 11.5h1.3v5"/></svg> <span data-i18n="nav.sobre">Sobre</span></a>
+      <a href="index.html#contato"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg> <span data-i18n="nav.contato">Contato</span></a>
 <div class="main-nav-divider" aria-hidden="true"></div>
       <button type="button" class="mobile-nav-action" data-nav-search>
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg> Buscar
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg> <span data-i18n="nav.buscar">Buscar</span>
       </button>
       <a href="conta.html" class="mobile-nav-action">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg> Minha conta
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg> <span data-i18n="nav.conta">Minha conta</span>
       </a>
     </nav>
 
@@ -38,6 +38,7 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
         <span class="badge-count" id="cartCount">0</span>
       </button>
+      <button type="button" class="icon-btn lang-toggle" id="langToggle" aria-label="Mudar idioma">PT</button>
       <div class="more-menu">
         <button class="icon-btn more-btn" id="moreBtn" aria-label="Mais opções" aria-haspopup="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -45,11 +46,11 @@
         <div class="more-menu-panel" id="moreMenuPanel">
           <button class="more-menu-item" id="searchBtn" aria-label="Buscar">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-            <span>Buscar</span>
+            <span data-i18n="nav.buscar">Buscar</span>
           </button>
           <a href="conta.html" class="more-menu-item" id="accountBtn" aria-label="Minha conta">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-            <span>Minha conta</span>
+            <span data-i18n="nav.conta">Minha conta</span>
           </a>
         </div>
       </div>
@@ -62,7 +63,7 @@
   <div class="search-bar" id="searchBar">
     <div class="container">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      <input type="text" id="searchInput" placeholder="Buscar perfumes por nome...">
+      <input type="text" id="searchInput" placeholder="Buscar perfumes por nome..." data-i18n-placeholder="search.placeholder">
       <button id="searchClose" aria-label="Fechar busca">&times;</button>
     </div>
   </div>
@@ -74,18 +75,18 @@
     <div class="colecao-banner">
       <div class="container">
         <div class="section-head">
-          <h2>Nossa Coleção</h2>
-          <p>Filtre por categoria e encontre o seu perfume ideal</p>
+          <h2 data-i18n="colecao.title">Nossa Coleção</h2>
+          <p data-i18n="colecao.subtitle">Filtre por categoria e encontre o seu perfume ideal</p>
         </div>
       </div>
     </div>
 
     <div class="container">
       <div class="filters" id="filters">
-        <button class="filter-btn active" data-filter="todos">Todos</button>
-        <button class="filter-btn" data-filter="feminino">Feminino</button>
-        <button class="filter-btn" data-filter="masculino">Masculino</button>
-        <button class="filter-btn" data-filter="unissex">Unissex</button>
+        <button class="filter-btn active" data-filter="todos" data-i18n="filter.todos">Todos</button>
+        <button class="filter-btn" data-filter="feminino" data-i18n="filter.feminino">Feminino</button>
+        <button class="filter-btn" data-filter="masculino" data-i18n="filter.masculino">Masculino</button>
+        <button class="filter-btn" data-filter="unissex" data-i18n="filter.unissex">Unissex</button>
       </div>
 
       <div class="product-grid" id="productGrid"></div>
@@ -119,48 +120,48 @@
     </nav>
   </div>
   <div class="container footer-bottom">
-    <span>© 2026 Mushy Parfum. Todos os direitos reservados.</span>
-    <span>Feito com carinho para quem ama perfumaria.</span>
+    <span>© 2026 Mushy Parfum. <span data-i18n="footer.direitos">Todos os direitos reservados.</span></span>
+    <span data-i18n="footer.tagline">Feito com carinho para quem ama perfumaria.</span>
   </div>
 </footer>
 
 <div class="cart-overlay" id="cartOverlay"></div>
 <aside class="cart-drawer" id="cartDrawer" aria-label="Carrinho de compras">
   <div class="cart-header">
-    <h3>Seu carrinho</h3>
+    <h3 data-i18n="cart.title">Seu carrinho</h3>
     <button class="icon-btn" id="cartClose" aria-label="Fechar carrinho">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
-    <button type="button" class="coupon-toggle" id="couponToggle">Tem um cupom de desconto?</button>
+    <button type="button" class="coupon-toggle" id="couponToggle" data-i18n="cart.coupon.toggle">Tem um cupom de desconto?</button>
     <div class="coupon-field" id="couponFieldWrap" style="display:none;">
       <input type="text" id="couponInput" class="checkout-input" placeholder="Código do cupom">
-      <button type="button" class="btn btn-small" id="applyCouponBtn">Aplicar</button>
+      <button type="button" class="btn btn-small" id="applyCouponBtn" data-i18n="cart.coupon.apply">Aplicar</button>
     </div>
     <p class="coupon-message" id="couponMessage"></p>
     <div class="cart-total" id="cartSubtotalRow" style="display:none;">
-      <span>Subtotal</span>
-      <strong id="cartSubtotal">0,00 Kz</strong>
+      <span data-i18n="cart.subtotal">Subtotal</span>
+      <strong id="cartSubtotal">0,00 Kz</strong>
     </div>
     <div class="cart-total coupon-discount-row" id="couponDiscountRow" style="display:none;">
       <span>Desconto <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · remover)</button></span>
-      <strong id="cartDiscount">-0,00 Kz</strong>
+      <strong id="cartDiscount">-0,00 Kz</strong>
     </div>
     <div class="cart-total cart-total-final">
-      <span>Total</span>
-      <strong id="cartTotal">0,00 Kz</strong>
+      <span data-i18n="cart.total">Total</span>
+      <strong id="cartTotal">0,00 Kz</strong>
     </div>
-    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn">Finalizar Compra</a>
-    <p class="cart-note">Pagamento por transferência bancária.</p>
+    <a href="#" class="btn btn-primary btn-block" id="checkoutBtn" data-i18n="cart.checkout">Finalizar Compra</a>
+    <p class="cart-note" data-i18n="cart.note">Pagamento por transferência bancária.</p>
   </div>
 </aside>
 
 <div class="wishlist-overlay" id="wishlistOverlay"></div>
 <aside class="wishlist-drawer" id="wishlistDrawer" aria-label="Lista de favoritos">
   <div class="cart-header">
-    <h3>Seus favoritos</h3>
+    <h3 data-i18n="wishlist.title">Seus favoritos</h3>
     <button class="icon-btn" id="wishlistClose" aria-label="Fechar favoritos">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
@@ -177,11 +178,7 @@
       <h3 class="pd-name" id="pdName"></h3>
       <p class="pd-notes" id="pdNotes"></p>
       <div class="pd-price" id="pdPrice"></div>
-      <button class="btn btn-primary" id="pdAddToCart">Adicionar ao carrinho</button>
-      <a href="#" class="btn-whatsapp-inline" id="pdWhatsAppBtn" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 4.99L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.63 14.02c-.24.67-1.39 1.28-1.92 1.36-.49.08-1.11.11-1.79-.11-.41-.13-.94-.31-1.62-.6-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.08 1-2.37.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.16.27.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.2 1.37.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.3z"/></svg>
-        Prefere comprar pelo WhatsApp?
-      </a>
+      <button class="btn btn-primary" id="pdAddToCart" data-i18n="pd.addToCart">Adicionar ao carrinho</button>
     </div>
   </div>
 </div>
@@ -191,33 +188,33 @@
     <button class="pd-close" id="checkoutClose" aria-label="Fechar">&times;</button>
 
     <div class="checkout-step" id="checkoutStepAuth">
-      <h2>Entre para continuar</h2>
-      <p class="checkout-step-sub">Você precisa estar conectado para finalizar o pedido.</p>
+      <h2 data-i18n="checkout.auth.title">Entre para continuar</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.auth.subtitle">Você precisa estar conectado para finalizar o pedido.</p>
       <div class="account-tabs">
-        <button type="button" class="account-tab active" data-checkout-tab="login">Entrar</button>
-        <button type="button" class="account-tab" data-checkout-tab="register">Criar conta</button>
+        <button type="button" class="account-tab active" data-checkout-tab="login" data-i18n="checkout.tab.login">Entrar</button>
+        <button type="button" class="account-tab" data-checkout-tab="register" data-i18n="checkout.tab.register">Criar conta</button>
       </div>
       <div id="checkoutAuthAlert"></div>
       <form id="checkoutLoginForm" class="account-form-panel active">
         <div class="account-field"><label>E-mail</label><input type="email" id="ckLoginEmail" required></div>
         <div class="account-field"><label>Senha</label><input type="password" id="ckLoginPassword" required></div>
-        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.login">Entrar</button>
       </form>
       <form id="checkoutRegisterForm" class="account-form-panel">
         <div class="account-field"><label>Nome completo</label><input type="text" id="ckRegName" required></div>
         <div class="account-field"><label>E-mail</label><input type="email" id="ckRegEmail" required></div>
         <div class="account-field"><label>Senha</label><input type="password" id="ckRegPassword" minlength="6" required></div>
-        <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.register">Criar conta</button>
       </form>
     </div>
 
     <div class="checkout-step" id="checkoutStepPayment">
-      <h2>Pagamento</h2>
-      <p class="checkout-step-sub">Escolha como prefere pagar, transfira o valor e envie o comprovativo.</p>
+      <h2 data-i18n="checkout.payment.title">Pagamento</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.payment.subtitle">Escolha como prefere pagar, transfira o valor e envie o comprovativo.</p>
 
       <div class="payment-method-tabs">
-        <button type="button" class="payment-method-tab active" data-method="Transferência Bancária">Transferência Bancária</button>
-        <button type="button" class="payment-method-tab" data-method="Express">Express</button>
+        <button type="button" class="payment-method-tab active" data-method="Transferência Bancária" data-i18n="checkout.method.bank">Transferência Bancária</button>
+        <button type="button" class="payment-method-tab" data-method="Express" data-i18n="checkout.method.express">Express</button>
       </div>
 
       <div class="payment-details">
@@ -241,18 +238,18 @@
         </div>
         <label class="receipt-upload" for="ckReceipt">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span id="ckReceiptLabel">Enviar comprovativo (imagem ou PDF) — obrigatório</span>
+          <span id="ckReceiptLabel" data-i18n="checkout.receipt.label">Enviar comprovativo (imagem ou PDF) — obrigatório</span>
         </label>
         <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
-        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled>Confirmar pedido</button>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled data-i18n="checkout.submit">Confirmar pedido</button>
       </form>
     </div>
 
     <div class="checkout-step" id="checkoutStepDone">
       <div class="checkout-success-icon">✓</div>
-      <h2>Pedido confirmado!</h2>
-      <p class="checkout-step-sub">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
-      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn">Concluir</button>
+      <h2 data-i18n="checkout.done.title">Pedido confirmado!</h2>
+      <p class="checkout-step-sub" data-i18n="checkout.done.subtitle">Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.</p>
+      <button type="button" class="btn btn-primary btn-block" id="checkoutDoneBtn" data-i18n="checkout.done.cta">Concluir</button>
     </div>
   </div>
 </div>
@@ -267,5 +264,6 @@
 <script src="js/products.js"></script>
 <script src="js/main.js"></script>
 <script src="js/checkout.js"></script>
+<script src="js/i18n.js"></script>
 </body>
 </html>
