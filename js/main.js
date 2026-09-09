@@ -258,13 +258,10 @@ function couponDiscountAmount(subtotal) {
   return Math.min(appliedCoupon.discount_value, subtotal);
 }
 
-const COUPON_REASON_MESSAGES = {
-  not_found: "Cupom não encontrado.",
-  inactive: "Este cupom não está mais ativo.",
-  not_started: "Este cupom ainda não é válido.",
-  expired: "Este cupom expirou.",
-  max_uses: "Este cupom atingiu o limite de usos.",
-};
+// The RPC's reason_code maps straight onto a "coupon.<code>" translation key,
+// so these messages follow the selected language like everything else.
+const couponReasonMessage = (reasonCode) =>
+  window.t?.(`coupon.${reasonCode}`) || window.t?.("coupon.invalid") || "Cupão inválido.";
 
 function showCouponMessage(text, type) {
   if (!couponMessageEl) return;
@@ -295,14 +292,14 @@ async function applyCoupon() {
     const { data, error } = await supabaseClient.rpc("validate_coupon", { p_code: code, p_order_total: subtotal });
     const result = Array.isArray(data) ? data[0] : data;
     if (error || !result) {
-      showCouponMessage("Não foi possível validar este cupom. Tente novamente.", "error");
+      showCouponMessage(window.t?.("coupon.validate.error") || "Não foi possível validar este cupão.", "error");
       return;
     }
     if (!result.valid) {
       if (result.reason_code === "min_order") {
-        showCouponMessage(`Pedido mínimo de ${money(result.min_order_value)} para usar este cupom.`, "error");
+        showCouponMessage(window.t?.("coupon.minorder", { amount: money(result.min_order_value) }), "error");
       } else {
-        showCouponMessage(COUPON_REASON_MESSAGES[result.reason_code] || "Cupom inválido.", "error");
+        showCouponMessage(couponReasonMessage(result.reason_code), "error");
       }
       return;
     }
@@ -315,7 +312,7 @@ async function applyCoupon() {
     saveCoupon();
     couponInput.value = "";
     setCouponToggleState();
-    showCouponMessage(`Cupom ${appliedCoupon.code} aplicado!`, "success");
+    showCouponMessage(window.t?.("coupon.applied", { code: appliedCoupon.code }), "success");
     updateCartUI();
   } finally {
     applyCouponBtn.disabled = false;
@@ -392,7 +389,7 @@ function updateCartUI() {
     } else {
       if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
       couponDiscountRow.style.display = "none";
-      if (appliedCoupon) showCouponMessage(`Adicione mais ${money(appliedCoupon.min_order_value - subtotal)} para usar o cupom ${appliedCoupon.code}.`, "error");
+      if (appliedCoupon) showCouponMessage(window.t?.("coupon.addmore", { amount: money(appliedCoupon.min_order_value - subtotal), code: appliedCoupon.code }), "error");
     }
   }
 
@@ -727,11 +724,11 @@ newsletterForm?.addEventListener("submit", async (e) => {
   try {
     const { error } = await supabaseClient.from("subscriptions").insert({ email });
     if (error && error.code !== "23505") throw error; // 23505 = already subscribed, treat as success
-    newsletterNote.textContent = "Obrigado! Você foi inscrito com sucesso.";
+    newsletterNote.textContent = window.t?.("msg.newsletter.success") || "Obrigado! Foi inscrito com sucesso.";
     newsletterForm.reset();
   } catch (err) {
-    console.error("Falha ao registrar inscrição no Supabase:", err);
-    newsletterNote.textContent = "Não foi possível concluir sua inscrição. Tente novamente.";
+    console.error("Falha ao registar inscrição no Supabase:", err);
+    newsletterNote.textContent = window.t?.("msg.newsletter.error") || "Não foi possível concluir a sua inscrição. Tente novamente.";
   } finally {
     submitBtn?.removeAttribute("disabled");
   }

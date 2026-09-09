@@ -127,7 +127,7 @@ document.getElementById("checkoutLoginForm")?.addEventListener("submit", async (
   // instead of falling into the generic wrong-password case.
   if (error?.message?.toLowerCase().includes("email not confirmed")) {
     showCheckoutAuthAlert(
-      `Sua conta ainda não foi confirmada. Verifique seu e-mail ou <a href="#" id="ckResendConfirmLink" style="text-decoration:underline;">reenvie a confirmação</a>.`,
+      `${window.t?.("auth.unconfirmed.text")} <a href="#" id="ckResendConfirmLink" style="text-decoration:underline;">${window.t?.("auth.unconfirmed.link")}</a>.`,
       "error"
     );
     document.getElementById("ckResendConfirmLink")?.addEventListener("click", async (evt) => {
@@ -137,13 +137,13 @@ document.getElementById("checkoutLoginForm")?.addEventListener("submit", async (
         email,
         options: { emailRedirectTo: `${window.location.origin}/conta.html` },
       });
-      showCheckoutAuthAlert(resendError ? "Não foi possível reenviar o e-mail. Tente novamente." : "E-mail de confirmação reenviado! Verifique sua caixa de entrada.", resendError ? "error" : "success");
+      showCheckoutAuthAlert(resendError ? window.t?.("auth.resend.error") : window.t?.("auth.resend.success"), resendError ? "error" : "success");
     });
     return;
   }
 
   if (error || !data.session) {
-    showCheckoutAuthAlert("E-mail ou senha incorretos.");
+    showCheckoutAuthAlert(window.t?.("auth.badcredentials"));
     return;
   }
   await enterPaymentStep();
@@ -168,8 +168,8 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
   if (error) {
     showCheckoutAuthAlert(
       error.message.includes("already registered") || error.status === 422
-        ? "Esse e-mail já tem uma conta. Tente entrar."
-        : "Não foi possível criar a conta. Tente novamente."
+        ? window.t?.("auth.exists")
+        : window.t?.("auth.signup.error")
     );
     return;
   }
@@ -181,7 +181,7 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
     }
     await enterPaymentStep();
   } else {
-    showCheckoutAuthAlert("Conta criada! Confira seu e-mail para confirmar o cadastro e depois clique em finalizar de novo.", "success");
+    showCheckoutAuthAlert(window.t?.("auth.created.checkout"), "success");
   }
 });
 
@@ -192,7 +192,7 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
 document.getElementById("ckReceipt")?.addEventListener("change", (e) => {
   const file = e.target.files?.[0];
   const label = document.getElementById("ckReceiptLabel");
-  if (label) label.textContent = file ? file.name : "Enviar comprovativo (imagem ou PDF) — obrigatório";
+  if (label) label.textContent = file ? file.name : window.t?.("checkout.receipt.label");
   const submitBtn = document.getElementById("ckSubmitBtn");
   if (submitBtn) submitBtn.disabled = !file;
 });
@@ -212,11 +212,11 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
   const paymentMethod = document.getElementById("ckPaymentMethod").value;
   const file = document.getElementById("ckReceipt").files?.[0];
   if (!name || !phone) {
-    showCheckoutPaymentAlert("Preencha seu nome e contacto.");
+    showCheckoutPaymentAlert(window.t?.("checkout.err.namephone"));
     return;
   }
   if (!file) {
-    showCheckoutPaymentAlert("Envie o comprovativo da transferência.");
+    showCheckoutPaymentAlert(window.t?.("checkout.err.receipt"));
     return;
   }
 
@@ -238,7 +238,7 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     showCheckoutStep(checkoutStepDone);
   } catch (err) {
     console.error("Falha ao finalizar pedido:", err);
-    showCheckoutPaymentAlert("Não foi possível enviar seu pedido. Tente novamente.");
+    showCheckoutPaymentAlert(window.t?.("checkout.err.submit"));
     btn.disabled = false;
   }
 });
@@ -251,6 +251,6 @@ document.getElementById("checkoutDoneBtn")?.addEventListener("click", () => {
   document.getElementById("checkoutPaymentForm")?.reset();
   resetPaymentMethodTabs();
   const label = document.getElementById("ckReceiptLabel");
-  if (label) label.textContent = "Enviar comprovativo (imagem ou PDF) — obrigatório";
+  if (label) label.textContent = window.t?.("checkout.receipt.label");
   document.getElementById("ckSubmitBtn").disabled = true;
 });

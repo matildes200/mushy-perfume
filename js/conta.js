@@ -60,10 +60,9 @@ async function tryRedeemPendingReferral() {
   }
 }
 
-const ORDER_STATUS_LABELS = {
-  pending: "Pendente", confirmed: "Confirmado", processing: "Preparando",
-  shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado", refunded: "Reembolsado",
-};
+// Order status maps onto a "status.<value>" translation key so the order
+// history follows the selected language too.
+const orderStatusLabel = (status) => window.t?.(`status.${status}`) || status;
 
 async function renderAccountOrders(customerId) {
   const el = document.getElementById("accountOrders");
@@ -83,7 +82,7 @@ async function renderAccountOrders(customerId) {
       const date = o.created_at ? new Date(o.created_at).toLocaleDateString("pt-PT") : "—";
       return `<div class="account-order-row">
         <span>${date} · ${(o.items || []).length} item(ns)</span>
-        <span><strong>${money(o.total)}</strong><br><span class="order-status">${ORDER_STATUS_LABELS[o.status] || o.status}</span></span>
+        <span><strong>${money(o.total)}</strong><br><span class="order-status">${orderStatusLabel(o.status)}</span></span>
       </div>`;
     })
     .join("");
@@ -140,7 +139,7 @@ async function renderReferral(profile) {
   el.innerHTML = coupons
     .map((c) => {
       const used = c.times_used >= (c.max_uses || 1);
-      return `<div class="referral-coupon-row"><span>${c.code}</span><span>${used ? "Usado" : "Disponível"}</span></div>`;
+      return `<div class="referral-coupon-row"><span>${c.code}</span><span>${used ? window.t?.("referral.used") : window.t?.("referral.available")}</span></div>`;
     })
     .join("");
 }
@@ -149,7 +148,7 @@ document.getElementById("copyReferralBtn")?.addEventListener("click", () => {
   const input = document.getElementById("referralLink");
   input.select();
   navigator.clipboard?.writeText(input.value);
-  document.getElementById("referralCopyNote").textContent = "Link copiado!";
+  document.getElementById("referralCopyNote").textContent = window.t?.("referral.copied");
   setTimeout(() => { document.getElementById("referralCopyNote").textContent = ""; }, 2500);
 });
 
@@ -244,7 +243,9 @@ async function showProfile(session) {
   if (adminLink) adminLink.style.display = isAdmin ? "flex" : "none";
 
   await tryRedeemPendingReferral();
-  renderAccountOrders(session.user.id);
+  loadedProfile = profile;
+  loadedCustomerId = session.user.id;
+  renderAccountOrders(loadedCustomerId);
   renderAccountFavorites();
   renderAccountRecommendations();
   renderReferral(profile);
@@ -255,10 +256,20 @@ async function showProfile(session) {
 // the moment showProfile() first runs, leaving favorites/recommendations
 // blank — re-render them once the catalog actually arrives.
 let isProfileShown = false;
+let loadedProfile = null;
+let loadedCustomerId = null;
 document.addEventListener("products:ready", () => {
   if (!isProfileShown) return;
   renderAccountFavorites();
   renderAccountRecommendations();
+});
+
+// Order statuses and the used/available referral labels are baked in at render
+// time, so switching language has to rebuild those two lists.
+document.addEventListener("lang:changed", () => {
+  if (!isProfileShown) return;
+  if (loadedCustomerId) renderAccountOrders(loadedCustomerId);
+  if (loadedProfile) renderReferral(loadedProfile);
 });
 
 function showAuthForms() {
@@ -294,7 +305,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   btn.disabled = false;
 
   if (error) {
-    showAuthAlert(error.message.includes("already registered") || error.status === 422 ? "Esse e-mail já tem uma conta. Tente entrar." : "Não foi possível criar a conta. Tente novamente.");
+    showAuthAlert(error.message.includes("already registered") || error.status === 422 ? window.t?.("auth.exists") : window.t?.("auth.signup.error"));
     return;
   }
 
@@ -303,7 +314,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     return;
   }
 
-  showAuthAlert("Conta criada! Confira seu e-mail para confirmar o cadastro antes de entrar.", "success");
+  showAuthAlert(window.t?.("auth.created.account"), "success");
 });
 
 // ---------- Login ----------
@@ -339,13 +350,13 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         email,
         options: { emailRedirectTo: `${window.location.origin}/conta.html` },
       });
-      showAuthAlert(resendError ? "Não foi possível reenviar o e-mail. Tente novamente." : "E-mail de confirmação reenviado! Verifique sua caixa de entrada.", resendError ? "error" : "success");
+      showAuthAlert(resendError ? window.t?.("auth.resend.error") : window.t?.("auth.resend.success"), resendError ? "error" : "success");
     });
     return;
   }
 
   if (error || !data.session) {
-    showAuthAlert("E-mail ou senha incorretos.");
+    showAuthAlert(window.t?.("auth.badcredentials"));
     return;
   }
 

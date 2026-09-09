@@ -210,6 +210,45 @@ const TRANSLATIONS = {
     "account.referral.desc": "Partilhe o seu link. Quando um amigo criar a conta pelo seu link, ganha um cupão de 10% de desconto.",
     "account.referral.copy": "Copiar",
     "account.referral.empty": "Nenhum amigo se registou pelo seu link ainda.",
+    "referral.used": "Usado",
+    "referral.available": "Disponível",
+    "referral.copied": "Link copiado!",
+
+    "msg.newsletter.success": "Obrigado! Foi inscrito com sucesso.",
+    "msg.newsletter.error": "Não foi possível concluir a sua inscrição. Tente novamente.",
+
+    "coupon.not_found": "Cupão não encontrado.",
+    "coupon.inactive": "Este cupão já não está ativo.",
+    "coupon.not_started": "Este cupão ainda não é válido.",
+    "coupon.expired": "Este cupão expirou.",
+    "coupon.max_uses": "Este cupão atingiu o limite de usos.",
+    "coupon.invalid": "Cupão inválido.",
+    "coupon.validate.error": "Não foi possível validar este cupão. Tente novamente.",
+    "coupon.minorder": "Pedido mínimo de {amount} para usar este cupão.",
+    "coupon.applied": "Cupão {code} aplicado!",
+    "coupon.addmore": "Adicione mais {amount} para usar o cupão {code}.",
+
+    "auth.badcredentials": "E-mail ou palavra-passe incorretos.",
+    "auth.unconfirmed.text": "A sua conta ainda não foi confirmada. Verifique o seu e-mail ou",
+    "auth.unconfirmed.link": "reenvie a confirmação",
+    "auth.resend.error": "Não foi possível reenviar o e-mail. Tente novamente.",
+    "auth.resend.success": "E-mail de confirmação reenviado! Verifique a sua caixa de entrada.",
+    "auth.exists": "Esse e-mail já tem uma conta. Tente entrar.",
+    "auth.signup.error": "Não foi possível criar a conta. Tente novamente.",
+    "auth.created.account": "Conta criada! Confira o seu e-mail para confirmar o registo antes de entrar.",
+    "auth.created.checkout": "Conta criada! Confira o seu e-mail para confirmar o registo e depois clique em finalizar de novo.",
+
+    "checkout.err.namephone": "Preencha o seu nome e contacto.",
+    "checkout.err.receipt": "Envie o comprovativo da transferência.",
+    "checkout.err.submit": "Não foi possível enviar o seu pedido. Tente novamente.",
+
+    "status.pending": "Pendente",
+    "status.confirmed": "Confirmado",
+    "status.processing": "Em preparação",
+    "status.shipped": "Enviado",
+    "status.delivered": "Entregue",
+    "status.cancelled": "Cancelado",
+    "status.refunded": "Reembolsado",
   },
   en: {
     "nav.colecoes": "Collections",
@@ -414,6 +453,45 @@ const TRANSLATIONS = {
     "account.referral.desc": "Share your link. When a friend creates an account through it, you get a 10% discount code.",
     "account.referral.copy": "Copy",
     "account.referral.empty": "No friend has signed up through your link yet.",
+    "referral.used": "Used",
+    "referral.available": "Available",
+    "referral.copied": "Link copied!",
+
+    "msg.newsletter.success": "Thank you! You've been subscribed.",
+    "msg.newsletter.error": "We couldn't complete your subscription. Please try again.",
+
+    "coupon.not_found": "Discount code not found.",
+    "coupon.inactive": "This code is no longer active.",
+    "coupon.not_started": "This code isn't valid yet.",
+    "coupon.expired": "This code has expired.",
+    "coupon.max_uses": "This code has reached its usage limit.",
+    "coupon.invalid": "Invalid code.",
+    "coupon.validate.error": "We couldn't validate this code. Please try again.",
+    "coupon.minorder": "A minimum order of {amount} is required for this code.",
+    "coupon.applied": "Code {code} applied!",
+    "coupon.addmore": "Add {amount} more to use code {code}.",
+
+    "auth.badcredentials": "Incorrect email or password.",
+    "auth.unconfirmed.text": "Your account hasn't been confirmed yet. Check your email or",
+    "auth.unconfirmed.link": "resend the confirmation",
+    "auth.resend.error": "We couldn't resend the email. Please try again.",
+    "auth.resend.success": "Confirmation email resent! Check your inbox.",
+    "auth.exists": "That email already has an account. Try signing in.",
+    "auth.signup.error": "We couldn't create the account. Please try again.",
+    "auth.created.account": "Account created! Check your email to confirm your registration before signing in.",
+    "auth.created.checkout": "Account created! Check your email to confirm, then tap checkout again.",
+
+    "checkout.err.namephone": "Please fill in your name and contact number.",
+    "checkout.err.receipt": "Please upload your transfer receipt.",
+    "checkout.err.submit": "We couldn't submit your order. Please try again.",
+
+    "status.pending": "Pending",
+    "status.confirmed": "Confirmed",
+    "status.processing": "In preparation",
+    "status.shipped": "Shipped",
+    "status.delivered": "Delivered",
+    "status.cancelled": "Cancelled",
+    "status.refunded": "Refunded",
   },
 };
 
@@ -422,10 +500,17 @@ function getLang() {
 }
 
 // For strings built in JS (status messages, etc.) rather than sitting in the
-// markup behind a data-i18n attribute.
-function t(key) {
+// markup behind a data-i18n attribute. Supports {name} placeholders, e.g.
+// t("coupon.applied", { code: "SUMMER20" }).
+function t(key, vars) {
   const dict = TRANSLATIONS[getLang()] || TRANSLATIONS.pt;
-  return dict[key] ?? TRANSLATIONS.pt[key] ?? key;
+  let str = dict[key] ?? TRANSLATIONS.pt[key] ?? key;
+  if (vars) {
+    Object.entries(vars).forEach(([name, value]) => {
+      str = str.split(`{${name}}`).join(value);
+    });
+  }
+  return str;
 }
 
 function applyTranslations(lang) {
@@ -445,6 +530,9 @@ function applyTranslations(lang) {
 function setLang(lang) {
   localStorage.setItem("mushy-lang", lang);
   applyTranslations(lang);
+  // Lists built in JS (order history, referral codes) hold text that
+  // data-i18n can't reach, so they need to re-render themselves.
+  document.dispatchEvent(new CustomEvent("lang:changed", { detail: { lang } }));
 }
 
 // This script loads at the end of <body>, after all markup — DOMContentLoaded
