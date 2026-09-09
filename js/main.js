@@ -3,11 +3,11 @@
 const refParam = new URLSearchParams(window.location.search).get("ref");
 if (refParam) localStorage.setItem("mushy-pending-ref", refParam.toUpperCase());
 
-// Some mobile browsers restore the previous scroll position before this script
-// runs, which can leave the fixed header rendered outside the visible viewport
-// until the next manual scroll. Forcing a clean top-of-page load avoids that.
-if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-window.scrollTo(0, 0);
+// Reloading returns the reader to the section they were in. "auto" is the
+// browser's own restore, which handles this better than replaying a saved
+// offset would (it waits for layout). The header no longer needs the old
+// force-to-top workaround now that it's sticky rather than fixed.
+if ("scrollRestoration" in history) history.scrollRestoration = "auto";
 
 const siteHeader = document.getElementById("siteHeader");
 const heroMedia = document.getElementById("heroMedia");
@@ -70,12 +70,17 @@ const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, ma
 const effectivePrice = (p) => p.price * (1 - (p.discount_percent || 0) / 100);
 const isOutOfStock = (p) => p.stock !== undefined && p.stock !== null && p.stock <= 0;
 
+// The discount sits on its own line *under* the price rather than beside it,
+// so the current price is always the first line of the block and every card in
+// a row lines its name and price up at the same height, discounted or not.
 function priceMarkup(p, className) {
-  if (!p.discount_percent) return `<span class="${className}">${money(p.price)}</span>`;
+  if (!p.discount_percent) return `<span class="${className}"><span class="price-final">${money(p.price)}</span></span>`;
   return `<span class="${className} price-discounted">
-    <span class="price-original">${money(p.price)}</span>
     <span class="price-final">${money(effectivePrice(p))}</span>
-    <span class="price-badge">-${p.discount_percent}%</span>
+    <span class="price-was">
+      <span class="price-original">${money(p.price)}</span>
+      <span class="price-badge">-${p.discount_percent}%</span>
+    </span>
   </span>`;
 }
 
@@ -149,11 +154,12 @@ function mediaContent(p) {
 
 const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
-// "Floral · Feminino" — whichever of these two pieces of metadata exist.
-// fragrance_family is admin-entered free text and often blank on older
-// products, so this degrades gracefully to just the category, or nothing.
+// The olfactory family only ("Floral", "Amadeirado"). The masculino/feminino/
+// unissex category is deliberately not shown on the card — it's a filter, not
+// something a shopper needs printed under every bottle. fragrance_family is
+// admin-entered free text and often blank on older products, hence the guard.
 function familyLabel(p) {
-  return [p.fragrance_family, p.category ? capitalize(p.category) : null].filter(Boolean).join(" · ");
+  return p.fragrance_family || "";
 }
 
 // Only ever one badge (never both at once, to avoid cluttering the corner),
@@ -164,34 +170,69 @@ function badgeMarkup(p) {
   return "";
 }
 
-// Shared by .product-card / .carousel-card / .featured-card: a bordered
-// image panel (zoom on hover) plus a body where name/family/description/
-// price stay visible at all times — no flip, nothing hidden behind hover.
+// Shared by .product-card / .carousel-card / .featured-card. The card flips:
+// the front is the bottle with its name and price underneath, and tapping it
+// turns the card over to the notes and the add-to-cart button. Nothing on the
+// front is buyable — you have to flip first, which is the whole point.
 function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
   const toneClass = p.image ? "" : ` ${p.tone}`;
   const style = p.image ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
   const description = p.short_description || p.notes || "";
   const family = familyLabel(p);
+  // data-img drives the skeleton: the shimmer stays until this URL has loaded.
+  const imgAttr = p.image ? ` data-img="${cardImageUrl(p.image)}"` : "";
   return `
-    <article class="${wrapClass}" data-open="${p.id}">
-      <div class="perfume-card-media-wrap">
-        <div class="perfume-card-media${toneClass}"${style}>
-          ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
+    <article class="${wrapClass} flip-card">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="perfume-card-media-wrap${p.image ? " is-loading" : ""}"${imgAttr}>
+            <div class="perfume-card-media${toneClass}"${style}>
+              ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
+            </div>
+            ${badgeMarkup(p)}
+            ${stockBadge(p)}
+            ${wishlistHeart(p.id)}
+          </div>
+          <div class="perfume-card-body">
+            <h3 class="perfume-card-name">${p.name}</h3>
+            ${priceMarkup(p, "perfume-card-price")}
+          </div>
         </div>
-        ${badgeMarkup(p)}
-        ${stockBadge(p)}
-        ${wishlistHeart(p.id)}
-      </div>
-      <div class="perfume-card-body">
-        ${family ? `<span class="perfume-card-family">${family}</span>` : ""}
-        <h3 class="perfume-card-name">${p.name}</h3>
-        ${description ? `<p class="perfume-card-desc">${description}</p>` : ""}
-        <div class="perfume-card-footer">
-          ${priceMarkup(p, "perfume-card-price")}
-          ${addButton(p, addLabel, addLabelKey)}
+        <div class="flip-face flip-back">
+          ${family ? `<span class="perfume-card-family">${family}</span>` : ""}
+          <h3 class="perfume-card-name">${p.name}</h3>
+          ${description ? `<p class="perfume-card-desc">${description}</p>` : ""}
+          <div class="flip-back-actions">
+            ${addButton(p, addLabel, addLabelKey)}
+            <button class="flip-details-btn" data-open="${p.id}" data-i18n="product.details">Ver detalhes</button>
+          </div>
         </div>
       </div>
     </article>`;
+}
+
+// One delegated handler for every grid on the page. Anything that already does
+// something of its own — the heart, add-to-cart, "ver detalhes" — is left
+// alone; everywhere else on the card toggles the flip.
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".flip-card");
+  if (!card) return;
+  if (e.target.closest("[data-wishlist], [data-add], [data-open], button")) return;
+  card.classList.toggle("flipped");
+});
+
+// Swaps the shimmer for the photo once the photo is actually decoded. The card
+// image is a CSS background, so there's no <img> load event to hook — we warm
+// the same URL through the cache and let the background paint from there.
+function hydrateCardImages(root = document) {
+  root.querySelectorAll(".perfume-card-media-wrap.is-loading[data-img]").forEach((wrap) => {
+    const done = () => wrap.classList.remove("is-loading");
+    const img = new Image();
+    img.onload = done;
+    img.onerror = done;
+    img.src = wrap.dataset.img;
+    if (img.complete) done();
+  });
 }
 
 function productCardTemplate(p) { return perfumeCardTemplate(p, "product-card", "Adicionar", "product.add"); }
@@ -214,6 +255,7 @@ function renderProducts() {
   grid.innerHTML = items.length
     ? items.map(productCardTemplate).join("")
     : `<p class="cart-empty" data-i18n="product.notfound">Nenhum perfume encontrado.</p>`;
+  hydrateCardImages(grid);
   // Re-render happens on every filter/search change, so the freshly built
   // cards need another translation pass to pick the current language back up.
   window.applyTranslations?.(window.getLang?.());
@@ -222,6 +264,7 @@ function renderProducts() {
 function renderFeatured() {
   if (!featuredGrid) return;
   featuredGrid.innerHTML = PRODUCTS.filter((p) => isVisible(p) && p.featured).map(featuredCardTemplate).join("");
+  hydrateCardImages(featuredGrid);
 }
 
 function renderCarousel() {
@@ -232,7 +275,33 @@ function renderCarousel() {
       <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       <span data-i18n="carousel.vertodos">Ver todos<br>os produtos</span>
     </a>`;
+  hydrateCardImages(carouselTrack);
 }
+
+// ---------- Reviews carousel ----------
+// The comments advance on their own and wrap back round to the first one.
+// Any touch or manual scroll pauses the loop for a few seconds so it never
+// fights a reader who's already swiping.
+(() => {
+  const reviews = document.getElementById("reviewsGrid");
+  if (!reviews) return;
+  let pausedUntil = 0;
+  const pause = () => { pausedUntil = Date.now() + 7000; };
+  ["touchstart", "pointerdown", "wheel"].forEach((ev) => reviews.addEventListener(ev, pause, { passive: true }));
+
+  setInterval(() => {
+    // Only when the cards actually overflow — on desktop this is a static
+    // two-column grid with nothing to scroll.
+    if (reviews.scrollWidth <= reviews.clientWidth + 4) return;
+    if (Date.now() < pausedUntil) return;
+    const card = reviews.querySelector(".review-card");
+    if (!card) return;
+    const gap = parseFloat(getComputedStyle(reviews).columnGap) || 0;
+    const step = card.getBoundingClientRect().width + gap;
+    const atEnd = reviews.scrollLeft + reviews.clientWidth >= reviews.scrollWidth - 8;
+    reviews.scrollTo({ left: atEnd ? 0 : reviews.scrollLeft + step, behavior: "smooth" });
+  }, 3800);
+})();
 
 // ---------- Coupons ----------
 // Only the code/type/value/min_order_value returned by validate_coupon are cached
@@ -420,13 +489,38 @@ function removeFromCart(id) {
   updateCartUI();
 }
 
+// Recomputed from whatever is actually open rather than toggled per panel, so
+// closing one overlay while another is still up can't unlock the page early.
+function syncScrollLock() {
+  const anyOpen = document.querySelector(
+    ".cart-drawer.open, .wishlist-drawer.open, .pd-overlay.open, .checkout-overlay.open, .quiz-overlay.open"
+  );
+  document.body.classList.toggle("no-scroll", Boolean(anyOpen));
+  document.documentElement.classList.toggle("no-scroll", Boolean(anyOpen));
+}
+window.syncScrollLock = syncScrollLock;
+
+// checkout.js and quiz.js toggle their own overlays, so watching the elements
+// beats sprinkling syncScrollLock() through three files: every add/remove of
+// "open" re-runs the check, whoever made it.
+(() => {
+  const panels = document.querySelectorAll(
+    ".cart-drawer, .wishlist-drawer, .pd-overlay, .checkout-overlay, .quiz-overlay"
+  );
+  if (!panels.length) return;
+  const observer = new MutationObserver(syncScrollLock);
+  panels.forEach((el) => observer.observe(el, { attributes: true, attributeFilter: ["class"] }));
+})();
+
 function openCart() {
   cartDrawer.classList.add("open");
   cartOverlay.classList.add("open");
+  syncScrollLock();
 }
 function closeCart() {
   cartDrawer.classList.remove("open");
   cartOverlay.classList.remove("open");
+  syncScrollLock();
 }
 
 function setWishlistButtonState(id) {
@@ -490,6 +584,7 @@ function openProductDetail(p) {
 function closeProductDetail() {
   productDetailOverlay?.classList.remove("open");
   productDetailId = null;
+  syncScrollLock();
 }
 
 document.getElementById("productDetailClose")?.addEventListener("click", closeProductDetail);
@@ -522,10 +617,12 @@ function toggleWishlist(id) {
 function openWishlist() {
   wishlistDrawer.classList.add("open");
   wishlistOverlay.classList.add("open");
+  syncScrollLock();
 }
 function closeWishlist() {
   wishlistDrawer.classList.remove("open");
   wishlistOverlay.classList.remove("open");
+  syncScrollLock();
 }
 
 // ---------- Delegated click handling (grid / featured / carousel / cart / wishlist / filters) ----------

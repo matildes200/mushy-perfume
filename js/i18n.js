@@ -102,7 +102,7 @@ const TRANSLATIONS = {
     "cart.coupon.placeholder": "Código do cupom",
     "cart.discount": "Desconto",
     "cart.coupon.remove": "remover",
-    "checkout.receipt.label": "Enviar comprovativo (imagem ou PDF) — obrigatório",
+    "checkout.receipt.label": "Enviar comprovativo (imagem ou PDF), obrigatório",
     "checkout.submit": "Confirmar pedido",
     "checkout.done.title": "Pedido confirmado!",
     "checkout.done.subtitle": "Obrigado pela sua compra. Você receberá um e-mail assim que confirmarmos o pagamento.",
@@ -110,6 +110,7 @@ const TRANSLATIONS = {
 
     "pd.addToCart": "Adicionar ao carrinho",
     "product.add": "Adicionar",
+    "product.details": "Ver detalhes",
     "product.buy": "Comprar",
     "product.soldout": "Esgotado",
     "product.notfound": "Nenhum perfume encontrado.",
@@ -149,7 +150,7 @@ const TRANSLATIONS = {
 
     "politicas.eyebrow": "Informações",
     "politicas.title": "Políticas da loja",
-    "politicas.subtitle": "Envio, devoluções e privacidade — tudo o que você precisa saber antes de comprar.",
+    "politicas.subtitle": "Envio, devoluções e privacidade: tudo o que precisa de saber antes de comprar.",
     "politicas.envio.title": "Envio",
     "politicas.envio.p1": "Processamos os pedidos em até 1 dia útil após a confirmação do pagamento. O prazo de entrega varia conforme a localidade, e o valor do frete (quando aplicável) é combinado diretamente com você antes do envio.",
     "politicas.envio.p2": "Você recebe atualizações sobre o status do seu pedido pelo contacto informado na finalização da compra.",
@@ -158,7 +159,7 @@ const TRANSLATIONS = {
     "politicas.devolucoes.p2": "Para solicitar uma troca ou devolução, entre em contacto com a nossa equipa informando o número do pedido. Produtos com sinais de uso ou embalagem violada não são elegíveis, salvo defeito de fabricação.",
     "politicas.privacidade.title": "Política de Privacidade",
     "politicas.privacidade.p1": "Coletamos apenas os dados necessários para processar seu pedido e melhorar a sua experiência: nome, contacto, endereço de entrega e histórico de compras.",
-    "politicas.privacidade.p2": "Suas informações nunca são vendidas a terceiros. Elas são usadas exclusivamente para atendimento, processamento de pedidos e comunicação sobre promoções — caso você tenha optado por recebê-las.",
+    "politicas.privacidade.p2": "As suas informações nunca são vendidas a terceiros. Elas são usadas exclusivamente para atendimento, processamento de pedidos e comunicação sobre promoções, caso tenha optado por recebê-las.",
     "politicas.privacidade.p3": "Você pode solicitar a exclusão dos seus dados a qualquer momento entrando em contacto com a nossa equipa.",
 
     "notas.saida.title": "Notas de Saída",
@@ -200,7 +201,7 @@ const TRANSLATIONS = {
     "account.saved": "Alterações guardadas.",
     "account.save.error": "Não foi possível guardar as alterações.",
     "account.name.required": "Indique o seu nome.",
-    "account.email.note": "O e-mail não pode ser alterado aqui — é o seu início de sessão.",
+    "account.email.note": "O e-mail não pode ser alterado aqui, é o seu início de sessão.",
     "account.adminpanel": "Painel Administrativo",
     "account.logout": "Sair",
     "account.orders.title": "Seus pedidos",
@@ -345,7 +346,7 @@ const TRANSLATIONS = {
     "cart.coupon.placeholder": "Discount code",
     "cart.discount": "Discount",
     "cart.coupon.remove": "remove",
-    "checkout.receipt.label": "Upload receipt (image or PDF) — required",
+    "checkout.receipt.label": "Upload receipt (image or PDF), required",
     "checkout.submit": "Confirm order",
     "checkout.done.title": "Order confirmed!",
     "checkout.done.subtitle": "Thank you for your purchase. You'll receive an email once we confirm your payment.",
@@ -353,6 +354,7 @@ const TRANSLATIONS = {
 
     "pd.addToCart": "Add to cart",
     "product.add": "Add",
+    "product.details": "View details",
     "product.buy": "Buy",
     "product.soldout": "Sold out",
     "product.notfound": "No perfumes found.",
@@ -368,7 +370,7 @@ const TRANSLATIONS = {
 
     "sobre.banner.eyebrow": "Who we are",
     "sobre.banner.heading": "Mushy is made by people who truly love perfume",
-    "sobre.banner.p1": "It all began as a simple passion: testing bottle after bottle until finding the one that felt made to measure. Over time, that curiosity became a purpose, and today we've brought together more than 50 fragrances that our own team would wear without a second thought — no beating around the bush, no empty promises. Just good perfume, truly, the way we like to wear it every day.",
+    "sobre.banner.p1": "It all began as a simple passion: testing bottle after bottle until finding the one that felt made to measure. Over time, that curiosity became a purpose, and today we've brought together more than 50 fragrances that our own team would wear without a second thought, with no beating around the bush, no empty promises. Just good perfume, truly, the way we like to wear it every day.",
     "sobre.banner.p2": "Every perfume that reaches you has already passed under our own nose before entering the catalogue. We assess longevity, how the scent evolves on skin, and that extra something that makes a fragrance memorable. That care, plus a touch of personality, is what we look for in every bottle that carries the Mushy name.",
     "sobre.banner.p3": "More than selling perfume, we want to help you find the fragrance that matches your story. That's why every recommendation comes from a real conversation, with no ready-made formula and no rush. After all, a good perfume is one chosen with care, not just whatever's on the shelf.",
     "sobre.stats.fragrancias": "Fragrances",
@@ -382,17 +384,17 @@ const TRANSLATIONS = {
     "sobre.valor2.title": "100% genuine",
     "sobre.valor2.desc": "No replicas, no \"inspired by\". Every perfume we sell is genuine, with guaranteed provenance.",
     "sobre.valor3.title": "Personal, human service",
-    "sobre.valor3.desc": "Questions about longevity, occasion, or what suits you best? We answer through the site — no bots.",
+    "sobre.valor3.desc": "Questions about longevity, occasion, or what suits you best? We answer through the site, never bots.",
 
     "sobre.processo.eyebrow": "How we choose",
     "sobre.processo.quote": "\"A perfume only makes the catalogue when it tells a story good enough to be worn every day.\"",
     "sobre.processo.title": "Every bottle goes through careful scrutiny before it reaches you",
-    "sobre.processo.p1": "We test it, let it dry, test it again the next day. We look at longevity, how the aroma evolves on skin, and whether that perfume really has something to say — not just a nice smell in the shop.",
+    "sobre.processo.p1": "We test it, let it dry, test it again the next day. We look at longevity, how the aroma evolves on skin, and whether that perfume really has something to say, not just a nice smell in the shop.",
     "sobre.processo.p2": "We work directly with trusted distributors, so every bottle arrives with guaranteed provenance. No shady middlemen or empty promises: only what we'd wear on our own wrist.",
 
     "politicas.eyebrow": "Information",
     "politicas.title": "Store Policies",
-    "politicas.subtitle": "Shipping, returns and privacy — everything you need to know before buying.",
+    "politicas.subtitle": "Shipping, returns and privacy: everything you need to know before buying.",
     "politicas.envio.title": "Shipping",
     "politicas.envio.p1": "We process orders within 1 business day after payment confirmation. Delivery time varies by location, and the shipping cost (when applicable) is agreed with you directly before dispatch.",
     "politicas.envio.p2": "You'll receive updates on your order status through the contact details provided at checkout.",
@@ -401,7 +403,7 @@ const TRANSLATIONS = {
     "politicas.devolucoes.p2": "To request an exchange or return, contact our team with your order number. Products showing signs of use or with broken packaging aren't eligible, except in the case of a manufacturing defect.",
     "politicas.privacidade.title": "Privacy Policy",
     "politicas.privacidade.p1": "We only collect the data necessary to process your order and improve your experience: name, contact details, delivery address and purchase history.",
-    "politicas.privacidade.p2": "Your information is never sold to third parties. It's used solely for customer support, order processing and promotional communication — if you've opted in to receive it.",
+    "politicas.privacidade.p2": "Your information is never sold to third parties. It's used solely for customer support, order processing and promotional communication, if you've opted in to receive it.",
     "politicas.privacidade.p3": "You can request deletion of your data at any time by contacting our team.",
 
     "notas.saida.title": "Top Notes",
@@ -443,7 +445,7 @@ const TRANSLATIONS = {
     "account.saved": "Changes saved.",
     "account.save.error": "Couldn't save your changes.",
     "account.name.required": "Please enter your name.",
-    "account.email.note": "Email can't be changed here — it's your sign-in.",
+    "account.email.note": "Email can't be changed here, it is your sign-in.",
     "account.adminpanel": "Admin Panel",
     "account.logout": "Sign out",
     "account.orders.title": "Your orders",
@@ -524,7 +526,8 @@ function applyTranslations(lang) {
     if (dict[key] !== undefined) el.setAttribute("placeholder", dict[key]);
   });
   document.documentElement.lang = lang === "en" ? "en" : "pt-PT";
-  document.querySelectorAll(".lang-toggle").forEach((btn) => { btn.textContent = lang === "en" ? "PT" : "EN"; });
+  // Shows the language currently active, not the one you'd switch to.
+  document.querySelectorAll(".lang-toggle").forEach((btn) => { btn.textContent = lang === "en" ? "EN" : "PT"; });
 }
 
 function setLang(lang) {
