@@ -54,31 +54,39 @@ document.addEventListener("admin:ready", async () => {
   // Questions submitted through contacto.html. Independent of the rest, and
   // the table only exists once migration_11 has been run — a missing table
   // shouldn't take the whole dashboard down with it.
-  const contactBody = document.querySelector("#contactMessagesTable tbody");
-  if (contactBody) {
+  const contactList = document.getElementById("contactMessages");
+  if (contactList) {
     supabaseClient
       .from("contact_messages")
       .select("id, created_at, name, email, subject, message")
       .order("created_at", { ascending: false })
-      .limit(10)
+      .limit(25)
       .then(({ data: messages, error }) => {
         if (error) {
-          contactBody.innerHTML = `<tr><td colspan="5" class="admin-empty">Execute a migração das mensagens de contacto.</td></tr>`;
+          contactList.innerHTML = `<p class="admin-empty">Execute a migração das mensagens de contacto.</p>`;
           return;
         }
-        contactBody.innerHTML = (messages || []).length
-          ? messages
-              .map(
-                (m) => `<tr>
-                  <td>${formatDate(m.created_at)}</td>
-                  <td class="wrap">${escapeHtml(m.name)}</td>
-                  <td class="wrap">${escapeHtml(m.email)}</td>
-                  <td class="wrap">${escapeHtml(m.subject || "—")}</td>
-                  <td class="wrap">${escapeHtml(m.message)}</td>
-                </tr>`
-              )
-              .join("")
-          : `<tr><td colspan="5" class="admin-empty">Nenhuma pergunta ainda.</td></tr>`;
+        if (!(messages || []).length) {
+          contactList.innerHTML = `<p class="admin-empty">Nenhuma mensagem ainda.</p>`;
+          return;
+        }
+        contactList.innerHTML = messages
+          .map(
+            (m) => `<article class="message-card">
+              <header class="message-card-head">
+                <div>
+                  <strong class="message-from">${escapeHtml(m.name)}</strong>
+                  <a class="message-email" href="mailto:${escapeHtml(m.email)}">${escapeHtml(m.email)}</a>
+                </div>
+                <time class="message-date">${formatDate(m.created_at)}</time>
+              </header>
+              ${m.subject ? `<p class="message-subject">${escapeHtml(m.subject)}</p>` : ""}
+              <p class="message-body">${escapeHtml(m.message)}</p>
+              <a class="btn-admin btn-admin-outline message-reply"
+                 href="mailto:${escapeHtml(m.email)}?subject=${encodeURIComponent("Re: " + (m.subject || "a sua mensagem"))}">Responder</a>
+            </article>`
+          )
+          .join("");
       });
   }
 

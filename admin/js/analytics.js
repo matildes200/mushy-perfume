@@ -16,7 +16,7 @@ function drawAnalyticsChart() {
     renderBarChart(el, buckets.map((b) => ({ label: b.label, value: b.value })), formatValue);
   } else {
     const buckets = bucketOrdersByDay(analyticsOrders, currentRange, metricValue);
-    renderBarChart(el, buckets.map((b) => ({ label: b.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), value: b.value })), formatValue);
+    renderBarChart(el, buckets.map((b) => ({ label: b.date.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }), value: b.value })), formatValue);
   }
 }
 

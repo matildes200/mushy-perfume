@@ -18,7 +18,7 @@ function escapeHtml(str) {
 const orderCode = (id) => `#MP${String(id).replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 // Mobile sidebar: hamburger toggles the nav + account section open/closed.
@@ -69,7 +69,7 @@ function bucketOrdersByMonth(orders, metricFn = (o) => Number(o.total || 0)) {
   const buckets = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString("pt-BR", { month: "short" }), value: 0 });
+    buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString("pt-PT", { month: "short" }), value: 0 });
   }
   orders.forEach((o) => {
     if (["cancelled", "refunded"].includes(o.status)) return;

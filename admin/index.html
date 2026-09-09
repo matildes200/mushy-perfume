@@ -125,13 +125,13 @@
 
   <div class="admin-panel">
     <div class="admin-panel-head">
-      <h2>Perguntas do site</h2>
+      <h2>Mensagens do site</h2>
     </div>
-    <div class="admin-table-wrap">
-      <table class="admin-table" id="contactMessagesTable">
-        <thead><tr><th>Data</th><th>Nome</th><th>E-mail</th><th>Assunto</th><th>Pergunta</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <!-- Not a table: squeezing a paragraph into a table cell alongside four
+         other columns wrapped it to one word per line and made it unreadable.
+         Each message is its own full-width card instead. -->
+    <div class="messages-list" id="contactMessages">
+      <p class="admin-empty">A carregar…</p>
     </div>
   </div>
 </main>

@@ -108,20 +108,50 @@ const CATEGORY_SEARCH_TERMS = {
 };
 
 const ACCENT_FOLD = { á: "a", à: "a", â: "a", ã: "a", ä: "a", é: "e", è: "e", ê: "e", ë: "e", í: "i", ì: "i", î: "i", ï: "i", ó: "o", ò: "o", ô: "o", õ: "o", ö: "o", ú: "u", ù: "u", û: "u", ü: "u", ç: "c" };
+
+// Accents folded, case dropped, and punctuation flattened to spaces, so
+// "eclat dor", "ÉCLAT D'OR" and "eclat d or" all normalise to the same thing.
+// Without the punctuation step an apostrophe in a product name made it
+// unsearchable by anyone typing it without one.
 const normalizeText = (str) =>
-  str
+  String(str || "")
     .toLowerCase()
     .split("")
     .map((ch) => ACCENT_FOLD[ch] || ch)
-    .join("");
+    .join("")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 
+// Everything a shopper might reasonably type, in one normalised string: the
+// name, the brand, the olfactory family and notes, the concentration, and the
+// words people use for a category ("perfume de mulher" finds the feminino
+// range) — the old version only looked at name and notes.
+function productHaystack(p) {
+  if (!p._haystack) {
+    p._haystack = normalizeText(
+      [
+        p.name, p.brand, p.fragrance_family, p.concentration,
+        p.notes, p.notes_top, p.notes_heart, p.notes_base,
+        p.short_description, p.description,
+        (CATEGORY_SEARCH_TERMS[p.category] || []).join(" "),
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+  }
+  return p._haystack;
+}
+
+// Every word in the query has to appear somewhere, but only as a prefix of
+// some word — so partial typing narrows results as you go ("ecl" → Éclat,
+// "oud leg" → Oud Legacy) instead of dead-ending on an exact-phrase miss.
 function productMatchesSearch(p, normalizedQuery) {
   if (!normalizedQuery) return true;
-  if (normalizeText(p.name).includes(normalizedQuery)) return true;
-  if (normalizeText(p.notes).includes(normalizedQuery)) return true;
-  const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
-  const categoryTerms = CATEGORY_SEARCH_TERMS[p.category] || [];
-  return queryWords.some((word) => categoryTerms.includes(word));
+  const haystack = productHaystack(p);
+  return normalizedQuery
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => haystack.includes(word));
 }
 
 let cart = JSON.parse(localStorage.getItem("mushy-cart") || "{}");
@@ -170,6 +200,49 @@ function badgeMarkup(p) {
   return "";
 }
 
+// The back of the card is the detail view — there is no "ver detalhes" link,
+// because clicking through to another page would defeat the point of flipping.
+// Everything a shopper needs lives here: name and brand, the olfactory
+// pyramid, the size, and the price with its discount.
+//
+// notes_top/heart/base are admin-entered and still blank on most products, so
+// the pyramid falls back to the free-text notes field rather than leaving the
+// back half empty. Every row is omitted when it has nothing to say.
+function noteRow(labelKey, fallbackLabel, value) {
+  if (!value) return "";
+  return `<div class="flip-note-row">
+    <span class="flip-note-label" data-i18n="${labelKey}">${fallbackLabel}</span>
+    <span class="flip-note-value">${value}</span>
+  </div>`;
+}
+
+function backContent(p) {
+  const pyramid =
+    noteRow("notes.top", "Saída", p.notes_top) +
+    noteRow("notes.heart", "Coração", p.notes_heart) +
+    noteRow("notes.base", "Fundo", p.notes_base);
+
+  // Nothing structured on this product yet — show whatever notes text exists.
+  const fallbackNotes = !pyramid && (p.notes || p.short_description || p.description);
+
+  const size = [p.volume_ml ? `${p.volume_ml} ml` : "", p.concentration].filter(Boolean).join(" · ");
+
+  return `
+    <div class="flip-back-head">
+      ${p.brand ? `<span class="flip-back-brand">${p.brand}</span>` : ""}
+      <h3 class="flip-back-name">${p.name}</h3>
+      ${familyLabel(p) ? `<span class="flip-back-family">${familyLabel(p)}</span>` : ""}
+    </div>
+    <div class="flip-back-notes">
+      ${pyramid}
+      ${fallbackNotes ? `<p class="flip-back-fallback">${fallbackNotes}</p>` : ""}
+    </div>
+    <div class="flip-back-meta">
+      ${size ? `<span class="flip-back-size">${size}</span>` : ""}
+      ${priceMarkup(p, "flip-back-price")}
+    </div>`;
+}
+
 // Shared by .product-card / .carousel-card / .featured-card. The card flips:
 // the front is the bottle with its name and price underneath, and tapping it
 // turns the card over to the notes and the add-to-cart button. Nothing on the
@@ -199,12 +272,9 @@ function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
           </div>
         </div>
         <div class="flip-face flip-back">
-          ${family ? `<span class="perfume-card-family">${family}</span>` : ""}
-          <h3 class="perfume-card-name">${p.name}</h3>
-          ${description ? `<p class="perfume-card-desc">${description}</p>` : ""}
+          ${backContent(p)}
           <div class="flip-back-actions">
             ${addButton(p, addLabel, addLabelKey)}
-            <button class="flip-details-btn" data-open="${p.id}" data-i18n="product.details">Ver detalhes</button>
           </div>
         </div>
       </div>
@@ -212,12 +282,45 @@ function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
 }
 
 // One delegated handler for every grid on the page. Anything that already does
-// something of its own — the heart, add-to-cart, "ver detalhes" — is left
-// alone; everywhere else on the card toggles the flip.
+// something of its own — the heart, add-to-cart — is left alone; everywhere
+// else on the card toggles the flip.
+//
+// The gesture is measured before it counts as a tap. A finger that brushes a
+// card while the page is moving still fires a click, and that click used to
+// flip the card and show its pale back face — which is exactly what "the image
+// turns white when I accidentally touch it while scrolling" was. A tap now has
+// to stay within TAP_SLOP pixels and finish inside TAP_MS, so a scroll, a
+// flick, or a long press never flips anything.
+const TAP_SLOP = 10;
+const TAP_MS = 500;
+let tapStart = null;
+
+document.addEventListener(
+  "pointerdown",
+  (e) => { tapStart = { x: e.clientX, y: e.clientY, t: Date.now() }; },
+  { passive: true }
+);
+// Any scroll at all cancels the pending tap, however small the finger movement
+// looked — momentum scrolling can register almost no delta at the fingertip.
+window.addEventListener("scroll", () => { tapStart = null; }, { passive: true });
+
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".flip-card");
   if (!card) return;
-  if (e.target.closest("[data-wishlist], [data-add], [data-open], button")) return;
+  if (e.target.closest("[data-wishlist], [data-add], button, a")) return;
+
+  if (tapStart) {
+    const movedTooFar =
+      Math.abs(e.clientX - tapStart.x) > TAP_SLOP || Math.abs(e.clientY - tapStart.y) > TAP_SLOP;
+    if (movedTooFar || Date.now() - tapStart.t > TAP_MS) {
+      tapStart = null;
+      return;
+    }
+  } else if (e.pointerType !== "mouse" && e.detail === 0) {
+    // No tracked press and not a real click — treat it as stray.
+    return;
+  }
+  tapStart = null;
   card.classList.toggle("flipped");
 });
 
@@ -289,18 +392,47 @@ function renderCarousel() {
   const pause = () => { pausedUntil = Date.now() + 7000; };
   ["touchstart", "pointerdown", "wheel"].forEach((ev) => reviews.addEventListener(ev, pause, { passive: true }));
 
+  // Native smooth scrolling lands too abruptly here, and CSS scroll-snap yanks
+  // the strip the rest of the way the moment the scroll settles. The step is
+  // animated by hand instead, with snapping switched off for the duration, so
+  // the cards glide across and come to rest rather than jumping.
+  const GLIDE_MS = 1400;
+  const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  let gliding = false;
+
+  function glideTo(target) {
+    const start = reviews.scrollLeft;
+    const distance = target - start;
+    if (!distance) return;
+    gliding = true;
+    reviews.style.scrollSnapType = "none";
+    const t0 = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min((now - t0) / GLIDE_MS, 1);
+      reviews.scrollLeft = start + distance * easeInOutCubic(progress);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        reviews.style.scrollSnapType = "";
+        gliding = false;
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
   setInterval(() => {
     // Only when the cards actually overflow — on desktop this is a static
     // two-column grid with nothing to scroll.
     if (reviews.scrollWidth <= reviews.clientWidth + 4) return;
-    if (Date.now() < pausedUntil) return;
+    if (gliding || Date.now() < pausedUntil) return;
     const card = reviews.querySelector(".review-card");
     if (!card) return;
     const gap = parseFloat(getComputedStyle(reviews).columnGap) || 0;
-    const step = card.getBoundingClientRect().width + gap;
+    const stepWidth = card.getBoundingClientRect().width + gap;
     const atEnd = reviews.scrollLeft + reviews.clientWidth >= reviews.scrollWidth - 8;
-    reviews.scrollTo({ left: atEnd ? 0 : reviews.scrollLeft + step, behavior: "smooth" });
-  }, 3800);
+    glideTo(atEnd ? 0 : reviews.scrollLeft + stepWidth);
+  }, 6000);
 })();
 
 // ---------- Coupons ----------
@@ -690,13 +822,106 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
-searchInput?.addEventListener("input", renderProducts);
+// ---------- Live search results ----------
+// Typing used to do nothing at all except on the catalogue page, where it
+// silently filtered the grid further down. Now every page shows matches under
+// the field as you type and one tap opens the perfume, so the search never
+// dead-ends. The panel is built here rather than in markup so all six pages
+// get it without six copies of the same HTML.
+let searchResultsEl = null;
+function ensureSearchResults() {
+  if (searchResultsEl) return searchResultsEl;
+  // Anchored to the header, not inside .search-bar — that element clips its
+  // overflow to animate its own height, which would cut the panel off.
+  if (!siteHeader || !searchBar) return null;
+  searchResultsEl = document.createElement("div");
+  searchResultsEl.className = "search-results";
+  siteHeader.appendChild(searchResultsEl);
+  return searchResultsEl;
+}
+
+const SEARCH_RESULT_LIMIT = 6;
+
+function renderSearchResults() {
+  const box = ensureSearchResults();
+  if (!box) return;
+  const query = normalizeText(searchInput.value.trim());
+  if (!query) {
+    box.classList.remove("open");
+    box.innerHTML = "";
+    return;
+  }
+  const matches = PRODUCTS.filter((p) => isVisible(p) && productMatchesSearch(p, query));
+  box.innerHTML = matches.length
+    ? matches
+        .slice(0, SEARCH_RESULT_LIMIT)
+        .map(
+          (p) => `<button type="button" class="search-result" data-search-open="${p.id}">
+            <span class="search-result-thumb">${p.image ? `<img src="${p.image}" alt="">` : bottleIcon()}</span>
+            <span class="search-result-text">
+              <strong>${p.name}</strong>
+              ${familyLabel(p) ? `<small>${familyLabel(p)}</small>` : ""}
+            </span>
+            <span class="search-result-price">${money(effectivePrice(p))}</span>
+          </button>`
+        )
+        .join("") +
+      (matches.length > SEARCH_RESULT_LIMIT
+        ? `<a class="search-result-more" href="colecao.html?q=${encodeURIComponent(searchInput.value.trim())}">
+             <span data-i18n="search.seeall">Ver todos os resultados</span> (${matches.length})
+           </a>`
+        : "")
+    : `<p class="search-empty" data-i18n="product.notfound">Nenhum perfume encontrado.</p>`;
+  box.classList.add("open");
+  window.applyTranslations?.(window.getLang?.());
+}
+
+function closeSearchResults() {
+  searchResultsEl?.classList.remove("open");
+}
+
+searchInput?.addEventListener("input", () => {
+  renderSearchResults();
+  // The catalogue page also filters its grid live, as it always did.
+  if (grid) renderProducts();
+});
+
+// One tap on a result opens that perfume straight away.
+document.addEventListener("click", (e) => {
+  const hit = e.target.closest("[data-search-open]");
+  if (!hit) return;
+  const product = PRODUCTS.find((p) => String(p.id) === hit.dataset.searchOpen);
+  if (!product) return;
+  closeSearchResults();
+  searchBar?.classList.remove("open");
+  openProductDetail(product);
+});
+
+// Clicking anywhere else dismisses the panel.
+document.addEventListener("click", (e) => {
+  if (!searchBar?.contains(e.target)) closeSearchResults();
+});
+
 searchInput?.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") return closeSearchResults();
   if (e.key !== "Enter") return;
   e.preventDefault();
   const query = searchInput.value.trim();
   if (!query) return;
-  if (grid) return renderProducts();
+
+  // Enter on a single match goes straight into that perfume — the shortest
+  // path from typing a name to seeing the bottle.
+  const matches = PRODUCTS.filter((p) => isVisible(p) && productMatchesSearch(p, normalizeText(query)));
+  if (matches.length === 1) {
+    closeSearchResults();
+    searchBar?.classList.remove("open");
+    openProductDetail(matches[0]);
+    return;
+  }
+  if (grid) {
+    closeSearchResults();
+    return renderProducts();
+  }
   const url = `colecao.html?q=${encodeURIComponent(query)}`;
   document.body.classList.remove("page-loaded");
   setTimeout(() => { window.location.href = url; }, 170);

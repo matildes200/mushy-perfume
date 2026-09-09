@@ -32,8 +32,8 @@ function formatDiscount(c) {
 
 function formatValidity(c) {
   if (!c.start_date && !c.end_date) return "Sempre válido";
-  const start = c.start_date ? new Date(c.start_date).toLocaleDateString("pt-BR") : "—";
-  const end = c.end_date ? new Date(c.end_date).toLocaleDateString("pt-BR") : "sem fim";
+  const start = c.start_date ? new Date(c.start_date).toLocaleDateString("pt-PT") : "—";
+  const end = c.end_date ? new Date(c.end_date).toLocaleDateString("pt-PT") : "sem fim";
   return `${start} – ${end}`;
 }
 

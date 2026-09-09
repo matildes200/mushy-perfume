@@ -24,11 +24,27 @@
   overflow-wrap: normal;
   word-break: normal;
 }
-/* Stops the mobile browser's native pull-to-refresh/rubber-band overscroll,
-   which otherwise drags the whole layout viewport — fixed header included —
-   down with the gesture, landing it mid-screen instead of pinned to the top. */
-html, body { overscroll-behavior-y: none; }
-html { scroll-behavior: smooth; background: var(--bg); }
+/* ---------- Overscroll colours ----------
+   Pull-to-refresh is deliberately left enabled (overscroll-behavior used to be
+   "none" here, which is what stopped it working).
+   The two ends of the page need different colours behind the rubber band: the
+   page's own colour at the top, the footer's at the bottom. A single
+   background-color can't do that, so the top colour is painted as a background
+   IMAGE extended 100vh above the document, leaving background-color to show
+   through only past the bottom edge. Each page sets --page-top to whatever its
+   own first screen is; --page-end always matches the footer. */
+html {
+  scroll-behavior: smooth;
+  --page-top: var(--bg);
+  --page-end: #131313;
+  background-color: var(--page-end);
+  background-image: linear-gradient(var(--page-top), var(--page-top));
+  background-repeat: no-repeat;
+  background-size: 100% calc(100% + 100vh);
+  background-position: 0 -100vh;
+}
+/* The home page opens on the dark hero photo, not on the cream ground. */
+html.page-hero { --page-top: #1a1209; }
 
 /* ---------- Scrollbar ---------- */
 /* Scrollbar hidden site-wide (the page still scrolls normally). */
@@ -47,12 +63,31 @@ html { scrollbar-width: none; -ms-overflow-style: none; }
 input, textarea, select {
   user-select: text;
   -webkit-user-select: text;
-  /* iOS zooms the page when a focused field is under 16px. Keeping every
-     field at 16px is what actually stops the discount-code box zooming in;
-     the viewport meta alone doesn't cover it on older iOS. */
-  font-size: 16px;
 }
+
+/* ---------- Never zoom on focus ----------
+   iOS zooms the page whenever a focused field computes to under 16px, and it
+   ignores user-scalable=no, so 16px is the only thing that actually stops it.
+   The plain "input" selector this used to rely on lost to every class rule in
+   the file (.checkout-input was 13px — that is why the coupon box kept zooming
+   however many times it was "fixed"). !important is deliberate: it is the only
+   way to guarantee no future rule can quietly reintroduce the zoom. If a field
+   needs to LOOK smaller, scale its box with padding, never its font-size. */
+input, textarea, select,
+.checkout-input, .account-field input, .account-field select,
+.search-bar input, .newsletter-form input, .contato-field input, .contato-field textarea {
+  font-size: 16px !important;
+}
+
 img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+
+/* ---------- Touch devices get no hover state ----------
+   Without this guard a tap leaves :hover stuck on whatever was touched, so an
+   image brushed mid-scroll keeps its hover treatment until you tap elsewhere.
+   Every hover rule in this file is scoped to real pointers only. */
+@media (hover: none) {
+  * { -webkit-tap-highlight-color: transparent !important; }
+}
 
 /* Locks the page behind an open drawer/modal so only the panel scrolls. */
 /* iOS Safari ignores overflow:hidden on <body> alone, so the lock has to go on
@@ -238,12 +273,77 @@ button { font-family: var(--font-body); }
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   padding: 8px 2px;
   outline: none;
 }
 .search-bar input:focus { border-color: var(--ink); }
 .search-bar button { background: none; border: none; color: var(--text-muted); font-size: 22px; line-height: 1; cursor: pointer; }
+
+/* ---------- Live search results ----------
+   Sits under the header (which is fixed or sticky, so it is the containing
+   block) rather than inside .search-bar, whose overflow:hidden would clip it. */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 18px 34px rgba(38, 26, 15, 0.14);
+  z-index: 70;
+}
+.search-results.open { display: block; }
+.search-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 22px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.search-result:last-of-type { border-bottom: none; }
+.search-result-thumb {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.search-result-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.search-result-thumb .bottle-icon { width: 22px; }
+.search-result-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.search-result-text strong { font-size: 14px; font-weight: 400; color: var(--text); }
+.search-result-text small { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.search-result-price { flex: 0 0 auto; font-size: 13px; color: var(--text); }
+.search-result-more {
+  display: block;
+  padding: 13px 22px;
+  font-size: 11.5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.search-empty { padding: 20px 22px; margin: 0; font-size: 13.5px; color: var(--text-muted); text-align: center; }
+@media (hover: hover) and (pointer: fine) {
+  .search-result:hover { background: var(--bg-alt); }
+}
 .search-bar button:hover { color: var(--text); }
 
 /* ---------- Buttons ---------- */
@@ -380,15 +480,33 @@ button { font-family: var(--font-body); }
   padding-top: 96px;
   padding-bottom: 60px;
 }
-.sobre-banner-mark {
-  font-size: 10.5px;
-  letter-spacing: 2.6px;
-  text-transform: uppercase;
+/* The top-left of this banner used to be a bare wash of photo. A large
+   monogram with a statement line beside it gives that corner something with
+   actual weight, rather than a one-line caption that read as an afterthought. */
+.sobre-banner-mark { display: flex; align-items: center; gap: 18px; }
+.sobre-banner-monogram {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-size: 34px;
+  line-height: 1;
   color: var(--on-hero);
-  opacity: 0.9;
+  border: 1px solid rgba(251, 243, 228, 0.55);
+  border-radius: 50%;
+  backdrop-filter: blur(2px);
+}
+.sobre-banner-statement {
   margin: 0;
-  padding-left: 16px;
-  border-left: 2px solid var(--on-hero);
+  font-family: var(--font-head);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--on-hero);
+  opacity: 0.95;
 }
 .sobre-banner-overlay h2 {
   font-family: var(--font-head);
@@ -403,18 +521,26 @@ button { font-family: var(--font-body); }
 /* Follows the "Como escolhemos" section's layout: an eyebrow, a pull quote,
    then the body copy in a contained column. Generous padding and line-height
    because the old card had the text pressed right up against its border. */
+/* No card, no border, no rule under the eyebrow: the story flows straight out
+   of the banner into the page instead of being boxed off from it. */
 .sobre-banner-text {
   max-width: 660px;
   width: 100%;
   margin: 0 auto;
   overflow-wrap: break-word;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  padding: 48px 44px;
+  padding: 0;
 }
 .sobre-banner-text .eyebrow { margin-bottom: 18px; }
-.sobre-banner-text .processo-quote { margin-bottom: 28px; }
+/* Centred and rule-free here — the bordered treatment it has in "Como
+   escolhemos" would box this section off from the page again. */
+.sobre-banner-text .processo-quote {
+  border-left: none;
+  padding-left: 0;
+  margin: 0 auto 30px;
+  max-width: none;
+  text-align: center;
+  color: var(--text);
+}
 .sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 2; margin-bottom: 26px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
 /* The stats sit centred under the story, in the same 660px column and with
@@ -425,12 +551,11 @@ button { font-family: var(--font-body); }
   width: 100%;
   margin: 40px auto 0;
   box-sizing: border-box;
-  padding: 30px 44px 0;
+  padding: 30px 0 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   text-align: center;
-  border-top: 1px solid var(--border);
 }
 .sobre-banner-body .sobre-stats div { align-items: center; }
 
@@ -462,33 +587,6 @@ button { font-family: var(--font-body); }
 .processo-content p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 20px; max-width: 460px; text-align: justify; }
 .processo-content p:last-of-type { margin-bottom: 0; }
 
-/* ---------- Values (Sobre page) ----------
-   Left-aligned with a rule down the side, so this section reads in the same
-   voice as "Como escolhemos" further down rather than as a row of centred
-   icon tiles in a different style. */
-.valores { padding: 110px 0; }
-.valores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.valor-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 38px 32px;
-  text-align: left;
-}
-.valor-icon {
-  width: 48px;
-  height: 48px;
-  margin: 0 0 22px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink);
-}
-.valor-card h3 { font-family: var(--font-head); font-weight: 400; font-size: 18px; margin-bottom: 12px; border-left: 2px solid var(--ink); padding-left: 14px; }
-.valor-card p { color: var(--text-muted); font-size: 14px; line-height: 1.75; }
-
 /* ---------- Best sellers carousel ---------- */
 .bestsellers { padding: 100px 0 90px; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .carousel {
@@ -511,7 +609,9 @@ button { font-family: var(--font-body); }
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.carousel-card:hover { transform: translateY(-2px); }
+@media (hover: hover) and (pointer: fine) {
+  .carousel-card:hover { transform: translateY(-2px); }
+}
 .carousel-end-card {
   scroll-snap-align: start;
   width: 270px;
@@ -531,7 +631,9 @@ button { font-family: var(--font-body); }
   text-transform: uppercase;
   transition: border-color 0.2s, color 0.2s;
 }
-.carousel-end-card:hover { border-color: var(--text); }
+@media (hover: hover) and (pointer: fine) {
+  .carousel-end-card:hover { border-color: var(--text); }
+}
 
 .carousel-controls { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 .carousel-controls button {
@@ -633,23 +735,84 @@ button { font-family: var(--font-body); }
   background: var(--surface);
   overflow: hidden;
 }
-.flip-back .perfume-card-name { margin-bottom: 10px; }
-.flip-back .perfume-card-desc { -webkit-line-clamp: 6; margin-bottom: 18px; }
-.flip-back-actions { display: flex; flex-direction: column; gap: 9px; align-items: stretch; }
-.flip-back-actions .btn-small { width: 100%; }
-.flip-details-btn {
-  background: none;
-  border: 0;
-  padding: 2px;
-  font-family: var(--font-body);
-  font-size: 10.5px;
-  letter-spacing: 1.4px;
+/* The back is the detail view, so it uses the full height: identity at the
+   top, the olfactory pyramid filling the middle, size and price pinned to the
+   bottom above the button. space-between is what stops it pooling into one
+   clump with dead space underneath. */
+.flip-back { justify-content: space-between; text-align: left; gap: 12px; }
+.flip-back-head { flex: 0 0 auto; }
+.flip-back-brand {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.flip-back-name {
+  font-family: var(--font-head);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.25;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.flip-back-family {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--text-muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
 }
+.flip-back-notes {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  margin: 10px 0;
+}
+.flip-note-row { display: flex; gap: 8px; align-items: baseline; }
+.flip-note-label {
+  flex: 0 0 46px;
+  font-size: 8.5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.flip-note-value { flex: 1; font-size: 11.5px; line-height: 1.5; color: var(--text); }
+.flip-back-fallback {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.flip-back-meta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.flip-back-size { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
+.flip-back-price { font-size: 15px; font-weight: 500; color: var(--text); }
+.flip-back-price .price-final { font-size: 15px; }
+.flip-back-actions { flex: 0 0 auto; display: flex; flex-direction: column; align-items: stretch; }
+.flip-back-actions .btn-small { width: 100%; }
+
+/* The badge sits on the front face; when the card turns it would otherwise
+   show through the back mirrored and unreadable. */
+.flip-card.flipped .perfume-badge,
+.flip-card.flipped .stock-badge,
+.flip-card.flipped .wishlist-btn { opacity: 0; visibility: hidden; }
 /* Nothing on the hidden face should be reachable — without this the back's
    buttons still take taps through the front while the card is face-up. */
 .flip-card:not(.flipped) .flip-back { pointer-events: none; }
@@ -684,9 +847,12 @@ button { font-family: var(--font-body); }
 @media (prefers-reduced-motion: reduce) {
   .perfume-card-media-wrap.is-loading { animation: none; }
 }
-.product-card:hover .perfume-card-media-wrap,
-.carousel-card:hover .perfume-card-media-wrap,
-.featured-card:hover .perfume-card-media-wrap { border-color: var(--text); }
+/* Mouse only — see the hover note at the top of this file. */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .perfume-card-media-wrap,
+  .carousel-card:hover .perfume-card-media-wrap,
+  .featured-card:hover .perfume-card-media-wrap { border-color: var(--text); }
+}
 
 .perfume-card-media {
   position: absolute;
@@ -696,9 +862,11 @@ button { font-family: var(--font-body); }
   background-position: center;
   transition: transform 0.6s ease;
 }
-.product-card:hover .perfume-card-media,
-.carousel-card:hover .perfume-card-media,
-.featured-card:hover .perfume-card-media { transform: scale(1.05); }
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .perfume-card-media,
+  .carousel-card:hover .perfume-card-media,
+  .featured-card:hover .perfume-card-media { transform: scale(1.05); }
+}
 
 /* Watermark bottle icon shown only when a product has no real photo (tone-N gradient card) */
 .product-card-icon {
@@ -769,15 +937,21 @@ button { font-family: var(--font-body); }
    reserves the height of its optional "was" row, so names sit on one baseline
    and prices on another right across a row, whatever's discounted. */
 .flip-front .perfume-card-body { display: flex; flex-direction: column; align-items: center; text-align: center; }
+/* Clamped to two lines so the price row lands at the same height across a row
+   of cards, but the name is bottom-aligned inside that reserved space — with
+   top alignment a one-line title left an obvious hole above the price. The
+   price itself reserves nothing: it is the last element, so letting it sit
+   straight under the title costs no alignment and closes the gap. */
 .flip-front .perfume-card-name {
-  margin: 0 0 6px;
-  min-height: 2.5em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin: 0 0 4px;
+  min-height: 2.4em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  line-height: 1.2;
   overflow: hidden;
 }
-.flip-front .perfume-card-price { min-height: 2.9em; }
+.flip-front .perfume-card-price { min-height: 0; line-height: 1.3; }
 
 /* ---------- Discount pricing ----------
    Column, not row: the live price reads first and the struck-through original
@@ -877,7 +1051,7 @@ button { font-family: var(--font-body); }
   padding: 14px 16px;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 16px;
   outline: none;
 }
 .newsletter-form input:focus { border-color: var(--text); }
@@ -887,35 +1061,35 @@ button { font-family: var(--font-body); }
    Dark panel section sitting directly above the (also dark) footer, so the
    page closes on one continuous dark band rather than a cream section butting
    into a dark one. Local tokens keep the dark palette in one place. */
+/* Mushy's own palette and type, not the dark reference layout this section was
+   first built from: cream ground, Playfair headings, ink rules and the gold
+   accent that appears elsewhere on the site. Same structure — form beside a
+   column of contact cards — in the shop's own voice. */
 .contato {
-  --ct-bg: #131313;
-  --ct-panel: #1b1b1b;
-  --ct-field: #202020;
-  --ct-line: #2e2e2e;
-  --ct-label: #9a94a6;
-  --ct-muted: #8d8d8d;
-  --ct-fg: #f2f0ec;
-  --ct-accent: #d4a437;
+  --ct-line: var(--border);
+  --ct-label: var(--text-muted);
+  --ct-accent: var(--ink);
   padding: 96px 0 104px;
-  background: var(--ct-bg);
-  color: var(--ct-fg);
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  color: var(--text);
 }
 .contato-grid { display: grid; grid-template-columns: 1.85fr 1fr; gap: 22px; align-items: start; }
 
 .contato-panel {
-  background: var(--ct-panel);
+  background: var(--surface);
   border: 1px solid var(--ct-line);
-  border-radius: 18px;
-  padding: 42px 40px;
+  border-radius: 14px;
+  padding: 44px 42px;
 }
 .contato-panel h2 {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 26px;
-  color: var(--ct-fg);
+  font-family: var(--font-head);
+  font-weight: 400;
+  font-size: 30px;
+  color: var(--text);
   margin: 0 0 8px;
 }
-.contato-panel-sub { color: var(--ct-muted); font-size: 14.5px; margin: 0 0 30px; }
+.contato-panel-sub { color: var(--text-muted); font-size: 14.5px; margin: 0 0 32px; }
 
 .contato-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .contato-field { margin-bottom: 20px; }
@@ -933,45 +1107,38 @@ button { font-family: var(--font-body); }
   width: 100%;
   box-sizing: border-box;
   font-family: var(--font-body);
-  /* 16px so focusing a field doesn't zoom the page on iOS. */
-  font-size: 16px;
-  color: var(--ct-fg);
-  background: var(--ct-field);
+  color: var(--text);
+  background: var(--bg);
   border: 1px solid var(--ct-line);
-  border-radius: 12px;
-  padding: 15px 18px;
+  border-radius: 8px;
+  padding: 14px 16px;
   line-height: 1.5;
   transition: border-color 0.2s;
 }
 .contato-field textarea { resize: vertical; min-height: 140px; }
 .contato-field input::placeholder,
-.contato-field textarea::placeholder { color: #6d6d6d; }
+.contato-field textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
 .contato-field input:focus,
 .contato-field textarea:focus { outline: none; border-color: var(--ct-accent); }
-.contato-panel .btn-primary {
-  margin-top: 4px;
-  border-radius: 12px;
-  background: var(--ct-fg);
-  border-color: var(--ct-fg);
-  color: #131313;
-}
-.contato-panel .btn-primary:hover { background: var(--ct-accent); border-color: var(--ct-accent); color: #131313; }
+.contato-panel .btn-primary { margin-top: 4px; }
 
-.contato-aside { display: flex; flex-direction: column; gap: 22px; }
-.contato-info,
-.contato-hours {
-  background: var(--ct-panel);
+.contato-aside { display: flex; flex-direction: column; gap: 14px; }
+.contato-info {
+  background: var(--surface);
   border: 1px solid var(--ct-line);
-  border-radius: 18px;
+  border-radius: 14px;
   padding: 22px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: border-color 0.2s;
 }
-.contato-info { display: flex; align-items: flex-start; gap: 16px; }
 .contato-info-icon {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--ct-field);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-alt);
   border: 1px solid var(--ct-line);
   display: flex;
   align-items: center;
@@ -987,20 +1154,12 @@ button { font-family: var(--font-body); }
   color: var(--ct-label);
   margin-bottom: 7px;
 }
-.contato-info-value { color: var(--ct-fg); font-size: 15px; line-height: 1.5; margin: 0; }
-.contato-info-value a { color: var(--ct-fg); }
-.contato-info-value a:hover { color: var(--ct-accent); }
-
-.contato-hours-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 16px;
-  font-size: 15px;
-  color: var(--ct-muted);
-  padding: 7px 0;
+.contato-info-value { color: var(--text); font-size: 14.5px; line-height: 1.5; margin: 0; }
+.contato-info-value a { color: var(--text); }
+@media (hover: hover) and (pointer: fine) {
+  .contato-info-value a:hover { color: var(--ct-accent); }
+  .contato-info:hover { border-color: var(--text); }
 }
-.contato-hours-row strong { color: var(--ct-fg); font-weight: 600; }
 
 /* ---------- Policies page (Envio / Devoluções / Privacidade) ---------- */
 .policies { padding: 90px 0 110px; }
@@ -1338,7 +1497,7 @@ button { font-family: var(--font-body); }
   border-radius: 8px;
   padding: 10px 12px;
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text);
   background: var(--bg);
   width: 100%;
@@ -1607,7 +1766,7 @@ button { font-family: var(--font-body); }
   border-radius: 8px;
   padding: 12px 14px;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text);
   background: var(--bg);
   width: 100%;
@@ -1670,7 +1829,9 @@ button { font-family: var(--font-body); }
 .account-order-address { font-size: 11.5px; color: var(--text-muted); margin: 10px 0 0; }
 .account-recs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .account-rec-card { display: block; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; text-align: center; padding: 14px 10px; transition: border-color 0.2s; }
-.account-rec-card:hover { border-color: var(--text); }
+@media (hover: hover) and (pointer: fine) {
+  .account-rec-card:hover { border-color: var(--text); }
+}
 .account-rec-card img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; }
 .account-rec-card strong { display: block; font-size: 12.5px; font-weight: 400; margin-bottom: 4px; }
 .account-rec-card span { font-size: 11.5px; color: var(--text-muted); }
@@ -1689,19 +1850,18 @@ button { font-family: var(--font-body); }
      phone they belong under the thing you actually came here to do. */
   .contato { padding: 54px 0 60px; }
   .contato-grid { grid-template-columns: 1fr; gap: 16px; }
-  .contato-panel { padding: 28px 20px; border-radius: 16px; }
-  .contato-panel h2 { font-size: 21px; }
+  .contato-panel { padding: 28px 22px; border-radius: 12px; }
+  .contato-panel h2 { font-size: 24px; }
   .contato-panel-sub { font-size: 13.5px; margin-bottom: 24px; }
   .contato-field-row { grid-template-columns: 1fr; gap: 0; }
   .contato-field { margin-bottom: 16px; }
-  .contato-field input, .contato-field textarea { padding: 13px 15px; border-radius: 10px; }
+  .contato-field input, .contato-field textarea { padding: 13px 15px; }
   .contato-field textarea { min-height: 120px; }
   .contato-aside { gap: 12px; }
-  .contato-info, .contato-hours { padding: 18px 18px; border-radius: 16px; }
+  .contato-info { padding: 18px; border-radius: 12px; }
   .contato-info-icon { width: 40px; height: 40px; }
-  .contato-info-value, .contato-hours-row { font-size: 14px; }
+  .contato-info-value { font-size: 14px; }
   .processo { padding: 60px 0; }
-  .valores { padding: 56px 0; }
   .colecao-banner { padding: 70px 0 48px; margin-bottom: 36px; }
   .sobre-banner-body { padding: 44px 0 60px; }
   .section-head { margin-bottom: 30px; }
@@ -1767,7 +1927,12 @@ button { font-family: var(--font-body); }
     background: linear-gradient(180deg, rgba(38, 26, 15, 0.2) 0%, rgba(38, 26, 15, 0.3) 45%, rgba(38, 26, 15, 0.7) 100%);
   }
 
-  .featured-grid { grid-template-columns: 1fr; }
+  /* Two up rather than one card per row. At full width these cards dwarfed
+     everything else on the page and only one was ever visible at a time. */
+  .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .featured-card .perfume-card-name { font-size: 14.5px; }
+  .featured-card .perfume-card-price { font-size: 13px; }
+  .featured-card .flip-back-name { font-size: 15px; }
 
   /* A dense grid so several perfumes are visible at once, instead of one
      giant card filling the whole screen per scroll. */
@@ -1778,7 +1943,6 @@ button { font-family: var(--font-body); }
   .perfume-badge ~ .stock-badge { top: 38px; }
   .perfume-card-body { padding: 12px 1px 0; }
   .perfume-card-name { font-size: 14.5px; }
-  .featured-card .perfume-card-name { font-size: 16px; }
   .perfume-card-family { font-size: 9px; margin-bottom: 5px; }
   .perfume-card-desc { font-size: 11px; margin-bottom: 10px; }
   .perfume-card-price { font-size: 13px; }
@@ -1788,10 +1952,16 @@ button { font-family: var(--font-body); }
      3/4 default leaves the card less dominant in a two-up grid. */
   .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 18px; }
   .perfume-card-media { background-size: contain; background-repeat: no-repeat; }
-  .flip-back { border-radius: 18px; padding: 16px 14px; }
-  .flip-back .perfume-card-desc { -webkit-line-clamp: 5; margin-bottom: 12px; }
-  .flip-details-btn { font-size: 9px; }
-  .flip-front .perfume-card-price { min-height: 2.8em; }
+  .flip-back { border-radius: 18px; padding: 14px 13px; }
+  .flip-back-name { font-size: 15px; }
+  .flip-back-brand { font-size: 8.5px; }
+  .flip-note-label { flex-basis: 40px; font-size: 8px; }
+  .flip-note-value { font-size: 10.5px; }
+  .flip-back-fallback { font-size: 10.5px; -webkit-line-clamp: 4; }
+  .flip-back-notes { padding: 9px 0; margin: 8px 0; gap: 5px; }
+  .flip-back-size { font-size: 9px; }
+  .flip-back-price, .flip-back-price .price-final { font-size: 13px; }
+  .flip-back-meta { margin-bottom: 9px; }
 
   /* Full-bleed photo with the story text overlaid on top, instead of a
      stacked image-then-gap-then-text layout with dead white space between. */
@@ -1829,10 +1999,6 @@ button { font-family: var(--font-body); }
   .sobre-banner-text p { font-size: 14.5px; line-height: 2.05; margin-bottom: 26px; }
   .sobre-banner-overlay-inner { padding-top: 84px; padding-bottom: 40px; }
   .sobre-banner-mark { font-size: 9px; letter-spacing: 2px; padding-left: 12px; }
-  .valor-card { padding: 30px 24px; }
-
-  .valores-grid { grid-template-columns: 1fr; gap: 14px; }
-
   .processo-inner { grid-template-columns: 1fr; gap: 30px; }
   .processo-media::before { display: none; }
   .processo-media img { height: 320px; }
@@ -1856,7 +2022,7 @@ button { font-family: var(--font-body); }
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     gap: 14px;
     padding: 4px 6vw 6px;
