@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>Administradores | Painel Mushy Parfum</title>
+<title>Mensagens | Painel Mushy Parfum</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,67 +47,33 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Administradores</h1>
-      <p>Quem tem acesso ao painel administrativo</p>
+      <h1>Mensagens</h1>
+      <p>Perguntas enviadas pelo formulário de contacto da loja</p>
     </div>
-    <button class="btn-admin" id="newAdminBtn">+ Novo administrador</button>
+    <div class="row-actions" id="messageFilters">
+      <button class="btn-admin btn-admin-outline active" data-filter="pending">Por responder</button>
+      <button class="btn-admin btn-admin-outline" data-filter="handled">Respondidas</button>
+      <button class="btn-admin btn-admin-outline" data-filter="all">Todas</button>
+    </div>
   </div>
 
-  <div class="admin-alert admin-alert-success" style="margin-bottom:20px;">
-    Adicionar alguém aqui dá acesso ao painel, mas essa pessoa também precisa criar (ou já ter) uma conta com esse mesmo e-mail em <strong>Minha Conta</strong> no site. Sem isso, ela não conseguirá entrar.
-  </div>
-
-  <div id="adminsAlert"></div>
+  <div id="messagesAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Equipe</h2></div>
-    <div class="admin-table-wrap">
-      <table class="admin-table" id="adminsTable">
-        <thead>
-          <tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Telefone</th><th>Desde</th><th></th></tr>
-        </thead>
-        <tbody><tr><td colspan="6" class="admin-empty">A carregar…</td></tr></tbody>
-      </table>
+    <div class="admin-panel-head">
+      <h2 id="messagesHeading">Mensagens</h2>
+      <span class="admin-count" id="messagesCount"></span>
+    </div>
+    <div class="messages-list" id="messagesList">
+      <p class="admin-empty">A carregar…</p>
     </div>
   </div>
 </main>
-
-<div class="modal-overlay" id="adminModalOverlay">
-  <div class="modal">
-    <h2 id="adminModalTitle">Novo administrador</h2>
-    <div id="adminFormAlert"></div>
-    <form id="adminForm">
-      <input type="hidden" id="adminId">
-      <div class="form-grid">
-        <div class="form-field span-2">
-          <label for="full_name">Nome completo</label>
-          <input type="text" id="full_name" required>
-        </div>
-        <div class="form-field span-2">
-          <label for="email">E-mail</label>
-          <input type="email" id="email" required>
-        </div>
-        <div class="form-field">
-          <label for="role">Função</label>
-          <input type="text" id="role" placeholder="Administrador, Atendimento...">
-        </div>
-        <div class="form-field">
-          <label for="phone">Telefone</label>
-          <input type="text" id="phone" placeholder="+244...">
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancelar</button>
-        <button type="submit" class="btn-admin" id="saveAdminBtn">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-common.js"></script>
 <script src="js/admin-auth.js"></script>
-<script src="js/administradores.js"></script>
+<script src="js/mensagens.js"></script>
 </body>
 </html>

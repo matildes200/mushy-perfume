@@ -58,19 +58,28 @@ document.addEventListener("admin:ready", async () => {
   if (contactList) {
     supabaseClient
       .from("contact_messages")
-      .select("id, created_at, name, email, subject, message")
+      .select("id, created_at, name, email, subject, message, handled")
       .order("created_at", { ascending: false })
-      .limit(25)
+      .limit(50)
       .then(({ data: messages, error }) => {
         if (error) {
           contactList.innerHTML = `<p class="admin-empty">Execute a migração das mensagens de contacto.</p>`;
           return;
         }
+        // Sidebar badge: how many are still waiting for a reply, visible from
+        // every admin page.
+        const pending = (messages || []).filter((m) => !m.handled).length;
+        document.querySelectorAll("[data-messages-badge]").forEach((badge) => {
+          badge.textContent = pending;
+          badge.hidden = pending === 0;
+        });
+
         if (!(messages || []).length) {
           contactList.innerHTML = `<p class="admin-empty">Nenhuma mensagem ainda.</p>`;
           return;
         }
         contactList.innerHTML = messages
+          .slice(0, 3)
           .map(
             (m) => `<article class="message-card">
               <header class="message-card-head">

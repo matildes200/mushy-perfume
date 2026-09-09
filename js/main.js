@@ -102,9 +102,12 @@ const cardImageUrl = (path) => new URL(path, document.baseURI).href;
 // Search terms that should match a category even though they never appear in the data
 // (e.g. "perfume de mulher" should surface the feminino products).
 const CATEGORY_SEARCH_TERMS = {
-  feminino: ["feminino", "femininos", "feminina", "femininas", "mulher", "mulheres", "woman", "women"],
-  masculino: ["masculino", "masculinos", "masculina", "masculinas", "homem", "homens", "man", "men"],
-  unissex: ["unissex", "unisex"],
+  feminino: ["feminino", "femininos", "feminina", "femininas", "mulher", "mulheres", "ela", "woman", "women", "female", "ladies"],
+  masculino: ["masculino", "masculinos", "masculina", "masculinas", "homem", "homens", "ele", "man", "men", "male", "mens"],
+  // "unissexo" is how people actually write it, and it is NOT reachable from
+  // "unissex" by prefix — the typed word is the longer one — so it has to be
+  // listed in its own right.
+  unissex: ["unissex", "unissexo", "unissexos", "unisex", "unisexo"],
 };
 
 const ACCENT_FOLD = { á: "a", à: "a", â: "a", ã: "a", ä: "a", é: "e", è: "e", ê: "e", ë: "e", í: "i", ì: "i", î: "i", ï: "i", ó: "o", ò: "o", ô: "o", õ: "o", ö: "o", ú: "u", ù: "u", û: "u", ü: "u", ç: "c" };
@@ -133,7 +136,6 @@ function productHaystack(p) {
         p.name, p.brand, p.fragrance_family, p.concentration,
         p.notes, p.notes_top, p.notes_heart, p.notes_base,
         p.short_description, p.description,
-        (CATEGORY_SEARCH_TERMS[p.category] || []).join(" "),
       ]
         .filter(Boolean)
         .join(" ")
@@ -146,16 +148,30 @@ function productHaystack(p) {
   return p;
 }
 
-// Every word in the query has to appear somewhere, matching partway into a
-// word — so typing narrows results as you go ("ecl" → Éclat, "oud leg" → Oud
-// Legacy) instead of dead-ending unless you get the whole phrase right.
+// Category words are matched as prefixes of a known term, not as substrings of
+// one big text blob. Blob matching meant "men" hit the feminino range too,
+// because "women" contains it. Prefix matching keeps "femin" → feminino and
+// "uniss" → unissex working while "men" only reaches masculino.
+function matchesCategoryTerm(p, word) {
+  const terms = CATEGORY_SEARCH_TERMS[p.category] || [];
+  return terms.some((term) => term.startsWith(word));
+}
+
+// Every word in the query has to match something: the product's own text
+// (partway into a word, so typing narrows as you go — "ecl" → Éclat, "oud leg"
+// → Oud Legacy), its punctuation-stripped form, or its category.
 function productMatchesSearch(p, normalizedQuery) {
   if (!normalizedQuery) return true;
   productHaystack(p);
   return normalizedQuery
     .split(/\s+/)
     .filter(Boolean)
-    .every((word) => p._haystack.includes(word) || p._haystackCompact.includes(word));
+    .every(
+      (word) =>
+        p._haystack.includes(word) ||
+        p._haystackCompact.includes(word) ||
+        matchesCategoryTerm(p, word)
+    );
 }
 
 let cart = JSON.parse(localStorage.getItem("mushy-cart") || "{}");
@@ -404,12 +420,15 @@ function renderCarousel() {
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   let gliding = false;
 
+  // No snap juggling any more: the strip has scroll-snap disabled in CSS, so
+  // this animation is the only thing that ever moves it. Every card sits in
+  // the same scrolling box, so one eased scrollLeft moves all of them by
+  // identical pixels on identical frames — nothing can travel at its own rate.
   function glideTo(target) {
     const start = reviews.scrollLeft;
     const distance = target - start;
     if (!distance) return;
     gliding = true;
-    reviews.style.scrollSnapType = "none";
     const t0 = performance.now();
 
     const step = (now) => {
@@ -418,7 +437,6 @@ function renderCarousel() {
       if (progress < 1) {
         requestAnimationFrame(step);
       } else {
-        reviews.style.scrollSnapType = "";
         gliding = false;
       }
     };

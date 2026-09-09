@@ -23,6 +23,7 @@
   <p class="admin-eyebrow">Painel administrativo</p>
   <nav class="admin-nav">
     <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Visão geral</a>
+    <a href="mensagens.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3 6.5 9 6.3 9-6.3"/></svg> Mensagens<span class="nav-badge" data-messages-badge hidden></span></a>
     <a href="produtos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.5 7.5 12 3 3.5 7.5 12 12l8.5-4.5z"/><path d="M3.5 7.5v9L12 21l8.5-4.5v-9"/><path d="M12 12v9"/></svg> Produtos</a>
     <a href="pedidos.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg> Pedidos</a>
     <a href="clientes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="7.5" r="3.5"/><path d="M2.5 19.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="17.5" cy="8.5" r="2.8"/><path d="M15.3 13.3c2.6.5 4.5 2.9 4.5 6.2"/></svg> Clientes</a>
@@ -123,13 +124,13 @@
     </div>
   </div>
 
+  <!-- Only the three most recent, as a pointer to the Mensagens page in the
+       sidebar. The full list lives there, not buried at the foot of this one. -->
   <div class="admin-panel">
     <div class="admin-panel-head">
-      <h2>Mensagens do site</h2>
+      <h2>Mensagens recentes</h2>
+      <a href="mensagens.html" class="btn-admin btn-admin-outline">Ver todas</a>
     </div>
-    <!-- Not a table: squeezing a paragraph into a table cell alongside four
-         other columns wrapped it to one word per line and made it unreadable.
-         Each message is its own full-width card instead. -->
     <div class="messages-list" id="contactMessages">
       <p class="admin-empty">A carregar…</p>
     </div>
