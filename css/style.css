@@ -16,6 +16,14 @@
 }
 
 * { box-sizing: border-box; }
+/* Justified body copy must never be hyphenated or split mid-word — with the
+   narrow columns on mobile that reads as broken words rather than tidy text. */
+.policy-block p, .sobre-banner-text p, .processo-content p {
+  hyphens: none;
+  -webkit-hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
 /* Stops the mobile browser's native pull-to-refresh/rubber-band overscroll,
    which otherwise drags the whole layout viewport — fixed header included —
    down with the gesture, landing it mid-screen instead of pinned to the top. */
@@ -1446,7 +1454,11 @@ button { font-family: var(--font-body); }
     padding-bottom: 26px;
   }
   .notas-grid::-webkit-scrollbar { display: none; }
-  .notas-col { flex: 0 0 84%; scroll-snap-align: center; }
+  /* Exactly one panel per swipe. At the previous 84% the neighbouring column
+     was always 16% on screen, so text from the middle panel bled into the
+     view of the first and last. scroll-snap-stop keeps a fast flick from
+     skipping straight past a panel. */
+  .notas-col { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; }
   .notas-divider { display: none; }
 
   /* Center-snap carousel: the active card sits in the middle with the next

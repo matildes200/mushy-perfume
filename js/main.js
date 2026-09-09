@@ -820,10 +820,22 @@ document.body.addEventListener("click", (e) => {
   const href = link.getAttribute("href");
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || /^https?:\/\//.test(href)) return;
 
+  // A link to the page we're already on, differing only by #fragment (the
+  // footer's politicas.html#envio while already on politicas.html), performs
+  // no navigation — the browser just scrolls. Fading out for that would leave
+  // the body at opacity:0 with no reload to ever fade it back in, i.e. a
+  // blank page. Let the browser handle those natively.
+  const target = new URL(href, window.location.href);
+  if (target.pathname === window.location.pathname && target.hash) return;
+
   e.preventDefault();
   document.body.classList.remove("page-loaded");
   setTimeout(() => { window.location.href = href; }, 170);
 });
+
+// Safety net for any other route to a stuck fade-out: a hash change means the
+// document survived, so the page must be visible.
+window.addEventListener("hashchange", () => document.body.classList.add("page-loaded"));
 
 // Using the browser's Back button restores the page exactly as the tab left
 // it (from bfcache) rather than reloading it — including the opacity:0 state
