@@ -78,6 +78,16 @@ button { font-family: var(--font-body); }
   background: rgba(250, 245, 234, 0.98);
 }
 
+/* Pages without a full-bleed hero pin the header with sticky rather than
+   fixed. Sticky stays in normal document flow, so iOS Safari has no detached
+   layer to strand mid-screen after an overscroll gesture — which is the bug
+   removing backdrop-filter alone didn't fully solve. index.html keeps
+   position:fixed because its header has to float transparently over the hero.
+   Since a sticky header occupies its own space, the 84px .page-offset that
+   compensated for the fixed one has to come off, or it double-counts. */
+.site-header-static { position: sticky; }
+.site-header-static ~ .page-offset { padding-top: 0; }
+
 .header-inner {
   display: flex;
   align-items: center;
@@ -355,7 +365,10 @@ button { font-family: var(--font-body); }
 }
 .sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 1.9; margin-bottom: 22px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
-.sobre-banner-body .sobre-stats { max-width: 660px; width: 100%; margin: 44px auto 0; box-sizing: border-box; }
+/* Horizontal padding matches .sobre-banner-text's card padding so the stats
+   line up with the story text above them rather than sitting flush against
+   the card's outer edge. */
+.sobre-banner-body .sobre-stats { max-width: 660px; width: 100%; margin: 44px auto 0; box-sizing: border-box; padding: 0 30px; }
 
 /* ---------- Processo (Como escolhemos) ---------- */
 .processo { padding: 120px 0; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -1394,6 +1407,7 @@ button { font-family: var(--font-body); }
   .sobre-banner-overlay { padding-bottom: 36px; }
   .sobre-banner-body { padding: 40px 0 56px; }
   .sobre-banner-text { padding: 26px 20px; }
+  .sobre-banner-body .sobre-stats { padding: 0 20px; }
   .sobre-banner-text p { font-size: 14.5px; line-height: 1.95; margin-bottom: 24px; }
   .valor-card { padding: 30px 22px; }
 
