@@ -35,17 +35,69 @@ function renderOrderRow(o) {
     </tr>`;
 }
 
-async function loadOrders() {
-  const { data, error } = await supabaseClient.from("orders").select("*").order("created_at", { ascending: false });
+// The table used to fetch every order with select("*") in one go, which got
+// slower with every order placed. Now it pulls a page at a time, and only the
+// columns the table actually shows — the modal fetches the full row on demand.
+const ORDERS_PAGE_SIZE = 25;
+const ORDERS_LIST_COLUMNS = "id,created_at,customer_name,total,status,payment_status,delivery_status,items";
+
+let ordersOffset = 0;
+let ordersAllLoaded = false;
+let ordersLoading = false;
+
+const ordersMore = document.getElementById("ordersMore");
+const ordersMoreStatus = document.getElementById("ordersMoreStatus");
+const ordersMoreBtn = document.getElementById("ordersMoreBtn");
+
+function setOrdersMoreState() {
+  if (!ordersMore) return;
+  ordersMore.hidden = ordersAllLoaded;
+  if (ordersMoreStatus) ordersMoreStatus.hidden = !ordersLoading;
+  if (ordersMoreBtn) ordersMoreBtn.hidden = ordersLoading;
+}
+
+async function loadOrders(append = false) {
+  if (ordersLoading || (append && ordersAllLoaded)) return;
+  ordersLoading = true;
+  setOrdersMoreState();
+
+  const from = append ? ordersOffset : 0;
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select(ORDERS_LIST_COLUMNS)
+    .order("created_at", { ascending: false })
+    .range(from, from + ORDERS_PAGE_SIZE - 1);
+
+  ordersLoading = false;
+
   if (error) {
     showOrdersAlert("Não foi possível carregar os pedidos. Confirme se as migrações do banco de dados foram executadas.");
-    ordersTableBody.innerHTML = `<tr><td colspan="9" class="admin-empty">Erro ao carregar.</td></tr>`;
+    if (!append) ordersTableBody.innerHTML = `<tr><td colspan="9" class="admin-empty">Erro ao carregar.</td></tr>`;
+    setOrdersMoreState();
     return;
   }
-  ordersCache = data || [];
+
+  const page = data || [];
+  ordersCache = append ? ordersCache.concat(page) : page;
+  ordersOffset = ordersCache.length;
+  // A short page means there is nothing left behind it.
+  ordersAllLoaded = page.length < ORDERS_PAGE_SIZE;
+
   ordersTableBody.innerHTML = ordersCache.length
     ? ordersCache.map(renderOrderRow).join("")
     : `<tr><td colspan="9" class="admin-empty">Nenhum pedido ainda.</td></tr>`;
+  setOrdersMoreState();
+}
+
+// Scrolling to the bottom pulls the next page in. The button underneath does
+// the same thing, so the page still works if the observer never fires (an
+// unsupported browser, or a window tall enough that nothing scrolls).
+ordersMoreBtn?.addEventListener("click", () => loadOrders(true));
+if (ordersMore && "IntersectionObserver" in window) {
+  new IntersectionObserver(
+    (entries) => { if (entries.some((entry) => entry.isIntersecting)) loadOrders(true); },
+    { rootMargin: "300px" }
+  ).observe(ordersMore);
 }
 
 function renderPipeline(order) {
@@ -78,8 +130,11 @@ function openOrderModal(order) {
   document.getElementById("odDiscount").textContent = money(order.discount || 0);
   document.getElementById("odTotal").textContent = money(order.total);
 
-  document.getElementById("odShippingAddress").value = order.shipping_address || "";
-  document.getElementById("odShippingCity").value = order.shipping_city || "";
+  // shipping_address is what an admin has typed here; customer_address is what
+  // the customer entered at checkout. These boxes were only ever reading the
+  // first, so they showed empty on every order that hadn't been edited by hand.
+  document.getElementById("odShippingAddress").value = order.shipping_address || order.customer_address || "";
+  document.getElementById("odShippingCity").value = order.shipping_city || order.customer_city || "";
   document.getElementById("odCourier").value = order.courier || "";
   document.getElementById("odTracking").value = order.tracking_number || "";
   document.getElementById("odDeliveryStatus").value = order.delivery_status || "pending";
@@ -162,11 +217,21 @@ document.getElementById("saveOrderBtn").addEventListener("click", async () => {
 document.getElementById("closeOrderModalBtn").addEventListener("click", closeOrderModal);
 orderModalOverlay.addEventListener("click", (e) => { if (e.target === orderModalOverlay) closeOrderModal(); });
 
-ordersTableBody.addEventListener("click", (e) => {
+// The list query only pulls the columns the table shows, so opening an order
+// fetches its full row — the modal needs the receipt, the addresses and the
+// payment fields the list deliberately leaves behind.
+ordersTableBody.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-open]");
   if (!btn) return;
-  const order = ordersCache.find((o) => String(o.id) === btn.dataset.open);
-  if (order) openOrderModal(order);
+  btn.disabled = true;
+  const { data, error } = await supabaseClient.from("orders").select("*").eq("id", btn.dataset.open).single();
+  btn.disabled = false;
+  if (error || !data) {
+    showOrdersAlert("Não foi possível abrir este pedido.");
+    return;
+  }
+  showOrdersAlert("");
+  openOrderModal(data);
 });
 
 document.addEventListener("admin:ready", loadOrders);

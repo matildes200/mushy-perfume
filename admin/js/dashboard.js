@@ -10,7 +10,7 @@ function drawChart() {
     const buckets = bucketOrdersByDay(allOrdersCache, currentRange);
     renderBarChart(
       chartEl,
-      buckets.map((b) => ({ label: b.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), value: b.value }))
+      buckets.map((b) => ({ label: b.date.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }), value: b.value }))
     );
   }
 }
@@ -30,19 +30,83 @@ document.addEventListener("admin:ready", async () => {
   const recentCustomersBody = document.querySelector("#recentCustomersTable tbody");
   const bestSellerEl = document.getElementById("bestSeller");
 
-  const [
-    { count: productCount },
-    { data: allProducts },
-    { count: customerCount },
-    { data: allOrders },
-    { data: recentCustomers },
-  ] = await Promise.all([
-    supabaseClient.from("products").select("*", { count: "exact", head: true }),
-    supabaseClient.from("products").select("id, name, image, stock, low_stock_threshold"),
-    supabaseClient.from("customers").select("*", { count: "exact", head: true }),
-    supabaseClient.from("orders").select("*").order("created_at", { ascending: false }),
-    supabaseClient.from("customers").select("*").order("created_at", { ascending: false }).limit(6),
+  // Each query is fired at once but rendered the moment its own data lands,
+  // rather than the whole dashboard waiting on the slowest of the five. The
+  // orders query is the slow one, so recent customers and the low-stock table
+  // now paint long before it returns.
+  //
+  // The orders query also asks for only the columns this page reads. It used
+  // to be select("*") over every order ever placed, which meant dragging back
+  // receipt paths, addresses and payment fields nothing here looks at.
+  const productCountQuery = supabaseClient.from("products").select("*", { count: "exact", head: true });
+  const productsQuery = supabaseClient.from("products").select("id, name, image, stock, low_stock_threshold");
+  const customerCountQuery = supabaseClient.from("customers").select("*", { count: "exact", head: true });
+  const ordersQuery = supabaseClient
+    .from("orders")
+    .select("id, created_at, customer_name, total, status, items")
+    .order("created_at", { ascending: false });
+  const recentCustomersQuery = supabaseClient
+    .from("customers")
+    .select("id, full_name, email, created_at")
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  // Questions submitted through contacto.html. Independent of the rest, and
+  // the table only exists once migration_11 has been run — a missing table
+  // shouldn't take the whole dashboard down with it.
+  const contactBody = document.querySelector("#contactMessagesTable tbody");
+  if (contactBody) {
+    supabaseClient
+      .from("contact_messages")
+      .select("id, created_at, name, email, subject, message")
+      .order("created_at", { ascending: false })
+      .limit(10)
+      .then(({ data: messages, error }) => {
+        if (error) {
+          contactBody.innerHTML = `<tr><td colspan="5" class="admin-empty">Execute a migração das mensagens de contacto.</td></tr>`;
+          return;
+        }
+        contactBody.innerHTML = (messages || []).length
+          ? messages
+              .map(
+                (m) => `<tr>
+                  <td>${formatDate(m.created_at)}</td>
+                  <td class="wrap">${escapeHtml(m.name)}</td>
+                  <td class="wrap">${escapeHtml(m.email)}</td>
+                  <td class="wrap">${escapeHtml(m.subject || "—")}</td>
+                  <td class="wrap">${escapeHtml(m.message)}</td>
+                </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="5" class="admin-empty">Nenhuma pergunta ainda.</td></tr>`;
+      });
+  }
+
+  // Recent customers: independent of everything else, so it renders first.
+  recentCustomersQuery.then(({ data: recentCustomers }) => {
+    recentCustomersBody.innerHTML = (recentCustomers || []).length
+      ? recentCustomers
+          .map((c) => `<tr><td class="wrap">${escapeHtml(c.full_name)}</td><td>${escapeHtml(c.email)}</td><td>${formatDate(c.created_at)}</td></tr>`)
+          .join("")
+      : `<tr><td colspan="3" class="admin-empty">Nenhum cliente ainda.</td></tr>`;
+  });
+
+  const [{ count: productCount }, { data: allProducts }, { count: customerCount }] = await Promise.all([
+    productCountQuery,
+    productsQuery,
+    customerCountQuery,
   ]);
+
+  // Low stock only needs the products query, so it paints before orders land.
+  const lowStockProducts = (allProducts || []).filter((p) => (p.stock ?? 0) <= (p.low_stock_threshold ?? 5));
+  lowStockBody.innerHTML = lowStockProducts.length
+    ? lowStockProducts
+        .slice(0, 6)
+        .map((p) => `<tr><td class="wrap">${escapeHtml(p.name)}</td><td><span class="pill pill-low">${p.stock ?? 0}</span></td></tr>`)
+        .join("")
+    : `<tr><td colspan="2" class="admin-empty">Stock saudável.</td></tr>`;
+
+  const { data: allOrders } = await ordersQuery;
 
   allOrdersCache = allOrders || [];
   document.querySelector('#chartRange [data-range="7"]').classList.add("active");
@@ -51,7 +115,6 @@ document.addEventListener("admin:ready", async () => {
   const revenueOrders = allOrdersCache.filter((o) => !["cancelled", "refunded"].includes(o.status));
   const totalSales = revenueOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
   const pendingCount = allOrdersCache.filter((o) => o.status === "pending").length;
-  const lowStockProducts = (allProducts || []).filter((p) => (p.stock ?? 0) <= (p.low_stock_threshold ?? 5));
 
   const cards = [
     { label: "Vendas totais", value: money(totalSales) },
@@ -94,18 +157,4 @@ document.addEventListener("admin:ready", async () => {
       </div>`
     : `<p class="admin-empty" style="padding:0;">Ainda sem vendas.</p>`;
 
-  // Low stock table
-  lowStockBody.innerHTML = lowStockProducts.length
-    ? lowStockProducts
-        .slice(0, 6)
-        .map((p) => `<tr><td class="wrap">${escapeHtml(p.name)}</td><td><span class="pill pill-low">${p.stock ?? 0}</span></td></tr>`)
-        .join("")
-    : `<tr><td colspan="2" class="admin-empty">Stock saudável.</td></tr>`;
-
-  // Recent customers
-  recentCustomersBody.innerHTML = (recentCustomers || []).length
-    ? recentCustomers
-        .map((c) => `<tr><td class="wrap">${escapeHtml(c.full_name)}</td><td>${escapeHtml(c.email)}</td><td>${formatDate(c.created_at)}</td></tr>`)
-        .join("")
-    : `<tr><td colspan="3" class="admin-empty">Nenhum cliente ainda.</td></tr>`;
 });
