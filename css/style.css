@@ -597,7 +597,9 @@ button { font-family: var(--font-body); }
   position: relative;
   scroll-snap-align: start;
   width: 270px;
-  min-height: 510px;
+  /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
+     tall band of empty plate under the price now the front is one panel. */
+  min-height: 442px;
   flex: 0 0 auto;
   cursor: pointer;
   perspective: 1400px;
@@ -611,7 +613,9 @@ button { font-family: var(--font-body); }
 .carousel-end-card {
   scroll-snap-align: start;
   width: 270px;
-  min-height: 510px;
+  /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
+     tall band of empty plate under the price now the front is one panel. */
+  min-height: 442px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -817,14 +821,28 @@ button { font-family: var(--font-body); }
   .flip-inner { transition: none; }
 }
 
+/* The front is one panel — photo and caption share a single surface, border
+   and radius — rather than a bordered photo with loose text underneath. It
+   also matches the back face, so the card reads as one object either way up. */
+.flip-front {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(59, 42, 29, 0.04);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
 .perfume-card-media-wrap {
   position: relative;
   aspect-ratio: 3 / 4;
-  border-radius: 14px;
+  /* 1px less than the panel so the inner curve nests cleanly inside its
+     border instead of cutting the corner. */
+  border-radius: 13px 13px 0 0;
   overflow: hidden;
-  border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.25s ease;
 }
 
 /* Skeleton: a shimmer in place of the photo until hydrateCardImages() has the
@@ -843,11 +861,15 @@ button { font-family: var(--font-body); }
 @media (prefers-reduced-motion: reduce) {
   .perfume-card-media-wrap.is-loading { animation: none; }
 }
-/* Mouse only — see the hover note at the top of this file. */
+/* Mouse only — see the hover note at the top of this file. The border now
+   lives on the panel, not on the photo, so the hover moves with it. */
 @media (hover: hover) and (pointer: fine) {
-  .product-card:hover .perfume-card-media-wrap,
-  .carousel-card:hover .perfume-card-media-wrap,
-  .featured-card:hover .perfume-card-media-wrap { border-color: var(--text); }
+  .product-card:hover .flip-front,
+  .carousel-card:hover .flip-front,
+  .featured-card:hover .flip-front {
+    border-color: var(--ink);
+    box-shadow: 0 6px 18px rgba(59, 42, 29, 0.09);
+  }
 }
 
 .perfume-card-media {
@@ -931,25 +953,49 @@ button { font-family: var(--font-body); }
 .featured-card .perfume-card-desc { font-size: 13px; -webkit-line-clamp: 3; }
 .featured-card .perfume-card-price { font-size: 15.5px; }
 
-/* Front face: the name is clamped to two lines and the price block always
-   reserves the height of its optional "was" row, so names sit on one baseline
-   and prices on another right across a row, whatever's discounted. */
-.flip-front .perfume-card-body { display: flex; flex-direction: column; align-items: center; text-align: center; }
+/* The caption sits inside the panel, on its own slightly warmer ground with a
+   hairline above it, so the name and price read as a plate under the bottle
+   rather than as text dropped on the page. */
+.flip-front .perfume-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  gap: 5px;
+  padding: 13px 12px 15px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 13px 13px;
+}
 /* Clamped to two lines so the price row lands at the same height across a row
    of cards, but the name is bottom-aligned inside that reserved space — with
-   top alignment a one-line title left an obvious hole above the price. The
-   price itself reserves nothing: it is the last element, so letting it sit
-   straight under the title costs no alignment and closes the gap. */
+   top alignment a one-line title left an obvious hole above the price. */
 .flip-front .perfume-card-name {
-  margin: 0 0 4px;
-  min-height: 2.4em;
+  margin: 0;
+  min-height: 2.3em;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  line-height: 1.2;
+  font-family: var(--font-head);
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+  color: var(--text);
   overflow: hidden;
 }
-.flip-front .perfume-card-price { min-height: 0; line-height: 1.3; }
+/* The price is the one piece of hard information here, so it gets the ink
+   colour and its own weight instead of sharing the name's. Tabular figures
+   keep the columns of prices lining up down the grid. */
+.flip-front .perfume-card-price {
+  min-height: 0;
+  line-height: 1.2;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Discount pricing ----------
    Column, not row: the live price reads first and the struck-through original
@@ -960,14 +1006,19 @@ button { font-family: var(--font-body); }
 .price-original { font-size: 12px; color: var(--text-muted); text-decoration: line-through; }
 .price-final { color: var(--ink); font-weight: 500; }
 .price-badge {
-  font-size: 10px;
-  letter-spacing: 0.6px;
+  font-size: 9.5px;
+  letter-spacing: 0.8px;
   font-weight: 600;
   color: #fff;
   background: #8a3b2b;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: 999px;
 }
+/* On the card the "was" row is secondary information, so it is set smaller and
+   quieter than the live price above it rather than competing with it. */
+.flip-front .price-was { gap: 6px; }
+.flip-front .price-original { font-size: 11px; }
+.flip-front .price-badge { font-size: 9px; padding: 1.5px 6px; }
 /* pd-modal and cart rows are left-anchored (the flex axis is vertical now, so
    this is align-items, not justify-content). */
 .pd-price.price-discounted, .cart-item-info .price-discounted { align-items: flex-start; }
@@ -1942,18 +1993,25 @@ button { font-family: var(--font-body); }
   .wishlist-btn svg { width: 13px; height: 13px; }
   .perfume-badge { font-size: 8.5px; padding: 5px 8px; top: 8px; left: 8px; }
   .perfume-badge ~ .stock-badge { top: 38px; }
-  .perfume-card-body { padding: 6px 1px 0; }
   .perfume-card-name { font-size: 14.5px; }
   .perfume-card-family { font-size: 9px; margin-bottom: 5px; }
   .perfume-card-desc { font-size: 11px; margin-bottom: 10px; }
   .perfume-card-price { font-size: 13px; }
   .perfume-card-footer .btn-small { padding: 8px 14px; font-size: 9.5px; }
 
+  /* Caption plate, scaled for a two-up grid. */
+  .flip-front { border-radius: 16px; }
+  .flip-front .perfume-card-body { padding: 10px 9px 12px; gap: 4px; border-radius: 0 0 15px 15px; }
+  .flip-front .perfume-card-name { font-size: 13.5px; min-height: 2.2em; }
+  .flip-front .perfume-card-price { font-size: 12.5px; }
+  .flip-front .price-original { font-size: 10px; }
+  .flip-front .price-badge { font-size: 8px; padding: 1px 5px; }
+
   /* Slightly smaller bottles with rounder corners: a shorter panel than the
      3/4 default leaves the card less dominant in a two-up grid. */
-  .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 18px; }
+  .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 15px 15px 0 0; }
   .perfume-card-media { background-size: contain; background-repeat: no-repeat; }
-  .flip-back { border-radius: 18px; padding: 14px 13px; }
+  .flip-back { border-radius: 16px; padding: 14px 13px; }
   .flip-back-name { font-size: 15px; }
   .flip-back-brand { font-size: 8.5px; }
   .flip-note-label { flex-basis: 40px; font-size: 8px; }
@@ -2018,7 +2076,7 @@ button { font-family: var(--font-body); }
      the start instead puts the first bottle right where the section begins. */
   .carousel { scroll-padding-left: 16px; }
   .carousel-track { gap: 16px; padding: 24px 16px 10px; }
-  .carousel-card, .carousel-end-card { width: 224px; min-height: 400px; scroll-snap-align: start; }
+  .carousel-card, .carousel-end-card { width: 224px; min-height: 348px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
   /* Continuous marquee. The viewport just clips; all motion is one transform
