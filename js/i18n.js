@@ -13,7 +13,6 @@ const TRANSLATIONS = {
     "nav.buscar": "Buscar",
     "nav.conta": "Minha conta",
     "search.placeholder": "Procurar por nome, marca ou nota...",
-    "search.seeall": "Ver todos os resultados",
 
     "hero.eyebrow": "Mushy Parfum",
     "hero.headline": "Uma fragrância<br>que fica.",
@@ -286,7 +285,6 @@ const TRANSLATIONS = {
     "nav.buscar": "Search",
     "nav.conta": "My account",
     "search.placeholder": "Search by name, brand or note...",
-    "search.seeall": "See all results",
 
     "hero.eyebrow": "Mushy Parfum",
     "hero.headline": "A fragrance<br>that stays.",

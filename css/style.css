@@ -279,71 +279,6 @@ button { font-family: var(--font-body); }
 }
 .search-bar input:focus { border-color: var(--ink); }
 .search-bar button { background: none; border: none; color: var(--text-muted); font-size: 22px; line-height: 1; cursor: pointer; }
-
-/* ---------- Live search results ----------
-   Sits under the header (which is fixed or sticky, so it is the containing
-   block) rather than inside .search-bar, whose overflow:hidden would clip it. */
-.search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  display: none;
-  max-height: 60vh;
-  overflow-y: auto;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 18px 34px rgba(38, 26, 15, 0.14);
-  z-index: 70;
-}
-.search-results.open { display: block; }
-.search-result {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 12px 22px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-body);
-}
-.search-result:last-of-type { border-bottom: none; }
-.search-result-thumb {
-  flex: 0 0 auto;
-  width: 42px;
-  height: 52px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--bg-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-}
-.search-result-thumb img { width: 100%; height: 100%; object-fit: contain; }
-.search-result-thumb .bottle-icon { width: 22px; }
-.search-result-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.search-result-text strong { font-size: 14px; font-weight: 400; color: var(--text); }
-.search-result-text small { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
-.search-result-price { flex: 0 0 auto; font-size: 13px; color: var(--text); }
-.search-result-more {
-  display: block;
-  padding: 13px 22px;
-  font-size: 11.5px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--ink);
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-.search-empty { padding: 20px 22px; margin: 0; font-size: 13.5px; color: var(--text-muted); text-align: center; }
-@media (hover: hover) and (pointer: fine) {
-  .search-result:hover { background: var(--bg-alt); }
-}
 .search-bar button:hover { color: var(--text); }
 
 /* ---------- Buttons ---------- */
@@ -831,6 +766,10 @@ button { font-family: var(--font-body); }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
+  /* Inset on three sides so the photo's own border sits clear of the panel's
+     rather than doubling up against it. The caption plate below reclaims the
+     full width with a negative margin. */
+  padding: 8px 8px 0;
   box-shadow: 0 1px 2px rgba(59, 42, 29, 0.04);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
@@ -838,9 +777,8 @@ button { font-family: var(--font-body); }
 .perfume-card-media-wrap {
   position: relative;
   aspect-ratio: 3 / 4;
-  /* 1px less than the panel so the inner curve nests cleanly inside its
-     border instead of cutting the corner. */
-  border-radius: 13px 13px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
 }
@@ -964,7 +902,10 @@ button { font-family: var(--font-body); }
   text-align: center;
   flex: 1;
   gap: 5px;
-  padding: 13px 12px 15px;
+  /* Negative side/bottom margins cancel the panel's padding so the plate runs
+     edge to edge under the inset photo. */
+  margin: 8px -8px 0;
+  padding: 12px 12px 14px;
   background: var(--bg-alt);
   border-top: 1px solid var(--border);
   border-radius: 0 0 13px 13px;
@@ -2000,8 +1941,8 @@ button { font-family: var(--font-body); }
   .perfume-card-footer .btn-small { padding: 8px 14px; font-size: 9.5px; }
 
   /* Caption plate, scaled for a two-up grid. */
-  .flip-front { border-radius: 16px; }
-  .flip-front .perfume-card-body { padding: 10px 9px 12px; gap: 4px; border-radius: 0 0 15px 15px; }
+  .flip-front { border-radius: 16px; padding: 7px 7px 0; }
+  .flip-front .perfume-card-body { margin: 7px -7px 0; padding: 10px 9px 12px; gap: 4px; border-radius: 0 0 15px 15px; }
   .flip-front .perfume-card-name { font-size: 13.5px; min-height: 2.2em; }
   .flip-front .perfume-card-price { font-size: 12.5px; }
   .flip-front .price-original { font-size: 10px; }
@@ -2009,7 +1950,7 @@ button { font-family: var(--font-body); }
 
   /* Slightly smaller bottles with rounder corners: a shorter panel than the
      3/4 default leaves the card less dominant in a two-up grid. */
-  .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 15px 15px 0 0; }
+  .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 10px; }
   .perfume-card-media { background-size: contain; background-repeat: no-repeat; }
   .flip-back { border-radius: 16px; padding: 14px 13px; }
   .flip-back-name { font-size: 15px; }

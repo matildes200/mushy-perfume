@@ -878,110 +878,83 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
-// ---------- Live search results ----------
-// Typing used to do nothing at all except on the catalogue page, where it
-// silently filtered the grid further down. Now every page shows matches under
-// the field as you type and one tap opens the perfume, so the search never
-// dead-ends. The panel is built here rather than in markup so all six pages
-// get it without six copies of the same HTML.
-let searchResultsEl = null;
-function ensureSearchResults() {
-  if (searchResultsEl) return searchResultsEl;
-  // Anchored to the header, not inside .search-bar — that element clips its
-  // overflow to animate its own height, which would cut the panel off.
-  if (!siteHeader || !searchBar) return null;
-  searchResultsEl = document.createElement("div");
-  searchResultsEl.className = "search-results";
-  siteHeader.appendChild(searchResultsEl);
-  return searchResultsEl;
+// ---------- Search ----------
+// Search is navigation, not a product picker. Typing a category takes you to
+// that section of the collection; typing a perfume takes you to the collection
+// with only that perfume showing. Either way you land on colecao.html with the
+// page already filtered — the search never opens a product on top of whatever
+// you were reading.
+
+// Resolves a query to one of the collection's filter buttons, or null when it
+// isn't a category search. General words ("perfumes") are skipped rather than
+// failing the match, so "perfumes femininos" still resolves to feminino, while
+// two different categories in one query resolve to neither.
+function categoryForQuery(normalizedQuery) {
+  const words = normalizedQuery.split(/\s+/).filter(Boolean);
+  let found = null;
+  for (const rawWord of words) {
+    const word = singularize(rawWord);
+    if (matchesGenericTerm(word)) continue;
+    const hit = Object.keys(CATEGORY_SEARCH_TERMS).find((cat) =>
+      CATEGORY_SEARCH_TERMS[cat].some((term) => term.startsWith(word) || singularize(term).startsWith(word))
+    );
+    if (!hit || (found && found !== hit)) return null;
+    found = hit;
+  }
+  return found;
 }
 
-const SEARCH_RESULT_LIMIT = 6;
+function setActiveFilterButton(name) {
+  document.querySelectorAll("#filters [data-filter]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.filter === name);
+  });
+}
 
-function renderSearchResults() {
-  const box = ensureSearchResults();
-  if (!box) return;
-  const query = normalizeText(searchInput.value.trim());
-  if (!query) {
-    box.classList.remove("open");
-    box.innerHTML = "";
+// Points the collection at a section (or at a single perfume) without leaving
+// the page. Used both when searching from colecao.html itself and when landing
+// on it from another page.
+function applyCollectionTarget(category, query) {
+  activeFilter = category || "todos";
+  setActiveFilterButton(activeFilter);
+  // When the query was a category it has become the filter, so it should not
+  // also sit in the search box narrowing the grid a second time.
+  if (searchInput) searchInput.value = category ? "" : query || "";
+  renderProducts();
+}
+
+function runSearch() {
+  if (!searchInput) return;
+  const typed = searchInput.value.trim();
+  if (!typed) return;
+  const category = categoryForQuery(normalizeText(typed));
+
+  // Already on the collection: retarget in place and scroll the grid up to
+  // the top of the results rather than reloading the page.
+  if (grid) {
+    applyCollectionTarget(category, typed);
+    searchBar?.classList.remove("open");
+    document.getElementById("colecao")?.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
-  const matches = PRODUCTS.filter((p) => isVisible(p) && productMatchesSearch(p, query));
-  box.innerHTML = matches.length
-    ? matches
-        .slice(0, SEARCH_RESULT_LIMIT)
-        .map(
-          (p) => `<button type="button" class="search-result" data-search-open="${p.id}">
-            <span class="search-result-thumb">${p.image ? `<img src="${p.image}" alt="">` : bottleIcon()}</span>
-            <span class="search-result-text">
-              <strong>${p.name}</strong>
-              ${familyLabel(p) ? `<small>${familyLabel(p)}</small>` : ""}
-            </span>
-            <span class="search-result-price">${money(effectivePrice(p))}</span>
-          </button>`
-        )
-        .join("") +
-      (matches.length > SEARCH_RESULT_LIMIT
-        ? `<a class="search-result-more" href="colecao.html?q=${encodeURIComponent(searchInput.value.trim())}">
-             <span data-i18n="search.seeall">Ver todos os resultados</span> (${matches.length})
-           </a>`
-        : "")
-    : `<p class="search-empty" data-i18n="product.notfound">Nenhum perfume encontrado.</p>`;
-  box.classList.add("open");
-  window.applyTranslations?.(window.getLang?.());
+
+  const params = category ? `cat=${category}` : `q=${encodeURIComponent(typed)}`;
+  document.body.classList.remove("page-loaded");
+  setTimeout(() => { window.location.href = `colecao.html?${params}`; }, 170);
 }
 
-function closeSearchResults() {
-  searchResultsEl?.classList.remove("open");
-}
-
-searchInput?.addEventListener("input", () => {
-  renderSearchResults();
-  // The catalogue page also filters its grid live, as it always did.
-  if (grid) renderProducts();
-});
-
-// One tap on a result opens that perfume straight away.
-document.addEventListener("click", (e) => {
-  const hit = e.target.closest("[data-search-open]");
-  if (!hit) return;
-  const product = PRODUCTS.find((p) => String(p.id) === hit.dataset.searchOpen);
-  if (!product) return;
-  closeSearchResults();
-  searchBar?.classList.remove("open");
-  openProductDetail(product);
-});
-
-// Clicking anywhere else dismisses the panel.
-document.addEventListener("click", (e) => {
-  if (!searchBar?.contains(e.target)) closeSearchResults();
-});
+// On the collection page the grid narrows as you type; everywhere else the
+// search only acts when you submit it.
+searchInput?.addEventListener("input", () => { if (grid) renderProducts(); });
 
 searchInput?.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") return closeSearchResults();
   if (e.key !== "Enter") return;
   e.preventDefault();
-  const query = searchInput.value.trim();
-  if (!query) return;
-
-  // Enter on a single match goes straight into that perfume — the shortest
-  // path from typing a name to seeing the bottle.
-  const matches = PRODUCTS.filter((p) => isVisible(p) && productMatchesSearch(p, normalizeText(query)));
-  if (matches.length === 1) {
-    closeSearchResults();
-    searchBar?.classList.remove("open");
-    openProductDetail(matches[0]);
-    return;
-  }
-  if (grid) {
-    closeSearchResults();
-    return renderProducts();
-  }
-  const url = `colecao.html?q=${encodeURIComponent(query)}`;
-  document.body.classList.remove("page-loaded");
-  setTimeout(() => { window.location.href = url; }, 170);
+  runSearch();
 });
+
+// The magnifier in the open search bar submits too, so there is a tappable way
+// to run the search on a phone without reaching for the keyboard's Go key.
+searchBar?.querySelector("svg")?.addEventListener("click", runSearch);
 
 cartBtn?.addEventListener("click", openCart);
 cartClose?.addEventListener("click", closeCart);
@@ -1160,13 +1133,26 @@ if (revealEls.length) {
 // and different speeds is what made the motion look uneven no matter how the
 // other one was tuned. The marquee is now the only thing that moves it.
 
-const searchQueryParam = new URLSearchParams(window.location.search).get("q");
+// Landing here from a search elsewhere on the site: ?cat= opens a section of
+// the collection, ?q= narrows it to what was typed. renderProducts() reads
+// activeFilter and the search field, so both just need setting before the
+// products:ready pass below.
+const collectionParams = new URLSearchParams(window.location.search);
+const searchQueryParam = collectionParams.get("q");
+const categoryParam = collectionParams.get("cat");
+
+if (categoryParam && CATEGORY_SEARCH_TERMS[categoryParam]) {
+  activeFilter = categoryParam;
+}
 if (searchQueryParam && searchInput) {
   searchInput.value = searchQueryParam;
   searchBar?.classList.add("open");
 }
 
 document.addEventListener("products:ready", () => {
+  // The filter chip has to reflect ?cat= too, or the grid would show one
+  // section while "Todos" still looks selected.
+  setActiveFilterButton(activeFilter);
   renderProducts();
   renderFeatured();
   renderCarousel();
