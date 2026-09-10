@@ -169,7 +169,7 @@ function closeOrderModal() {
 async function updateOrder(patch) {
   const { data, error } = await supabaseClient.from("orders").update(patch).eq("id", selectedOrderId).select().single();
   if (error) {
-    showAlert2("Não foi possível salvar as alterações.");
+    showAlert2("Não foi possível guardar as alterações.");
     return null;
   }
   const idx = ordersCache.findIndex((o) => o.id === selectedOrderId);

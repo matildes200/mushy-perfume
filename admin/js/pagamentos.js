@@ -36,10 +36,10 @@ paymentForm.addEventListener("submit", async (e) => {
   btn.disabled = false;
 
   if (error) {
-    showPaymentAlert("Não foi possível salvar. Tente novamente.");
+    showPaymentAlert("Não foi possível guardar. Tente novamente.");
     return;
   }
-  showPaymentAlert("Dados de pagamento atualizados.", "success");
+  showPaymentAlert("Dados de pagamento actualizados.", "success");
 });
 
 document.addEventListener("admin:ready", loadPaymentSettings);

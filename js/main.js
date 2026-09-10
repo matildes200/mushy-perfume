@@ -643,7 +643,7 @@ function updateCartUI() {
   cartCountEl.style.display = totalCount > 0 ? "flex" : "none";
 
   if (ids.length === 0) {
-    cartItemsEl.innerHTML = `<p class="cart-empty" data-i18n="cart.empty">Seu carrinho está vazio.</p>`;
+    cartItemsEl.innerHTML = `<p class="cart-empty" data-i18n="cart.empty">O seu carrinho está vazio.</p>`;
     window.applyTranslations?.(window.getLang?.());
     if (cartSubtotalEl) cartSubtotalEl.textContent = money(0);
     if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
@@ -770,7 +770,7 @@ function setWishlistButtonState(id) {
 function renderWishlistDrawer() {
   if (!wishlistItemsEl) return;
   if (wishlist.length === 0) {
-    wishlistItemsEl.innerHTML = `<p class="cart-empty" data-i18n="wishlist.empty">Você ainda não adicionou favoritos.</p>`;
+    wishlistItemsEl.innerHTML = `<p class="cart-empty" data-i18n="wishlist.empty">Ainda não adicionou favoritos.</p>`;
     window.applyTranslations?.(window.getLang?.());
     return;
   }
@@ -1129,11 +1129,11 @@ newsletterForm?.addEventListener("submit", async (e) => {
   try {
     const { error } = await supabaseClient.from("subscriptions").insert({ email });
     if (error && error.code !== "23505") throw error; // 23505 = already subscribed, treat as success
-    newsletterNote.textContent = window.t?.("msg.newsletter.success") || "Obrigado! Foi inscrito com sucesso.";
+    newsletterNote.textContent = window.t?.("msg.newsletter.success") || "Obrigado! A sua subscrição foi registada.";
     newsletterForm.reset();
   } catch (err) {
     console.error("Falha ao registar inscrição no Supabase:", err);
-    newsletterNote.textContent = window.t?.("msg.newsletter.error") || "Não foi possível concluir a sua inscrição. Tente novamente.";
+    newsletterNote.textContent = window.t?.("msg.newsletter.error") || "Não foi possível concluir a sua subscrição. Tente novamente.";
   } finally {
     submitBtn?.removeAttribute("disabled");
   }

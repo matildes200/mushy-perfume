@@ -34,10 +34,10 @@ function renderRow(a) {
   const isSelf = a.email.toLowerCase() === (currentAdminEmail || "").toLowerCase();
   const isLast = adminsCache.length <= 1;
   const deleteDisabled = isSelf || isLast;
-  const deleteTitle = isSelf ? "Você não pode remover sua própria conta" : isLast ? "Precisa haver pelo menos um administrador" : "Remover";
+  const deleteTitle = isSelf ? "Não pode remover a sua própria conta" : isLast ? "Tem de existir pelo menos um administrador" : "Remover";
   return `
     <tr data-id="${a.id}">
-      <td class="wrap">${escapeHtml(a.full_name || "—")}${isSelf ? ' <span class="pill pill-active">Você</span>' : ""}</td>
+      <td class="wrap">${escapeHtml(a.full_name || "—")}${isSelf ? ' <span class="pill pill-active">A sua conta</span>' : ""}</td>
       <td>${escapeHtml(a.email)}</td>
       <td>${escapeHtml(a.role || "—")}</td>
       <td>${escapeHtml(a.phone || "—")}</td>
@@ -65,7 +65,7 @@ async function loadAdmins() {
   adminsCache = data || [];
   adminsTableBody.innerHTML = adminsCache.length
     ? adminsCache.map(renderRow).join("")
-    : `<tr><td colspan="6" class="admin-empty">Nenhum administrador cadastrado.</td></tr>`;
+    : `<tr><td colspan="6" class="admin-empty">Nenhum administrador registado.</td></tr>`;
 }
 
 document.getElementById("newAdminBtn").addEventListener("click", () => openModal(null));
@@ -117,12 +117,12 @@ adminForm.addEventListener("submit", async (e) => {
   saveBtn.disabled = false;
 
   if (error) {
-    showAlert(adminFormAlert, error.code === "23505" ? "Já existe um administrador com esse e-mail." : "Não foi possível salvar. Verifique os campos e tente novamente.");
+    showAlert(adminFormAlert, error.code === "23505" ? "Já existe um administrador com esse e-mail." : "Não foi possível guardar. Verifique os campos e tente novamente.");
     return;
   }
 
   closeModal();
-  showAlert(adminsAlert, id ? "Administrador atualizado." : "Administrador adicionado. Peça para essa pessoa criar (ou entrar em) sua conta em Minha Conta com esse e-mail.", "success");
+  showAlert(adminsAlert, id ? "Administrador actualizado." : "Administrador adicionado. Peça para essa pessoa criar (ou entrar em) sua conta em Minha Conta com esse e-mail.", "success");
   loadAdmins();
 });
 

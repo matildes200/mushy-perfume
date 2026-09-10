@@ -105,7 +105,7 @@ function productStatus(p) {
   if (p.active === false) return { label: "Oculto", cls: "pill-inactive" };
   if ((p.stock ?? 0) <= 0) return { label: "Esgotado", cls: "pill-inactive" };
   if ((p.stock ?? 0) <= (p.low_stock_threshold ?? 5)) return { label: "Stock baixo", cls: "pill-low" };
-  return { label: "Ativo", cls: "pill-active" };
+  return { label: "Activo", cls: "pill-active" };
 }
 
 function renderRow(p) {
@@ -145,7 +145,7 @@ async function loadProducts() {
   productsCache = data || [];
   productsTableBody.innerHTML = productsCache.length
     ? productsCache.map(renderRow).join("")
-    : `<tr><td colspan="8" class="admin-empty">Nenhum produto cadastrado.</td></tr>`;
+    : `<tr><td colspan="8" class="admin-empty">Nenhum produto registado.</td></tr>`;
 }
 
 document.getElementById("newProductBtn").addEventListener("click", () => openModal(null));
@@ -164,7 +164,7 @@ productsTableBody.addEventListener("click", async (e) => {
   if (deleteBtn) {
     const id = Number(deleteBtn.dataset.delete);
     const product = productsCache.find((p) => p.id === id);
-    if (!confirm(`Remover "${product?.name}" do catálogo? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Remover "${product?.name}" do catálogo? Essa acção não pode ser desfeita.`)) return;
     const { error } = await supabaseClient.from("products").delete().eq("id", id);
     if (error) {
       showAlert(productsAlert, "Não foi possível remover o produto.");
@@ -205,7 +205,7 @@ productForm.addEventListener("submit", async (e) => {
   saveBtn.disabled = false;
 
   if (error) {
-    showAlert(productFormAlert, "Não foi possível salvar. Verifique os campos e tente novamente.");
+    showAlert(productFormAlert, "Não foi possível guardar. Verifique os campos e tente novamente.");
     return;
   }
 
@@ -220,7 +220,7 @@ productForm.addEventListener("submit", async (e) => {
   }
 
   closeModal();
-  showAlert(productsAlert, id ? "Produto atualizado." : "Produto adicionado.", "success");
+  showAlert(productsAlert, id ? "Produto actualizado." : "Produto adicionado.", "success");
   loadProducts();
 });
 

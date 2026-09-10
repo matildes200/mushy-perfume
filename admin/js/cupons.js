@@ -19,11 +19,11 @@ function todayStr() {
 
 function couponStatus(c) {
   const today = todayStr();
-  if (c.active === false) return { label: "Inativo", cls: "pill-inactive" };
+  if (c.active === false) return { label: "Inactivo", cls: "pill-inactive" };
   if (c.end_date && c.end_date < today) return { label: "Expirado", cls: "pill-inactive" };
   if (c.max_uses != null && c.times_used >= c.max_uses) return { label: "Esgotado", cls: "pill-inactive" };
   if (c.start_date && c.start_date > today) return { label: "Agendado", cls: "pill-low" };
-  return { label: "Ativo", cls: "pill-active" };
+  return { label: "Activo", cls: "pill-active" };
 }
 
 function formatDiscount(c) {
@@ -41,7 +41,7 @@ function openModal(coupon) {
   couponForm.reset();
   showAlert(couponFormAlert, "");
   document.getElementById("couponId").value = coupon?.id || "";
-  couponModalTitle.textContent = coupon ? "Editar cupom" : "Novo cupom";
+  couponModalTitle.textContent = coupon ? "Editar cupão" : "Novo cupão";
 
   document.getElementById("name").value = coupon?.name || "";
   document.getElementById("code").value = coupon?.code || "";
@@ -88,27 +88,27 @@ function renderRow(c) {
 async function loadCoupons() {
   const { data, error } = await supabaseClient.from("coupons").select("*").order("created_at", { ascending: false });
   if (error) {
-    showAlert(couponsAlert, "Não foi possível carregar os cupons. Confirme se a migração do banco de dados foi executada.");
+    showAlert(couponsAlert, "Não foi possível carregar os cupões. Confirme se a migração do banco de dados foi executada.");
     couponsTableBody.innerHTML = `<tr><td colspan="8" class="admin-empty">Erro ao carregar.</td></tr>`;
     return;
   }
   couponsCache = data || [];
 
   const today = todayStr();
-  const activeCount = couponsCache.filter((c) => couponStatus(c).label === "Ativo").length;
+  const activeCount = couponsCache.filter((c) => couponStatus(c).label === "Activo").length;
   const expiredCount = couponsCache.filter((c) => c.end_date && c.end_date < today).length;
   const totalUses = couponsCache.reduce((sum, c) => sum + (c.times_used || 0), 0);
 
   document.getElementById("couponStats").innerHTML = `
-    <div class="stat-card"><span>Total de cupons</span><strong>${couponsCache.length}</strong></div>
-    <div class="stat-card"><span>Ativos</span><strong>${activeCount}</strong></div>
+    <div class="stat-card"><span>Total de cupões</span><strong>${couponsCache.length}</strong></div>
+    <div class="stat-card"><span>Activos</span><strong>${activeCount}</strong></div>
     <div class="stat-card"><span>Expirados</span><strong>${expiredCount}</strong></div>
     <div class="stat-card"><span>Usos no total</span><strong>${totalUses}</strong></div>
   `;
 
   couponsTableBody.innerHTML = couponsCache.length
     ? couponsCache.map(renderRow).join("")
-    : `<tr><td colspan="8" class="admin-empty">Nenhum cupom criado ainda.</td></tr>`;
+    : `<tr><td colspan="8" class="admin-empty">Nenhum cupão criado ainda.</td></tr>`;
 }
 
 document.getElementById("newCouponBtn").addEventListener("click", () => openModal(null));
@@ -127,13 +127,13 @@ couponsTableBody.addEventListener("click", async (e) => {
   if (deleteBtn) {
     const id = Number(deleteBtn.dataset.delete);
     const coupon = couponsCache.find((c) => c.id === id);
-    if (!confirm(`Remover o cupom "${coupon?.code}"? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Remover o cupão "${coupon?.code}"? Essa acção não pode ser desfeita.`)) return;
     const { error } = await supabaseClient.from("coupons").delete().eq("id", id);
     if (error) {
-      showAlert(couponsAlert, "Não foi possível remover o cupom.");
+      showAlert(couponsAlert, "Não foi possível remover o cupão.");
       return;
     }
-    showAlert(couponsAlert, "Cupom removido.", "success");
+    showAlert(couponsAlert, "Cupão removido.", "success");
     loadCoupons();
   }
 });
@@ -171,12 +171,12 @@ couponForm.addEventListener("submit", async (e) => {
   saveBtn.disabled = false;
 
   if (error) {
-    showAlert(couponFormAlert, error.code === "23505" ? "Já existe um cupom com esse código." : "Não foi possível salvar. Verifique os campos e tente novamente.");
+    showAlert(couponFormAlert, error.code === "23505" ? "Já existe um cupão com esse código." : "Não foi possível guardar. Verifique os campos e tente novamente.");
     return;
   }
 
   closeModal();
-  showAlert(couponsAlert, id ? "Cupom atualizado." : "Cupom criado.", "success");
+  showAlert(couponsAlert, id ? "Cupão actualizado." : "Cupão criado.", "success");
   loadCoupons();
 });
 

@@ -11,7 +11,7 @@ function renderSubRow(s) {
     <tr data-id="${s.id}">
       <td>${escapeHtml(s.email)}</td>
       <td>${formatDate(s.created_at)}</td>
-      <td><span class="pill ${s.active ? "pill-active" : "pill-inactive"}">${s.active ? "Ativo" : "Inativo"}</span></td>
+      <td><span class="pill ${s.active ? "pill-active" : "pill-inactive"}">${s.active ? "Activo" : "Inactivo"}</span></td>
       <td>
         <div class="row-actions">
           <button class="btn-icon" data-toggle="${s.id}" aria-label="Alternar status">
@@ -43,7 +43,7 @@ subsTableBody.addEventListener("click", async (e) => {
   if (toggleBtn) {
     const sub = subsCache.find((s) => s.id === Number(toggleBtn.dataset.toggle));
     const { error } = await supabaseClient.from("subscriptions").update({ active: !sub.active }).eq("id", sub.id);
-    if (error) showSubsAlert("Não foi possível atualizar.");
+    if (error) showSubsAlert("Não foi possível actualizar.");
     else loadSubs();
     return;
   }
@@ -59,7 +59,7 @@ subsTableBody.addEventListener("click", async (e) => {
 
 document.getElementById("exportBtn").addEventListener("click", () => {
   if (!subsCache.length) return;
-  const rows = [["email", "inscrito_em", "ativo"], ...subsCache.map((s) => [s.email, s.created_at, s.active])];
+  const rows = [["email", "inscrito_em", "activo"], ...subsCache.map((s) => [s.email, s.created_at, s.active])];
   const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

@@ -114,7 +114,7 @@ function renderQuizResult(p) {
   const mediaEl = document.getElementById("quizResultMedia");
   if (!p) {
     mediaEl.innerHTML = "";
-    document.getElementById("quizResultName").textContent = "Catálogo indisponível no momento.";
+    document.getElementById("quizResultName").textContent = "Catálogo indisponível de momento.";
     document.getElementById("quizResultFamily").textContent = "";
     document.getElementById("quizResultDesc").textContent = "";
     document.getElementById("quizResultPrice").innerHTML = "";

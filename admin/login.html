@@ -26,7 +26,7 @@
         <input type="email" id="email" autocomplete="username" required>
       </div>
       <div class="form-field">
-        <label for="password">Senha</label>
+        <label for="password">Palavra-passe</label>
         <input type="password" id="password" autocomplete="current-password" required>
       </div>
       <button type="submit" class="btn-admin" id="loginBtn">Entrar</button>
@@ -76,7 +76,7 @@
     }
 
     if (error || !data.session) {
-      alertEl.innerHTML = `<div class="admin-alert admin-alert-error">E-mail ou senha incorretos.</div>`;
+      alertEl.innerHTML = `<div class="admin-alert admin-alert-error">E-mail ou palavra-passe incorrectos.</div>`;
       btn.disabled = false;
       btn.textContent = "Entrar";
       return;

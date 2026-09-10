@@ -50,7 +50,7 @@ async function loadInventory() {
 
   inventoryTableBody.innerHTML = inventoryCache.length
     ? inventoryCache.map(renderInventoryRow).join("")
-    : `<tr><td colspan="6" class="admin-empty">Nenhum produto cadastrado.</td></tr>`;
+    : `<tr><td colspan="6" class="admin-empty">Nenhum produto registado.</td></tr>`;
 }
 
 async function loadHistory() {
@@ -115,7 +115,7 @@ document.getElementById("stockForm").addEventListener("submit", async (e) => {
 
   const { error: updateError } = await supabaseClient.from("products").update({ stock: newStock }).eq("id", productId);
   if (updateError) {
-    alertEl.innerHTML = `<div class="admin-alert admin-alert-error">Não foi possível atualizar o stock.</div>`;
+    alertEl.innerHTML = `<div class="admin-alert admin-alert-error">Não foi possível actualizar o stock.</div>`;
     return;
   }
 
