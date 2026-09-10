@@ -1955,7 +1955,10 @@ button { font-family: var(--font-body); }
   /* Slightly smaller bottles with rounder corners: a shorter panel than the
      3/4 default leaves the card less dominant in a two-up grid. */
   .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 10px; }
-  .perfume-card-media { background-size: contain; background-repeat: no-repeat; }
+  /* Fills the panel rather than fitting inside it. "contain" scaled the bottle
+     down until it fitted, which left bands of empty surface above and below it
+     on any photo whose shape didn't match the 4/5 panel. */
+  .perfume-card-media { background-size: cover; background-position: center; }
   .flip-back { border-radius: 16px; padding: 14px 13px; }
   .flip-back-name { font-size: 15px; }
   .flip-back-brand { font-size: 8.5px; }

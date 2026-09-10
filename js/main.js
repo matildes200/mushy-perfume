@@ -106,8 +106,8 @@ const loadedCardImages = new Set();
 // Search terms that should match a category even though they never appear in the data
 // (e.g. "perfume de mulher" should surface the feminino products).
 const CATEGORY_SEARCH_TERMS = {
-  feminino: ["feminino", "femininos", "feminina", "femininas", "mulher", "mulheres", "ela", "woman", "women", "female", "ladies"],
-  masculino: ["masculino", "masculinos", "masculina", "masculinas", "homem", "homens", "ele", "man", "men", "male", "mens"],
+  feminino: ["feminino", "femininos", "feminina", "femininas", "mulher", "mulheres", "ela", "her", "woman", "women", "female", "ladies", "girl"],
+  masculino: ["masculino", "masculinos", "masculina", "masculinas", "homem", "homens", "ele", "him", "man", "men", "male", "mens", "guy"],
   // "unissexo" is how people actually write it, and it is NOT reachable from
   // "unissex" by prefix — the typed word is the longer one — so it has to be
   // listed in its own right.
@@ -143,18 +143,47 @@ function singularize(word) {
   return word;
 }
 
+// Every plausible stem of a typed word, rather than one guess. The rules above
+// are Portuguese, and applying them blind to English mangles it: "collections"
+// ends in "ns", so the homens->homem rule turned it into "collectiom" and it
+// matched nothing. Offering both the Portuguese stem and a plain -s/-es strip
+// means the search doesn't have to know which language was typed.
+function queryStems(word) {
+  const stems = [word];
+  const add = (s) => { if (s && s.length >= 2 && !stems.includes(s)) stems.push(s); };
+  add(singularize(word));
+  if (word.length > 3) {
+    if (word.endsWith("es")) add(word.slice(0, -2));
+    if (word.endsWith("s")) add(word.slice(0, -1));
+  }
+  return stems;
+}
+
 // Words that describe the shop rather than any one bottle. Typing one of these
 // returns the whole catalogue instead of nothing — "perfumes" should never be
 // a dead end on a perfume shop. Stored singularised; matched as a prefix so
 // "perfum", "fragranc" and "colec" all count.
 const GENERIC_SITE_TERMS = [
-  "perfume", "perfumaria", "parfum", "fragrancia", "fragrance", "aroma", "essencia",
+  // Portuguese
+  "perfume", "perfumaria", "parfum", "fragrancia", "aroma", "essencia",
   "cheiro", "colecao", "coleccao", "catalogo", "produto", "artigo", "frasco",
-  "scent", "product", "tudo", "todo", "all",
+  "tudo", "todo",
+  // English — the site has an EN mode, so it has to answer to EN words too
+  "fragrance", "scent", "collection", "product", "item", "bottle",
+  "perfumery", "everything", "all",
 ];
 // Below this length a query is treated as the start of a name, not as a
 // general term — otherwise a single "p" would return the entire shop.
 const GENERIC_MIN_LENGTH = 3;
+
+// Connectives carry no search intent, so they are skipped rather than failed.
+// Every word in a query has to match something, which meant "perfume para
+// mulher" or "fragrance for her" died on the middle word.
+const SEARCH_STOP_WORDS = new Set([
+  "de", "do", "da", "dos", "das", "para", "por", "com", "em", "e",
+  "o", "a", "os", "as", "um", "uma", "no", "na",
+  "for", "the", "of", "and", "with", "to", "in", "my", "me",
+]);
 
 function matchesGenericTerm(word) {
   if (word.length < GENERIC_MIN_LENGTH) return false;
@@ -182,7 +211,12 @@ function productHaystack(p) {
     p._haystackCompact = p._haystack.replace(/\s+/g, "");
     // Singularised word list, so a plural in the data matches a singular query
     // and the other way round.
-    p._tokens = p._haystack.split(" ").filter(Boolean).map(singularize);
+    p._tokens = [];
+    p._haystack.split(" ").filter(Boolean).forEach((w) => {
+      p._tokens.push(w);
+      const stem = singularize(w);
+      if (stem !== w) p._tokens.push(stem);
+    });
   }
   return p;
 }
@@ -209,14 +243,13 @@ function productMatchesSearch(p, normalizedQuery) {
     .split(/\s+/)
     .filter(Boolean)
     .every((raw) => {
-      const word = singularize(raw);
-      return (
-        matchesGenericTerm(word) ||
-        p._tokens.some((token) => token.startsWith(word)) ||
-        p._haystack.includes(raw) ||
-        p._haystackCompact.includes(raw) ||
-        matchesCategoryTerm(p, word) ||
-        matchesCategoryTerm(p, raw)
+      if (SEARCH_STOP_WORDS.has(raw)) return true;
+      if (p._haystack.includes(raw) || p._haystackCompact.includes(raw)) return true;
+      return queryStems(raw).some(
+        (stem) =>
+          matchesGenericTerm(stem) ||
+          p._tokens.some((token) => token.startsWith(stem)) ||
+          matchesCategoryTerm(p, stem)
       );
     });
 }
@@ -907,10 +940,13 @@ function categoryForQuery(normalizedQuery) {
   const words = normalizedQuery.split(/\s+/).filter(Boolean);
   let found = null;
   for (const rawWord of words) {
-    const word = singularize(rawWord);
-    if (matchesGenericTerm(word)) continue;
+    if (SEARCH_STOP_WORDS.has(rawWord)) continue;
+    const stems = queryStems(rawWord);
+    if (stems.some(matchesGenericTerm)) continue;
     const hit = Object.keys(CATEGORY_SEARCH_TERMS).find((cat) =>
-      CATEGORY_SEARCH_TERMS[cat].some((term) => term.startsWith(word) || singularize(term).startsWith(word))
+      CATEGORY_SEARCH_TERMS[cat].some((term) =>
+        stems.some((stem) => term.startsWith(stem) || singularize(term).startsWith(stem))
+      )
     );
     if (!hit || (found && found !== hit)) return null;
     found = hit;
