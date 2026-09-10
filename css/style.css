@@ -1,6 +1,9 @@
 :root {
   --bg: #FAF5EA;
   --bg-alt: #EFE1C6;
+  /* A deeper sand, used where a section would otherwise sit on the same tone
+     as the card caption plates and swallow them (see .bestsellers). */
+  --bg-sand: #E6D2AC;
   --surface: #FFFBF3;
   --text: #3B2A1D;
   --text-muted: #8B7256;
@@ -397,6 +400,47 @@ button { font-family: var(--font-body); }
 /* ---------- Sobre: hero banner ---------- */
 .sobre-banner-media { position: relative; height: 64vh; min-height: 440px; max-height: 620px; overflow: hidden; }
 .sobre-banner-media img { width: 100%; height: 100%; object-fit: cover; object-position: 70% center; }
+
+/* ---------- Sobre banner motion ----------
+   A slow drift across the photo and a staggered rise on the text, so the top
+   of the page has some life instead of landing as a flat still. The drift
+   alternates rather than restarting, so it never jumps back to the start; the
+   media box already clips, so the scaled photo can't spill. */
+@keyframes sobre-drift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to { transform: scale(1.09) translate3d(-1.8%, -1.2%, 0); }
+}
+.sobre-banner-media img {
+  animation: sobre-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Same curve as the home hero, but with its own keyframes: hero-rise ends at
+   opacity 1, and .eyebrow is deliberately muted to 0.7 — borrowing it would
+   have quietly brightened the eyebrow past its intended weight. */
+@keyframes sobre-rise { to { opacity: 1; transform: translateY(0); } }
+@keyframes sobre-rise-muted { to { opacity: 0.7; transform: translateY(0); } }
+
+.sobre-banner-overlay-inner .sobre-banner-mark,
+.sobre-banner-overlay-inner .eyebrow,
+.sobre-banner-overlay-inner h2 {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: sobre-rise 0.9s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+}
+.sobre-banner-overlay-inner .sobre-banner-mark { animation-delay: 0.15s; }
+.sobre-banner-overlay-inner .eyebrow {
+  animation-name: sobre-rise-muted;
+  animation-delay: 0.34s;
+}
+.sobre-banner-overlay-inner h2 { animation-delay: 0.5s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sobre-banner-media img { animation: none; }
+  .sobre-banner-overlay-inner .sobre-banner-mark,
+  .sobre-banner-overlay-inner h2 { animation: none; opacity: 1; transform: none; }
+  .sobre-banner-overlay-inner .eyebrow { animation: none; opacity: 0.7; transform: none; }
+}
 /* The gradient used to start almost clear, which left the top-left corner an
    empty wash of photo. A caption pinned up there and a touch more shade at the
    top give that corner something to hold. */
@@ -462,15 +506,18 @@ button { font-family: var(--font-body); }
   padding: 0;
 }
 .sobre-banner-text .eyebrow { margin-bottom: 18px; }
-/* Centred and rule-free here — the bordered treatment it has in "Como
-   escolhemos" would box this section off from the page again. */
+/* Same ruled treatment as the quote in "Como escolhemos". The typography has
+   to be restated here: ".sobre-banner-text p" is more specific than
+   ".processo-quote", so the surrounding body-copy rule would otherwise flatten
+   the quote to 15px muted text with a rule stuck on the side. The border and
+   padding come from .processo-quote, which that rule doesn't touch. */
 .sobre-banner-text .processo-quote {
-  border-left: none;
-  padding-left: 0;
-  margin: 0 auto 30px;
-  max-width: none;
-  text-align: center;
-  color: var(--text);
+  font-family: var(--font-head);
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0 0 30px;
 }
 .sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 2; margin-bottom: 26px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
@@ -519,7 +566,9 @@ button { font-family: var(--font-body); }
 .processo-content p:last-of-type { margin-bottom: 0; }
 
 /* ---------- Best sellers carousel ---------- */
-.bestsellers { padding: 100px 0 90px; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+/* Deeper than --bg-alt on purpose: the cards' caption plates are --bg-alt, so
+   on that ground the plate and its border vanished into the section. */
+.bestsellers { padding: 100px 0 90px; background: var(--bg-sand); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .carousel {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -2001,7 +2050,7 @@ button { font-family: var(--font-body); }
   .sobre-banner-body { padding: 40px 0 56px; }
   /* Roomier than it was: the story used to sit hard against the card border,
      which is what made this page feel claustrophobic on a phone. */
-  .sobre-banner-text { padding: 34px 24px; }
+  .sobre-banner-text { padding: 0; }
   .sobre-banner-body .sobre-stats { padding: 24px 24px 0; gap: 12px; }
   .sobre-banner-text p { font-size: 14.5px; line-height: 2.05; margin-bottom: 26px; }
   .sobre-banner-overlay-inner { padding-top: 84px; padding-bottom: 40px; }
