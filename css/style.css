@@ -764,7 +764,9 @@ button { font-family: var(--font-body); }
   flex-direction: column;
   height: 100%;
   background: var(--surface);
-  border: 1px solid var(--border);
+  /* Same beige as the caption plate behind the name and price, so the panel
+     edge, the photo edge and the plate all read as one tone. */
+  border: 1px solid var(--bg-alt);
   border-radius: 14px;
   /* Inset on three sides so the photo's own border sits clear of the panel's
      rather than doubling up against it. The caption plate below reclaims the
@@ -777,7 +779,7 @@ button { font-family: var(--font-body); }
 .perfume-card-media-wrap {
   position: relative;
   aspect-ratio: 3 / 4;
-  border: 1px solid var(--border);
+  border: 1px solid var(--bg-alt);
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
@@ -907,7 +909,9 @@ button { font-family: var(--font-body); }
   margin: 8px -8px 0;
   padding: 12px 12px 14px;
   background: var(--bg-alt);
-  border-top: 1px solid var(--border);
+  /* No divider line: the photo is inset with its own border, so the strip of
+     surface above the plate already separates them — and a --border rule here
+     would be a darker tone than the plate and the two card edges. */
   border-radius: 0 0 13px 13px;
 }
 /* Clamped to two lines so the price row lands at the same height across a row

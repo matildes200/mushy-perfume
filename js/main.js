@@ -99,6 +99,10 @@ function addButton(p, label, labelKey) {
 // so a plain relative path breaks once it's consumed from css/style.css.
 const cardImageUrl = (path) => new URL(path, document.baseURI).href;
 
+// Photos this page has already decoded. Used to skip the loading skeleton when
+// the grid is rebuilt — see perfumeCardTemplate().
+const loadedCardImages = new Set();
+
 // Search terms that should match a category even though they never appear in the data
 // (e.g. "perfume de mulher" should surface the feminino products).
 const CATEGORY_SEARCH_TERMS = {
@@ -316,12 +320,19 @@ function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
   const description = p.short_description || p.notes || "";
   const family = familyLabel(p);
   // data-img drives the skeleton: the shimmer stays until this URL has loaded.
-  const imgAttr = p.image ? ` data-img="${cardImageUrl(p.image)}"` : "";
+  const imageUrl = p.image ? cardImageUrl(p.image) : "";
+  const imgAttr = imageUrl ? ` data-img="${imageUrl}"` : "";
+  // The skeleton is only for a photo this page has never shown. Filtering and
+  // searching rebuild the whole grid on every keystroke, and re-applying
+  // is-loading each time dropped every image to opacity:0 behind a pale
+  // shimmer and back — which is the white flashing while you type. A photo
+  // already decoded is in cache and can paint immediately.
+  const needsSkeleton = imageUrl && !loadedCardImages.has(imageUrl);
   return `
     <article class="${wrapClass} flip-card">
       <div class="flip-inner">
         <div class="flip-face flip-front">
-          <div class="perfume-card-media-wrap${p.image ? " is-loading" : ""}"${imgAttr}>
+          <div class="perfume-card-media-wrap${needsSkeleton ? " is-loading" : ""}"${imgAttr}>
             <div class="perfume-card-media${toneClass}"${style}>
               ${p.image ? "" : `<div class="product-card-icon">${bottleIcon()}</div>`}
             </div>
@@ -392,7 +403,10 @@ document.addEventListener("click", (e) => {
 // the same URL through the cache and let the background paint from there.
 function hydrateCardImages(root = document) {
   root.querySelectorAll(".perfume-card-media-wrap.is-loading[data-img]").forEach((wrap) => {
-    const done = () => wrap.classList.remove("is-loading");
+    const done = () => {
+      loadedCardImages.add(wrap.dataset.img);
+      wrap.classList.remove("is-loading");
+    };
     const img = new Image();
     img.onload = done;
     img.onerror = done;
