@@ -404,3 +404,188 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .order-detail-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ==========================================================================
+   Order workflow — Início action list, Pedidos list, order detail
+   ========================================================================== */
+
+/* --- status pills: one colour per step of the payment cycle --- */
+.st-waiting   { background: rgba(138, 122, 90, 0.16);  color: #7a6a3f; }
+.st-review    { background: rgba(200, 130, 30, 0.18);  color: #8a5a10; }
+.st-paid      { background: rgba(74, 124, 89, 0.16);   color: #3d6b4c; }
+.st-packing   { background: rgba(80, 110, 160, 0.16);  color: #3f5c85; }
+.st-shipped   { background: rgba(100, 90, 160, 0.16);  color: #524a8a; }
+.st-done      { background: rgba(74, 124, 89, 0.26);   color: #2f5a3c; }
+.st-cancelled { background: rgba(138, 59, 43, 0.14);   color: #8a3b2b; }
+
+/* --- Início: the action list comes before any figures --- */
+.action-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+.action-row:hover { border-color: var(--ink); transform: translateX(2px); }
+.action-row.has-work { border-left: 3px solid var(--ink); }
+.action-count {
+  flex: 0 0 auto;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 600;
+  background: var(--bg-alt, #efe1c6);
+  color: var(--text);
+}
+.action-count.urgent { background: #8a3b2b; color: #fff; }
+.action-count.zero { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-weight: 400; }
+.action-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.action-text strong { font-size: 14.5px; font-weight: 600; }
+.action-text span { font-size: 12.5px; color: var(--text-muted); }
+.action-go { flex: 0 0 auto; color: var(--text-muted); font-size: 18px; }
+.stat-grid-4 { grid-template-columns: repeat(4, 1fr); margin-bottom: 0; padding: 20px 24px; }
+
+/* --- Pedidos: filter bar and pagination --- */
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.filter-field { display: flex; flex-direction: column; gap: 5px; }
+.filter-field.filter-grow { flex: 1 1 220px; }
+.filter-field label { font-size: 11px; letter-spacing: 0.4px; color: var(--text-muted); }
+.filter-field input, .filter-field select {
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+}
+.filter-field input:focus, .filter-field select:focus { outline: none; border-color: var(--ink); }
+.filter-actions { display: flex; gap: 8px; }
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+}
+.pagination-info, .pagination-page { font-size: 12.5px; color: var(--text-muted); }
+.pagination-controls { display: flex; align-items: center; gap: 10px; }
+.pagination-controls button[disabled] { opacity: 0.4; cursor: not-allowed; }
+.order-link { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+/* --- Order detail --- */
+.admin-back-inline { display: inline-block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+.admin-back-inline:hover { color: var(--text); }
+.order-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.order-col-main, .order-col-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+/* The decision bar: the two buttons this whole dashboard exists for. */
+.decision-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  border: 1px solid #d8a44a;
+  border-left: 4px solid #c8821e;
+  border-radius: 12px;
+  background: rgba(200, 130, 30, 0.07);
+}
+.decision-copy { display: flex; flex-direction: column; gap: 3px; }
+.decision-copy strong { font-size: 15px; }
+.decision-copy span { font-size: 12.5px; color: var(--text-muted); }
+.decision-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-admin-strong { background: #3d6b4c; border-color: #3d6b4c; color: #fff; }
+.btn-admin-strong:hover { background: #335c40; }
+.btn-admin-danger { background: transparent; border-color: #8a3b2b; color: #8a3b2b; }
+.btn-admin-danger:hover { background: #8a3b2b; color: #fff; }
+
+/* Comprovativo, shown without downloading. */
+.receipt-view { padding: 20px 24px; }
+.receipt-img-btn { display: block; width: 100%; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-alt, #efe1c6); cursor: zoom-in; }
+.receipt-img-btn img { display: block; width: 100%; max-height: 420px; object-fit: contain; }
+.receipt-pdf { width: 100%; height: 460px; border: 1px solid var(--border); border-radius: 10px; }
+.receipt-actions { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
+.receipt-zoom .modal { max-width: 900px; }
+.receipt-zoom-img { width: 100%; height: auto; border-radius: 8px; }
+
+/* Ordered products */
+.order-items { padding: 8px 24px 0; }
+.order-item { display: grid; grid-template-columns: 46px 1fr auto auto auto; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.order-item:last-child { border-bottom: none; }
+.order-item-thumb { width: 46px; height: 56px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-alt, #efe1c6); display: flex; align-items: center; justify-content: center; }
+.order-item-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.order-item-name { min-width: 0; overflow-wrap: anywhere; }
+.order-item-qty, .order-item-price { color: var(--text-muted); white-space: nowrap; }
+.order-item-line { font-weight: 600; white-space: nowrap; }
+.order-totals { padding: 14px 24px 20px; border-top: 1px solid var(--border); margin-top: 8px; }
+.total-row { display: flex; justify-content: space-between; gap: 16px; font-size: 13.5px; padding: 5px 0; color: var(--text-muted); }
+.total-row.total-final { font-size: 16px; font-weight: 600; color: var(--text); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; }
+
+/* Status controls, notes, history */
+.status-block { padding: 18px 24px; display: flex; flex-direction: column; gap: 12px; }
+.status-block label { font-size: 11.5px; letter-spacing: 0.4px; color: var(--text-muted); }
+.status-block select, .status-block textarea {
+  font-family: inherit; font-size: 13.5px; padding: 9px 11px;
+  border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text); width: 100%;
+}
+.status-current { margin-bottom: 4px; }
+.order-client { padding: 18px 24px; }
+.order-client div { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.order-client span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.order-client strong { font-weight: 500; overflow-wrap: anywhere; }
+.panel-hint { padding: 0 24px; font-size: 12px; color: var(--text-muted); margin: 0 0 10px; }
+#adminNotes, .order-col-side .form-grid { margin: 0 24px 12px; width: calc(100% - 48px); }
+#adminNotes { font-family: inherit; font-size: 13.5px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+.order-col-side .btn-admin { margin: 0 24px 20px; }
+.order-history { list-style: none; margin: 0; padding: 8px 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.history-row { display: grid; grid-template-columns: 130px 1fr auto; gap: 12px; font-size: 13px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.history-row:last-child { border-bottom: none; }
+.history-when { color: var(--text-muted); font-size: 12px; }
+.history-what em { display: block; font-style: normal; color: var(--text-muted); font-size: 12.5px; margin-top: 3px; }
+.history-who { color: var(--text-muted); font-size: 11.5px; text-align: right; }
+
+/* Payments get confirmed away from a desk, so the detail page has to work
+   one-handed: single column, decision buttons full width. */
+@media (max-width: 900px) {
+  .order-layout { grid-template-columns: 1fr; }
+  .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .decision-bar { flex-direction: column; align-items: stretch; }
+  .decision-actions { flex-direction: column; }
+  .decision-actions .btn-admin { width: 100%; justify-content: center; }
+  .action-row { padding: 14px 16px; gap: 12px; }
+  .action-count { min-width: 34px; height: 34px; font-size: 15px; }
+  .admin-filters { padding: 14px 16px; }
+  .filter-field, .filter-actions { flex: 1 1 100%; }
+  .filter-field input, .filter-field select { width: 100%; }
+  .order-item { grid-template-columns: 40px 1fr auto; row-gap: 4px; }
+  .order-item-price { display: none; }
+  .history-row { grid-template-columns: 1fr; gap: 3px; }
+  .history-who { text-align: left; }
+  .admin-pagination { padding: 12px 16px; }
+  .receipt-view, .order-items, .order-totals, .status-block, .order-client, .order-history { padding-left: 16px; padding-right: 16px; }
+  #adminNotes, .order-col-side .form-grid { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
+  .order-col-side .btn-admin { margin-left: 16px; margin-right: 16px; }
+}

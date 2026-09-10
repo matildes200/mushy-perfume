@@ -1,11 +1,64 @@
 const money = (v) => `${Number(v || 0).toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
 
-const STATUS_LABELS = {
-  pending: "Pendente",
-  confirmed: "Confirmado",
-  shipped: "Enviado",
-  cancelled: "Cancelado",
-};
+// The order cycle, in order. There is no payment gateway: a person reads the
+// comprovativo, decides whether the money arrived, and only then releases the
+// shipment — so these seven states are that cycle, and the whole dashboard
+// turns on the gap between "comprovativo_recebido" and "pagamento_confirmado".
+const ORDER_STATUSES = [
+  { value: "aguarda_pagamento",     label: "Aguarda pagamento",     cls: "st-waiting" },
+  { value: "comprovativo_recebido", label: "Comprovativo recebido", cls: "st-review" },
+  { value: "pagamento_confirmado",  label: "Pagamento confirmado",  cls: "st-paid" },
+  { value: "em_preparacao",         label: "Em preparação",         cls: "st-packing" },
+  { value: "enviado",               label: "Enviado",               cls: "st-shipped" },
+  { value: "entregue",              label: "Entregue",              cls: "st-done" },
+  { value: "cancelado",             label: "Cancelado",             cls: "st-cancelled" },
+];
+const STATUS_LABELS = Object.fromEntries(ORDER_STATUSES.map((s) => [s.value, s.label]));
+const STATUS_CLASS = Object.fromEntries(ORDER_STATUSES.map((s) => [s.value, s.cls]));
+
+const statusLabel = (v) => STATUS_LABELS[v] || v || "—";
+function statusPill(v) {
+  return `<span class="pill ${STATUS_CLASS[v] || ""}">${escapeHtml(statusLabel(v))}</span>`;
+}
+
+// Records who did what. Failures are swallowed on purpose: an audit write must
+// never be the reason an admin can't confirm a payment.
+async function logActivity(action, entity, entityId, detail = null) {
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    await supabaseClient.from("activity_log").insert({
+      actor_id: user?.id || null,
+      actor_email: user?.email || null,
+      action,
+      entity,
+      entity_id: entityId != null ? String(entityId) : null,
+      detail,
+    });
+  } catch (err) {
+    console.warn("activity_log:", err);
+  }
+}
+
+// Counts of outstanding work, shown against the sidebar links. Loaded on every
+// admin page so you can see there are comprovativos waiting without first
+// navigating to Início. head:true fetches the count only, never the rows.
+async function loadNavBadges() {
+  const setBadge = (sel, n) =>
+    document.querySelectorAll(sel).forEach((b) => { b.textContent = n; b.hidden = !n; });
+  try {
+    const [messages, receipts] = await Promise.all([
+      supabaseClient.from("contact_messages").select("id", { count: "exact", head: true })
+        .eq("archived", false).eq("handled", false),
+      supabaseClient.from("orders").select("id", { count: "exact", head: true })
+        .eq("archived", false).eq("status", "comprovativo_recebido"),
+    ]);
+    setBadge("[data-messages-badge]", messages.count || 0);
+    setBadge("[data-orders-badge]", receipts.count || 0);
+  } catch (err) {
+    console.warn("nav badges:", err);
+  }
+}
+document.addEventListener("admin:ready", loadNavBadges);
 
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
@@ -55,7 +108,7 @@ function bucketOrdersByDay(orders, days, metricFn = (o) => Number(o.total || 0))
     buckets.push({ date: d, value: 0 });
   }
   orders.forEach((o) => {
-    if (["cancelled", "refunded"].includes(o.status)) return;
+    if (o.status === "cancelado") return;
     const d = new Date(o.created_at);
     d.setHours(0, 0, 0, 0);
     const bucket = buckets.find((b) => b.date.getTime() === d.getTime());
@@ -72,7 +125,7 @@ function bucketOrdersByMonth(orders, metricFn = (o) => Number(o.total || 0)) {
     buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString("pt-PT", { month: "short" }), value: 0 });
   }
   orders.forEach((o) => {
-    if (["cancelled", "refunded"].includes(o.status)) return;
+    if (o.status === "cancelado") return;
     const d = new Date(o.created_at);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     const bucket = buckets.find((b) => b.key === key);

@@ -52,7 +52,7 @@ document.addEventListener("admin:ready", async () => {
   document.querySelector('[data-range="7"]').classList.add("active");
   drawAnalyticsChart();
 
-  const revenueOrders = analyticsOrders.filter((o) => !["cancelled", "refunded"].includes(o.status));
+  const revenueOrders = analyticsOrders.filter((o) => !o.status === "cancelado");
   const revenue = revenueOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
 
   const ordersByCustomer = {};
