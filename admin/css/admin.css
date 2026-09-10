@@ -659,3 +659,29 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .settings-form { padding: 16px; }
   .panel-hint { padding-left: 16px; padding-right: 16px; }
 }
+
+/* De + Até behave as one control. Grouping them means the pair shares a row at
+   every width instead of each date claiming a full row on a phone. */
+.filter-range { display: flex; gap: 10px; min-width: 0; flex: 1 1 300px; }
+.filter-range .filter-field { flex: 1 1 0; min-width: 0; }
+
+/* Definições panels: title, one line of context, fields, then the save button
+   on its own footer row — the same rhythm in every panel. */
+.panel-head-stack { align-items: flex-start; }
+.panel-sub { font-size: 12.5px; color: var(--text-muted); margin: 5px 0 0; line-height: 1.5; }
+.modal-sub { font-size: 12.5px; color: var(--text-muted); margin: 6px 0 16px; line-height: 1.55; }
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  /* The pair keeps its own row rather than being broken apart by the
+     "one field per row" rule below it. */
+  .filter-range { flex: 1 1 100%; }
+  .settings-actions { justify-content: stretch; }
+  .settings-actions .btn-admin { width: 100%; justify-content: center; }
+}

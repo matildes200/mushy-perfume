@@ -51,14 +51,20 @@
 
   <div id="settingsAlert"></div>
 
+  <!-- Every panel keeps the same rhythm: title, one line of context, fields,
+       then a single save button on its own footer row. -->
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Dados de pagamento</h2></div>
-    <p class="panel-hint">É isto que o cliente vê no momento de pagar. Enquanto estiver vazio, aparece um traço no site.</p>
+    <div class="admin-panel-head panel-head-stack">
+      <div>
+        <h2>Dados de pagamento</h2>
+        <p class="panel-sub">O que o cliente vê ao finalizar a compra.</p>
+      </div>
+    </div>
     <form id="paymentForm" class="settings-form">
       <div class="form-grid">
         <div class="form-field">
           <label for="bank_name">Banco</label>
-          <input type="text" id="bank_name" placeholder="Nome do banco">
+          <input type="text" id="bank_name" placeholder="BAI">
         </div>
         <div class="form-field">
           <label for="account_holder">Titular da conta</label>
@@ -73,13 +79,19 @@
           <input type="text" id="express_phone" placeholder="9XX XXX XXX">
         </div>
       </div>
-      <button type="submit" class="btn-admin" id="savePaymentBtn">Guardar dados de pagamento</button>
+      <div class="settings-actions">
+        <button type="submit" class="btn-admin" id="savePaymentBtn">Guardar</button>
+      </div>
     </form>
   </div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Contactos da loja</h2></div>
-    <p class="panel-hint">Mostrados no rodapé e na página de contacto.</p>
+    <div class="admin-panel-head panel-head-stack">
+      <div>
+        <h2>Contactos da loja</h2>
+        <p class="panel-sub">Mostrados no rodapé e na página de contacto.</p>
+      </div>
+    </div>
     <form id="contactForm" class="settings-form">
       <div class="form-grid">
         <div class="form-field">
@@ -95,33 +107,43 @@
           <input type="text" id="store_instagram" placeholder="@mushy_parfum">
         </div>
       </div>
-      <button type="submit" class="btn-admin" id="saveContactBtn">Guardar contactos</button>
+      <div class="settings-actions">
+        <button type="submit" class="btn-admin" id="saveContactBtn">Guardar</button>
+      </div>
     </form>
   </div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Banner promocional</h2></div>
-    <p class="panel-hint">Uma faixa no topo do site. Deixe desactivada para não mostrar nada.</p>
+    <div class="admin-panel-head panel-head-stack">
+      <div>
+        <h2>Banner promocional</h2>
+        <p class="panel-sub">Faixa no topo do site. Desligue para não mostrar nada.</p>
+      </div>
+    </div>
     <form id="bannerForm" class="settings-form">
       <div class="form-grid">
         <div class="form-field span-2">
-          <label for="banner_text">Texto do banner</label>
-          <input type="text" id="banner_text" placeholder="Ex.: Portes grátis em Luanda esta semana">
+          <label for="banner_text">Texto</label>
+          <input type="text" id="banner_text" placeholder="Portes grátis em Luanda esta semana">
         </div>
         <div class="form-field span-2 field-check">
-          <label for="banner_active"><input type="checkbox" id="banner_active"> Mostrar o banner no site</label>
+          <label for="banner_active"><input type="checkbox" id="banner_active"> Mostrar no site</label>
         </div>
       </div>
-      <button type="submit" class="btn-admin" id="saveBannerBtn">Guardar banner</button>
+      <div class="settings-actions">
+        <button type="submit" class="btn-admin" id="saveBannerBtn">Guardar</button>
+      </div>
     </form>
   </div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head">
-      <h2>Administradores</h2>
-      <button type="button" class="btn-admin" id="newAdminBtn">+ Adicionar administrador</button>
+    <div class="admin-panel-head panel-head-stack">
+      <div>
+        <h2>Administradores</h2>
+        <p class="panel-sub">Quem entra neste painel. O acesso é dado por e-mail.</p>
+      </div>
+      <button type="button" class="btn-admin" id="newAdminBtn">+ Adicionar</button>
     </div>
-    <p class="panel-hint">Quem pode entrar neste painel. A pessoa tem de criar conta no site com este mesmo e-mail.</p>
     <div id="adminsAlert"></div>
     <div class="admin-table-wrap">
       <table class="admin-table" id="adminsTable">
@@ -135,7 +157,7 @@
 <div class="modal-overlay" id="adminModalOverlay">
   <div class="modal">
     <h2 id="adminModalTitle">Adicionar administrador</h2>
-    <p class="panel-hint" style="padding:0;">O acesso é dado pelo e-mail. Se a pessoa ainda não tiver conta no site, tem de a criar primeiro com este endereço.</p>
+    <p class="modal-sub">A pessoa tem de ter conta no site com este mesmo e-mail.</p>
     <div id="adminFormAlert"></div>
     <form id="adminForm">
       <input type="hidden" id="adminId">
@@ -150,7 +172,7 @@
         </div>
         <div class="form-field">
           <label for="admin_role">Função</label>
-          <input type="text" id="admin_role" placeholder="Administrador, Apoio ao cliente...">
+          <input type="text" id="admin_role" placeholder="Administrador">
         </div>
         <div class="form-field span-2">
           <label for="admin_phone">Telefone</label>

@@ -57,13 +57,17 @@
         <label for="filterStatus">Estado</label>
         <select id="filterStatus"><option value="">Todos os estados</option></select>
       </div>
-      <div class="filter-field">
-        <label for="filterFrom">De</label>
-        <input type="date" id="filterFrom">
-      </div>
-      <div class="filter-field">
-        <label for="filterTo">Até</label>
-        <input type="date" id="filterTo">
+      <!-- De and Até are one control: they stay side by side at every width
+           rather than each claiming its own row on a phone. -->
+      <div class="filter-range">
+        <div class="filter-field">
+          <label for="filterFrom">De</label>
+          <input type="date" id="filterFrom">
+        </div>
+        <div class="filter-field">
+          <label for="filterTo">Até</label>
+          <input type="date" id="filterTo">
+        </div>
       </div>
       <div class="filter-field filter-grow">
         <label for="filterSearch">Pesquisar</label>

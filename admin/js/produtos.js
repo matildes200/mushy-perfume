@@ -10,7 +10,9 @@ const productFormAlert = document.getElementById("productFormAlert");
 const textFields = [
   "name", "brand", "sku", "short_description", "description",
   "category", "fragrance_family", "concentration",
-  "notes", "notes_top", "notes_heart", "notes_base", "image",
+  // The top/heart/base pyramid fields were removed from the form: the single
+  // "notes" summary is what the storefront card actually falls back to.
+  "notes", "image",
 ];
 const numberFields = ["price", "discount_percent", "volume_ml", "stock", "low_stock_threshold"];
 const checkboxFields = ["active", "featured", "bestseller", "new_arrival"];
