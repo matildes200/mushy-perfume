@@ -92,10 +92,12 @@ async function loadMonthFigures() {
     { label: "Vendas do mês", value: money(sales) },
     { label: "Pedidos", value: String(orderCount) },
     { label: "Valor médio por pedido", value: money(average) },
-    { label: "Produto mais vendido", value: best ? `${escapeHtml(best[0])} (${best[1]})` : "—" },
+    // Marked as text: a perfume name set at the 30px figure size is what
+    // pushed this grid past its panel and got the row clipped.
+    { label: "Produto mais vendido", value: best ? `${escapeHtml(best[0])} (${best[1]})` : "—", text: true },
   ];
   statGridEl.innerHTML = cards
-    .map((c) => `<div class="stat-card"><span>${c.label}</span><strong>${c.value}</strong></div>`)
+    .map((c) => `<div class="stat-card${c.text ? " stat-text" : ""}"><span>${c.label}</span><strong>${c.value}</strong></div>`)
     .join("");
 }
 
