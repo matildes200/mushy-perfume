@@ -1,9 +1,11 @@
 :root {
   --bg: #FAF5EA;
   --bg-alt: #EFE1C6;
-  /* A deeper sand, used where a section would otherwise sit on the same tone
-     as the card caption plates and swallow them (see .bestsellers). */
-  --bg-sand: #E6D2AC;
+  /* Off-white band for a section that would otherwise sit on the same tone as
+     the card caption plates and swallow them (see .bestsellers). Deliberately
+     a shade off --surface so the card panels still lift off it, and off --bg
+     so the band still reads as its own section. */
+  --bg-soft: #F6F1E7;
   --surface: #FFFBF3;
   --text: #3B2A1D;
   --text-muted: #8B7256;
@@ -506,18 +508,15 @@ button { font-family: var(--font-body); }
   padding: 0;
 }
 .sobre-banner-text .eyebrow { margin-bottom: 18px; }
-/* Same ruled treatment as the quote in "Como escolhemos". The typography has
-   to be restated here: ".sobre-banner-text p" is more specific than
-   ".processo-quote", so the surrounding body-copy rule would otherwise flatten
-   the quote to 15px muted text with a rule stuck on the side. The border and
-   padding come from .processo-quote, which that rule doesn't touch. */
+/* Exactly as it was — centred, full width, --text — with only the side rule
+   from "Como escolhemos" added. */
 .sobre-banner-text .processo-quote {
-  font-family: var(--font-head);
-  font-style: italic;
-  font-size: 21px;
-  line-height: 1.5;
-  color: var(--ink);
-  margin: 0 0 30px;
+  border-left: 2px solid var(--ink);
+  padding-left: 20px;
+  margin: 0 auto 30px;
+  max-width: none;
+  text-align: center;
+  color: var(--text);
 }
 .sobre-banner-text p { color: var(--text-muted); font-size: 15px; line-height: 2; margin-bottom: 26px; text-align: justify; }
 .sobre-banner-text p:last-of-type { margin-bottom: 0; }
@@ -566,9 +565,9 @@ button { font-family: var(--font-body); }
 .processo-content p:last-of-type { margin-bottom: 0; }
 
 /* ---------- Best sellers carousel ---------- */
-/* Deeper than --bg-alt on purpose: the cards' caption plates are --bg-alt, so
+/* Off-white rather than --bg-alt: the cards' caption plates are --bg-alt, so
    on that ground the plate and its border vanished into the section. */
-.bestsellers { padding: 100px 0 90px; background: var(--bg-sand); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.bestsellers { padding: 100px 0 90px; background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .carousel {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -2050,7 +2049,7 @@ button { font-family: var(--font-body); }
   .sobre-banner-body { padding: 40px 0 56px; }
   /* Roomier than it was: the story used to sit hard against the card border,
      which is what made this page feel claustrophobic on a phone. */
-  .sobre-banner-text { padding: 0; }
+  .sobre-banner-text { padding: 34px 24px; }
   .sobre-banner-body .sobre-stats { padding: 24px 24px 0; gap: 12px; }
   .sobre-banner-text p { font-size: 14.5px; line-height: 2.05; margin-bottom: 26px; }
   .sobre-banner-overlay-inner { padding-top: 84px; padding-bottom: 40px; }
