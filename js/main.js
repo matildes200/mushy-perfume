@@ -125,6 +125,38 @@ const normalizeText = (str) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+// Portuguese plurals reduced to a common stem, so "perfumes" and "perfume",
+// "fragrâncias" and "fragrância", "colecções" and "colecção" all collide.
+// Applied to both sides of a comparison, so it never matters which form was
+// typed and which is stored.
+function singularize(word) {
+  if (word.length <= 3) return word;
+  if (word.endsWith("oes") || word.endsWith("aes")) return word.slice(0, -3) + "ao"; // colecçoes -> colecçao
+  if (word.endsWith("ais") || word.endsWith("eis") || word.endsWith("ois")) return word.slice(0, -2) + "l";
+  if (word.endsWith("ns")) return word.slice(0, -2) + "m"; // homens -> homem
+  if (word.endsWith("res") || word.endsWith("ses") || word.endsWith("zes")) return word.slice(0, -2);
+  if (word.endsWith("s")) return word.slice(0, -1);
+  return word;
+}
+
+// Words that describe the shop rather than any one bottle. Typing one of these
+// returns the whole catalogue instead of nothing — "perfumes" should never be
+// a dead end on a perfume shop. Stored singularised; matched as a prefix so
+// "perfum", "fragranc" and "colec" all count.
+const GENERIC_SITE_TERMS = [
+  "perfume", "perfumaria", "parfum", "fragrancia", "fragrance", "aroma", "essencia",
+  "cheiro", "colecao", "coleccao", "catalogo", "produto", "artigo", "frasco",
+  "scent", "product", "tudo", "todo", "all",
+];
+// Below this length a query is treated as the start of a name, not as a
+// general term — otherwise a single "p" would return the entire shop.
+const GENERIC_MIN_LENGTH = 3;
+
+function matchesGenericTerm(word) {
+  if (word.length < GENERIC_MIN_LENGTH) return false;
+  return GENERIC_SITE_TERMS.some((term) => term.startsWith(word));
+}
+
 // Everything a shopper might reasonably type, in one normalised string: the
 // name, the brand, the olfactory family and notes, the concentration, and the
 // words people use for a category ("perfume de mulher" finds the feminino
@@ -144,6 +176,9 @@ function productHaystack(p) {
     // matches when someone types it closed up: "Éclat d'Or" normalises to
     // "eclat d or", and only this compact form contains "dor".
     p._haystackCompact = p._haystack.replace(/\s+/g, "");
+    // Singularised word list, so a plural in the data matches a singular query
+    // and the other way round.
+    p._tokens = p._haystack.split(" ").filter(Boolean).map(singularize);
   }
   return p;
 }
@@ -154,24 +189,32 @@ function productHaystack(p) {
 // "uniss" → unissex working while "men" only reaches masculino.
 function matchesCategoryTerm(p, word) {
   const terms = CATEGORY_SEARCH_TERMS[p.category] || [];
-  return terms.some((term) => term.startsWith(word));
+  return terms.some((term) => term.startsWith(word) || singularize(term).startsWith(word));
 }
 
-// Every word in the query has to match something: the product's own text
-// (partway into a word, so typing narrows as you go — "ecl" → Éclat, "oud leg"
-// → Oud Legacy), its punctuation-stripped form, or its category.
+// Every word in the query has to match something. In order of breadth:
+//   - a general word for the shop itself ("perfumes", "fragrâncias") → all
+//   - the start of any word in the product's own text, plural-insensitive
+//   - the product text as raw substrings, which catches mid-word and the
+//     punctuation-stripped form ("dor" → Éclat d'Or)
+//   - the product's category
 function productMatchesSearch(p, normalizedQuery) {
   if (!normalizedQuery) return true;
   productHaystack(p);
   return normalizedQuery
     .split(/\s+/)
     .filter(Boolean)
-    .every(
-      (word) =>
-        p._haystack.includes(word) ||
-        p._haystackCompact.includes(word) ||
-        matchesCategoryTerm(p, word)
-    );
+    .every((raw) => {
+      const word = singularize(raw);
+      return (
+        matchesGenericTerm(word) ||
+        p._tokens.some((token) => token.startsWith(word)) ||
+        p._haystack.includes(raw) ||
+        p._haystackCompact.includes(raw) ||
+        matchesCategoryTerm(p, word) ||
+        matchesCategoryTerm(p, raw)
+      );
+    });
 }
 
 let cart = JSON.parse(localStorage.getItem("mushy-cart") || "{}");
@@ -402,59 +445,50 @@ function renderCarousel() {
 }
 
 // ---------- Reviews carousel ----------
-// The comments advance on their own and wrap back round to the first one.
-// Any touch or manual scroll pauses the loop for a few seconds so it never
-// fights a reader who's already swiping.
+// One continuous marquee, not a step-and-rewind.
+//
+// The previous version advanced one card at a time and, on reaching the end,
+// animated all the way back to the start using the SAME duration as a
+// one-card step — so the rewind covered four cards' width in the time a step
+// covered one, running about four times faster. That burst is what read as
+// cards "accelerating past the others"; it was never a per-card animation.
+//
+// This version cannot have that problem by construction. The whole set is
+// duplicated once and a single CSS transform slides the one track element
+// from 0 to -50%. At -50% the second copy sits exactly where the first
+// started, so the animation restarts on an identical frame and the loop is
+// seamless — there is no rewind to be fast. Because it is one transform on
+// one element, every card moves by the same pixels at the same instant; no
+// card can travel at its own rate.
+//
+// The timing function is linear on purpose. An ease curve on a never-ending
+// loop would visibly speed up and slow down each cycle, which is exactly the
+// acceleration this is meant to remove. Constant speed is what "one speed for
+// every card" actually means here.
 (() => {
-  const reviews = document.getElementById("reviewsGrid");
-  if (!reviews) return;
-  let pausedUntil = 0;
-  const pause = () => { pausedUntil = Date.now() + 7000; };
-  ["touchstart", "pointerdown", "wheel"].forEach((ev) => reviews.addEventListener(ev, pause, { passive: true }));
+  const track = document.getElementById("reviewsTrack");
+  if (!track) return;
 
-  // Native smooth scrolling lands too abruptly here, and CSS scroll-snap yanks
-  // the strip the rest of the way the moment the scroll settles. The step is
-  // animated by hand instead, with snapping switched off for the duration, so
-  // the cards glide across and come to rest rather than jumping.
-  const GLIDE_MS = 1400;
-  const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-  let gliding = false;
+  // The clones make -50% land on an identical frame. They are decorative
+  // repeats, so they are hidden from assistive tech.
+  const originals = Array.from(track.children);
+  originals.forEach((card) => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.dataset.clone = "true";
+    track.appendChild(clone);
+  });
 
-  // No snap juggling any more: the strip has scroll-snap disabled in CSS, so
-  // this animation is the only thing that ever moves it. Every card sits in
-  // the same scrolling box, so one eased scrollLeft moves all of them by
-  // identical pixels on identical frames — nothing can travel at its own rate.
-  function glideTo(target) {
-    const start = reviews.scrollLeft;
-    const distance = target - start;
-    if (!distance) return;
-    gliding = true;
-    const t0 = performance.now();
-
-    const step = (now) => {
-      const progress = Math.min((now - t0) / GLIDE_MS, 1);
-      reviews.scrollLeft = start + distance * easeInOutCubic(progress);
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        gliding = false;
-      }
-    };
-    requestAnimationFrame(step);
-  }
-
-  setInterval(() => {
-    // Only when the cards actually overflow — on desktop this is a static
-    // two-column grid with nothing to scroll.
-    if (reviews.scrollWidth <= reviews.clientWidth + 4) return;
-    if (gliding || Date.now() < pausedUntil) return;
-    const card = reviews.querySelector(".review-card");
-    if (!card) return;
-    const gap = parseFloat(getComputedStyle(reviews).columnGap) || 0;
-    const stepWidth = card.getBoundingClientRect().width + gap;
-    const atEnd = reviews.scrollLeft + reviews.clientWidth >= reviews.scrollWidth - 8;
-    glideTo(atEnd ? 0 : reviews.scrollLeft + stepWidth);
-  }, 6000);
+  // Touching the strip pauses it so a comment can actually be read, and it
+  // resumes from where it stopped rather than jumping.
+  const viewport = document.getElementById("reviewsGrid");
+  let resumeTimer = null;
+  const pause = () => {
+    track.classList.add("paused");
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(() => track.classList.remove("paused"), 5000);
+  };
+  ["touchstart", "pointerdown"].forEach((ev) => viewport?.addEventListener(ev, pause, { passive: true }));
 })();
 
 // ---------- Coupons ----------
@@ -1119,27 +1153,12 @@ if (revealEls.length) {
 // ---------- Idle autoplay for the reviews strip (mobile) ----------
 // Advances one card at a time while the shopper isn't touching it; any
 // manual scroll/touch pauses it for a while so it doesn't fight the user.
-function initIdleCarousel(container, intervalMs) {
-  if (!container) return;
-  let paused = false;
-  let resumeTimer = null;
-  const pause = () => {
-    paused = true;
-    clearTimeout(resumeTimer);
-    resumeTimer = setTimeout(() => { paused = false; }, intervalMs * 2);
-  };
-  ["touchstart", "pointerdown", "wheel"].forEach((evt) => container.addEventListener(evt, pause, { passive: true }));
-
-  setInterval(() => {
-    if (paused || container.scrollWidth <= container.clientWidth + 4) return;
-    const card = container.firstElementChild;
-    if (!card) return;
-    const step = card.getBoundingClientRect().width + parseFloat(getComputedStyle(container).gap || "0");
-    const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 10;
-    container.scrollTo({ left: atEnd ? 0 : container.scrollLeft + step, behavior: "smooth" });
-  }, intervalMs);
-}
-initIdleCarousel(document.getElementById("reviewsGrid"), 3500);
+// (initIdleCarousel removed.) It was a second, independent auto-scroller
+// running on the very same reviews strip every 3.5s using the browser's own
+// scrollTo({behavior:"smooth"}), while the marquee/step animation above ran on
+// its own schedule. Two animations driving one element at different intervals
+// and different speeds is what made the motion look uneven no matter how the
+// other one was tuned. The marquee is now the only thing that moves it.
 
 const searchQueryParam = new URLSearchParams(window.location.search).get("q");
 if (searchQueryParam && searchInput) {

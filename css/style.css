@@ -1029,7 +1029,10 @@ button { font-family: var(--font-body); }
 
 /* ---------- Reviews ---------- */
 .reviews { padding: 100px 0; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.reviews-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--border); }
+/* Desktop keeps a static two-column grid; the duplicate cards the marquee
+   needs on mobile are hidden here so they don't double the grid. */
+.reviews-track { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--border); }
+.review-card[data-clone] { display: none; }
 .review-card { background: var(--surface); border: none; border-radius: var(--radius); padding: 40px; text-align: center; }
 .stars { color: #d4a437; letter-spacing: 3px; margin-bottom: 16px; font-size: 14px; }
 .review-card p { font-style: italic; color: var(--text); margin-bottom: 18px; font-size: 15px; line-height: 1.75; }
@@ -2018,27 +2021,38 @@ button { font-family: var(--font-body); }
   .carousel-card, .carousel-end-card { width: 224px; min-height: 400px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
-  /* No scroll-snap here, deliberately. Snapping re-engaged the moment each
-     auto-advance finished and yanked the strip to the nearest card: the card
-     being snapped to looked like it settled smoothly while its neighbours
-     jumped, which read as "only the middle one moves slowly". With snap gone
-     the eased animation in js/main.js is the only thing moving the strip, so
-     every card travels the same pixels in the same frame. scroll-behavior is
-     pinned to auto for the same reason — the browser must not layer its own
-     smoothing on top of a per-frame scrollLeft. */
+  /* Continuous marquee. The viewport just clips; all motion is one transform
+     on .reviews-track, so every card moves identically — see js/main.js.
+     There is no scrolling container and no scroll-snap here on purpose: both
+     were what made cards move at different rates in earlier versions. */
   .reviews-grid {
+    overflow: hidden;
+    background: none;
+    padding: 4px 0 6px;
+  }
+  .reviews-track {
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: none;
-    scroll-behavior: auto;
-    scrollbar-width: none;
-    gap: 14px;
-    padding: 4px 6vw 6px;
+    width: max-content;
+    gap: 0;
     background: none;
+    animation: reviews-marquee 44s linear infinite;
+    will-change: transform;
   }
-  .reviews-grid::-webkit-scrollbar { display: none; }
-  .review-card { flex: 0 0 82%; border-radius: 12px; }
+  .reviews-track.paused { animation-play-state: paused; }
+  /* margin-right rather than a flex gap: the track is exactly two identical
+     halves only if every card occupies the same width INCLUDING its spacing.
+     With `gap`, N cards have N-1 gaps and -50% would drift a little each loop. */
+  .review-card { flex: 0 0 82vw; margin-right: 14px; border-radius: 12px; }
+  .review-card[data-clone] { display: block; }
+
+  @keyframes reviews-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reviews-track { animation: none; }
+  }
 
   .newsletter-form { flex-direction: column; }
   .newsletter-inner { padding: 44px 26px; }
