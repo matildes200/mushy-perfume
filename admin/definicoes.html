@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>Pagamentos | Painel Mushy Parfum</title>
+<title>Definições | Painel Mushy Parfum</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,45 +44,126 @@
 <main class="admin-main">
   <div class="admin-topbar">
     <div>
-      <h1>Pagamentos</h1>
-      <p>Dados bancários mostrados ao cliente no checkout, para transferência</p>
+      <h1>Definições</h1>
+      <p>Dados que aparecem no site e quem tem acesso ao painel</p>
     </div>
   </div>
 
-  <div id="paymentAlert"></div>
+  <div id="settingsAlert"></div>
 
   <div class="admin-panel">
-    <div class="admin-panel-head"><h2>Transferência bancária</h2></div>
-    <form id="paymentForm" style="padding:24px;">
+    <div class="admin-panel-head"><h2>Dados de pagamento</h2></div>
+    <p class="panel-hint">É isto que o cliente vê no momento de pagar. Enquanto estiver vazio, aparece um traço no site.</p>
+    <form id="paymentForm" class="settings-form">
       <div class="form-grid">
-        <div class="form-field span-2">
+        <div class="form-field">
           <label for="bank_name">Banco</label>
           <input type="text" id="bank_name" placeholder="Nome do banco">
         </div>
-        <div class="form-field span-2">
+        <div class="form-field">
           <label for="account_holder">Titular da conta</label>
           <input type="text" id="account_holder" placeholder="Nome do titular">
         </div>
         <div class="form-field span-2">
-          <label for="account_number">IBAN / Número da conta</label>
+          <label for="account_number">IBAN</label>
           <input type="text" id="account_number" placeholder="AO06 0000 0000 0000 0000 0000 0">
         </div>
-      </div>
-
-      <h3 class="form-section">Express</h3>
-      <div class="form-grid">
         <div class="form-field span-2">
-          <label for="express_phone">Número de telefone Express</label>
+          <label for="express_phone">Número Express</label>
           <input type="text" id="express_phone" placeholder="9XX XXX XXX">
         </div>
       </div>
+      <button type="submit" class="btn-admin" id="savePaymentBtn">Guardar dados de pagamento</button>
+    </form>
+  </div>
 
-      <div class="modal-actions" style="justify-content:flex-start;">
-        <button type="submit" class="btn-admin" id="savePaymentBtn">Guardar</button>
+  <div class="admin-panel">
+    <div class="admin-panel-head"><h2>Contactos da loja</h2></div>
+    <p class="panel-hint">Mostrados no rodapé e na página de contacto.</p>
+    <form id="contactForm" class="settings-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="store_phone">Telefone</label>
+          <input type="text" id="store_phone" placeholder="+244 9XX XXX XXX">
+        </div>
+        <div class="form-field">
+          <label for="store_email">E-mail</label>
+          <input type="email" id="store_email" placeholder="geral@exemplo.ao">
+        </div>
+        <div class="form-field span-2">
+          <label for="store_instagram">Instagram</label>
+          <input type="text" id="store_instagram" placeholder="@mushy_parfum">
+        </div>
+      </div>
+      <button type="submit" class="btn-admin" id="saveContactBtn">Guardar contactos</button>
+    </form>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-head"><h2>Banner promocional</h2></div>
+    <p class="panel-hint">Uma faixa no topo do site. Deixe desactivada para não mostrar nada.</p>
+    <form id="bannerForm" class="settings-form">
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="banner_text">Texto do banner</label>
+          <input type="text" id="banner_text" placeholder="Ex.: Portes grátis em Luanda esta semana">
+        </div>
+        <div class="form-field span-2 field-check">
+          <label for="banner_active"><input type="checkbox" id="banner_active"> Mostrar o banner no site</label>
+        </div>
+      </div>
+      <button type="submit" class="btn-admin" id="saveBannerBtn">Guardar banner</button>
+    </form>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-head">
+      <h2>Administradores</h2>
+      <button type="button" class="btn-admin" id="newAdminBtn">+ Adicionar administrador</button>
+    </div>
+    <p class="panel-hint">Quem pode entrar neste painel. A pessoa tem de criar conta no site com este mesmo e-mail.</p>
+    <div id="adminsAlert"></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="adminsTable">
+        <thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Desde</th><th></th></tr></thead>
+        <tbody><tr><td colspan="5" class="admin-empty">A carregar…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="adminModalOverlay">
+  <div class="modal">
+    <h2 id="adminModalTitle">Adicionar administrador</h2>
+    <p class="panel-hint" style="padding:0;">O acesso é dado pelo e-mail. Se a pessoa ainda não tiver conta no site, tem de a criar primeiro com este endereço.</p>
+    <div id="adminFormAlert"></div>
+    <form id="adminForm">
+      <input type="hidden" id="adminId">
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="admin_email">E-mail</label>
+          <input type="email" id="admin_email" required placeholder="pessoa@exemplo.ao">
+        </div>
+        <div class="form-field">
+          <label for="admin_full_name">Nome</label>
+          <input type="text" id="admin_full_name" placeholder="Nome completo">
+        </div>
+        <div class="form-field">
+          <label for="admin_role">Função</label>
+          <input type="text" id="admin_role" placeholder="Administrador, Apoio ao cliente...">
+        </div>
+        <div class="form-field span-2">
+          <label for="admin_phone">Telefone</label>
+          <input type="text" id="admin_phone" placeholder="+244 9XX XXX XXX">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin btn-admin-outline" id="cancelAdminBtn">Cancelar</button>
+        <button type="submit" class="btn-admin" id="saveAdminBtn">Guardar</button>
       </div>
     </form>
   </div>
-</main>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
