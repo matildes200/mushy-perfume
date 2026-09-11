@@ -147,7 +147,7 @@
         </div>
       </div>
 
-      <h3 class="form-section">Pirâmide olfativa</h3>
+      <h3 class="form-section">Notas</h3>
       <div class="form-grid">
         <div class="form-field span-2">
           <label for="notes">Notas (resumo exibido na loja)</label>
@@ -185,23 +185,25 @@
       </div>
 
       <h3 class="form-section">Definições do site</h3>
-      <div class="form-grid">
-        <div class="form-field form-checkbox">
+      <!-- One row per setting: the phrase reads across the left, its control
+           sits on the right. Two per row in a grid split the phrases awkwardly. -->
+      <div class="toggle-list">
+        <label class="toggle-row" for="active">
+          <span>Visível na loja</span>
           <input type="checkbox" id="active" checked>
-          <label for="active">Visível na loja</label>
-        </div>
-        <div class="form-field form-checkbox">
+        </label>
+        <label class="toggle-row" for="featured">
+          <span>Aparece em "A nossa selecção"</span>
           <input type="checkbox" id="featured">
-          <label for="featured">Aparece em "Nossa Selecção"</label>
-        </div>
-        <div class="form-field form-checkbox">
+        </label>
+        <label class="toggle-row" for="bestseller">
+          <span>Mais vendido</span>
           <input type="checkbox" id="bestseller">
-          <label for="bestseller">Mais vendido</label>
-        </div>
-        <div class="form-field form-checkbox">
+        </label>
+        <label class="toggle-row" for="new_arrival">
+          <span>Novidade</span>
           <input type="checkbox" id="new_arrival">
-          <label for="new_arrival">Novidade</label>
-        </div>
+        </label>
       </div>
 
       <div class="modal-actions">

@@ -685,3 +685,54 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .settings-actions { justify-content: stretch; }
   .settings-actions .btn-admin { width: 100%; justify-content: center; }
 }
+
+/* Settings rows: the phrase on the left, its control on the right, one per
+   line. Laid out two-per-row in a grid these phrases wrapped mid-sentence and
+   the controls landed in the middle of the text. */
+.toggle-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+  letter-spacing: 0;
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-row:hover { background: var(--bg-alt); }
+.toggle-row span { min-width: 0; overflow-wrap: anywhere; }
+/* width:auto resists the "fields fill their container" rule above. */
+.toggle-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+/* The width:100% above is for text fields. Checkboxes and radios must keep
+   their own size — without this they stretch across the whole row, because
+   ".form-field input" and ".form-checkbox input" have equal specificity and
+   the later rule wins. */
+.form-field input[type="checkbox"],
+.form-field input[type="radio"],
+.form-checkbox input {
+  width: 16px;
+  height: 16px;
+  min-width: 0;
+  flex: 0 0 auto;
+  accent-color: var(--ink);
+}
