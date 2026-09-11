@@ -2083,30 +2083,32 @@ button { font-family: var(--font-body); }
     overflow: hidden;
     background: none;
     padding: 4px 0 6px;
+    /* pan-y leaves vertical swipes to the page while this strip takes the
+       horizontal ones, so dragging a comment never blocks page scrolling. */
+    touch-action: pan-y;
+    cursor: grab;
   }
+  .reviews-grid.is-dragging { cursor: grabbing; }
   .reviews-track {
     display: flex;
     flex-wrap: nowrap;
     width: max-content;
     gap: 0;
     background: none;
-    animation: reviews-marquee 44s linear infinite;
+    /* The drift lives in js/main.js, not in a CSS animation: a finger and the
+       clock have to write to the same position, and an animation gives the
+       finger nothing to move. */
     will-change: transform;
   }
-  .reviews-track.paused { animation-play-state: paused; }
   /* margin-right rather than a flex gap: the track is exactly two identical
      halves only if every card occupies the same width INCLUDING its spacing.
      With `gap`, N cards have N-1 gaps and -50% would drift a little each loop. */
   .review-card { flex: 0 0 82vw; margin-right: 14px; border-radius: 12px; }
   .review-card[data-clone] { display: block; }
 
-  @keyframes reviews-marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .reviews-track { animation: none; }
-  }
+  /* The keyframes are gone: the drift is driven frame by frame in js/main.js
+     so a drag can write to the same position. Reduced motion is honoured
+     there too — the drift stops, dragging still works. */
 
   .newsletter-form { flex-direction: column; }
   .newsletter-inner { padding: 44px 26px; }

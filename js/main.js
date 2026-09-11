@@ -492,50 +492,155 @@ function renderCarousel() {
 }
 
 // ---------- Reviews carousel ----------
-// One continuous marquee, not a step-and-rewind.
+// One continuous marquee that you can also drag.
 //
-// The previous version advanced one card at a time and, on reaching the end,
-// animated all the way back to the start using the SAME duration as a
-// one-card step — so the rewind covered four cards' width in the time a step
-// covered one, running about four times faster. That burst is what read as
-// cards "accelerating past the others"; it was never a per-card animation.
+// The drift is unchanged: constant linear speed, every card moving the same
+// pixels at the same instant, looping seamlessly because the card set is
+// duplicated once and the position wraps by exactly one copy's width. What is
+// new is that the position lives in JS rather than in a CSS animation, so a
+// finger and the clock write to the same number. As a CSS animation there was
+// nothing to drag — touching it only paused a transform.
 //
-// This version cannot have that problem by construction. The whole set is
-// duplicated once and a single CSS transform slides the one track element
-// from 0 to -50%. At -50% the second copy sits exactly where the first
-// started, so the animation restarts on an identical frame and the loop is
-// seamless — there is no rewind to be fast. Because it is one transform on
-// one element, every card moves by the same pixels at the same instant; no
-// card can travel at its own rate.
-//
-// The timing function is linear on purpose. An ease curve on a never-ending
-// loop would visibly speed up and slow down each cycle, which is exactly the
-// acceleration this is meant to remove. Constant speed is what "one speed for
-// every card" actually means here.
+// Linear on purpose: an ease curve on a never-ending loop visibly speeds up
+// and slows down each cycle, which is the acceleration this was built to
+// remove in the first place.
 (() => {
   const track = document.getElementById("reviewsTrack");
-  if (!track) return;
+  const viewport = document.getElementById("reviewsGrid");
+  if (!track || !viewport) return;
 
-  // The clones make -50% land on an identical frame. They are decorative
-  // repeats, so they are hidden from assistive tech.
-  const originals = Array.from(track.children);
-  originals.forEach((card) => {
+  // The clones are what make the wrap invisible: at exactly one copy's width
+  // the second set sits where the first began. Decorative repeats, so they are
+  // hidden from assistive tech.
+  Array.from(track.children).forEach((card) => {
     const clone = card.cloneNode(true);
     clone.setAttribute("aria-hidden", "true");
     clone.dataset.clone = "true";
     track.appendChild(clone);
   });
 
-  // Touching the strip pauses it so a comment can actually be read, and it
-  // resumes from where it stopped rather than jumping.
-  const viewport = document.getElementById("reviewsGrid");
-  let resumeTimer = null;
-  const pause = () => {
-    track.classList.add("paused");
-    clearTimeout(resumeTimer);
-    resumeTimer = setTimeout(() => track.classList.remove("paused"), 5000);
-  };
-  ["touchstart", "pointerdown"].forEach((ev) => viewport?.addEventListener(ev, pause, { passive: true }));
+  const CYCLE_MS = 44000;   // time for one full copy to pass, as before
+  const RESUME_MS = 2500;   // quiet time after a drag before drifting again
+  const DRAG_THRESHOLD = 6; // px of horizontal travel before we claim the gesture
+
+  let offset = 0;       // current translate, in px (negative moves left)
+  let copyWidth = 0;    // width of one copy of the set
+  let lastFrame = null;
+  let resumeAt = 0;
+  let dragging = false;
+  let claimed = false;  // committed to a horizontal drag
+  let startX = 0;
+  let startY = 0;
+  let startOffset = 0;
+
+  const measure = () => { copyWidth = track.scrollWidth / 2; };
+  measure();
+  window.addEventListener("resize", measure);
+  // Card widths are in vw and the fonts load late, so re-measure once things
+  // have settled rather than trusting the first layout.
+  window.addEventListener("load", measure);
+
+  // Wrapping by exactly one copy in either direction keeps the strip endless
+  // whichever way it is pushed.
+  function normalise() {
+    if (!copyWidth) return;
+    while (offset <= -copyWidth) offset += copyWidth;
+    while (offset > 0) offset -= copyWidth;
+  }
+
+  function paint() {
+    track.style.transform = `translate3d(${offset}px, 0, 0)`;
+  }
+
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+
+  function frame(now) {
+    if (lastFrame === null) lastFrame = now;
+    const dt = now - lastFrame;
+    lastFrame = now;
+
+    const drifting = !dragging && now >= resumeAt && !reduceMotion?.matches;
+    if (drifting && copyWidth) {
+      offset -= (copyWidth / CYCLE_MS) * dt;
+      normalise();
+      paint();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // --- dragging ---
+  // pointerdown only records where the finger landed. The gesture is not
+  // claimed until it has travelled further horizontally than vertically, so a
+  // vertical swipe still scrolls the page instead of being swallowed here.
+  viewport.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    claimed = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    startOffset = offset;
+  });
+
+  viewport.addEventListener(
+    "pointermove",
+    (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (!claimed) {
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          // Vertical: let the page have it.
+          dragging = false;
+          return;
+        }
+        claimed = true;
+        viewport.setPointerCapture?.(e.pointerId);
+        viewport.classList.add("is-dragging");
+      }
+
+      offset = startOffset + dx;
+      normalise();
+      paint();
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    if (claimed) {
+      viewport.releasePointerCapture?.(e.pointerId);
+      viewport.classList.remove("is-dragging");
+    }
+    claimed = false;
+    // Pause briefly so the strip does not slide out from under a finger that
+    // has only just let go.
+    resumeAt = performance.now() + RESUME_MS;
+  }
+  viewport.addEventListener("pointerup", endDrag);
+  viewport.addEventListener("pointercancel", endDrag);
+  viewport.addEventListener("pointerleave", endDrag);
+
+  // A card is a link-free block, but the browser still tries to drag images.
+  viewport.addEventListener("dragstart", (e) => e.preventDefault());
+
+  // Trackpad and wheel nudges move it too, and pause the drift the same way.
+  viewport.addEventListener(
+    "wheel",
+    (e) => {
+      const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : 0;
+      if (!dx) return;
+      offset -= dx;
+      normalise();
+      paint();
+      resumeAt = performance.now() + RESUME_MS;
+      e.preventDefault();
+    },
+    { passive: false }
+  );
 })();
 
 // ---------- Coupons ----------
