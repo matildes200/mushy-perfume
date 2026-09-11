@@ -522,6 +522,10 @@ function renderCarousel() {
   const CYCLE_MS = 44000;   // time for one full copy to pass, as before
   const RESUME_MS = 2500;   // quiet time after a drag before drifting again
   const DRAG_THRESHOLD = 6; // px of horizontal travel before we claim the gesture
+  const SETTLE_MS = 420;    // glide onto the nearest card after letting go
+  // Past this much travel the gesture counts as "next one please" rather than
+  // a nudge, so a short flick still advances a whole card.
+  const FLICK_RATIO = 0.15;
 
   let offset = 0;       // current translate, in px (negative moves left)
   let copyWidth = 0;    // width of one copy of the set
@@ -529,13 +533,23 @@ function renderCarousel() {
   let resumeAt = 0;
   let dragging = false;
   let claimed = false;  // committed to a horizontal drag
+  let settling = false; // gliding onto a card boundary
   let startX = 0;
   let startY = 0;
   let startOffset = 0;
+  let lastDx = 0;
+  let wheelTimer = null;
+
+  // The marquee only exists in the mobile layout. On wider screens the reviews
+  // are a static two-column grid with the clones hidden, so the track must not
+  // be transformed at all — driving it there would slide the grid off-screen.
+  const marqueeMedia = window.matchMedia("(max-width: 640px)");
+  const isMarquee = () => marqueeMedia.matches;
 
   const measure = () => { copyWidth = track.scrollWidth / 2; };
   measure();
   window.addEventListener("resize", measure);
+  marqueeMedia.addEventListener?.("change", measure);
   // Card widths are in vw and the fonts load late, so re-measure once things
   // have settled rather than trusting the first layout.
   window.addEventListener("load", measure);
@@ -552,6 +566,67 @@ function renderCarousel() {
     track.style.transform = `translate3d(${offset}px, 0, 0)`;
   }
 
+  // One card plus its margin. The cards are laid out with margin-right rather
+  // than a flex gap precisely so every card occupies the same step.
+  function cardStep() {
+    const card = track.querySelector(".review-card");
+    if (!card) return 0;
+    return card.getBoundingClientRect().width + parseFloat(getComputedStyle(card).marginRight || 0);
+  }
+
+  // Glides to a card boundary after a drag, so letting go lands on a review
+  // instead of halfway between two. Deliberately not normalised mid-flight:
+  // wrapping the offset during the animation would jump the strip a full copy
+  // in the middle of the glide. It is wrapped once at the end instead.
+  function settleTo(target) {
+    const start = offset;
+    const distance = target - start;
+    resumeAt = performance.now() + SETTLE_MS + RESUME_MS;
+    if (Math.abs(distance) < 0.5) {
+      offset = target;
+      normalise();
+      paint();
+      return;
+    }
+    settling = true;
+    const t0 = performance.now();
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    const step = (now) => {
+      // A new drag takes over immediately rather than fighting the glide.
+      if (dragging) { settling = false; return; }
+      const p = Math.min((now - t0) / SETTLE_MS, 1);
+      offset = start + distance * easeOutCubic(p);
+      paint();
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else {
+        settling = false;
+        normalise();
+        paint();
+        resumeAt = performance.now() + RESUME_MS;
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Nearest boundary for a nudge; the next one along for a deliberate swipe.
+  function settleToNearestCard(direction) {
+    const step = cardStep();
+    if (!step) {
+      resumeAt = performance.now() + RESUME_MS;
+      return;
+    }
+    const raw = offset / step;
+    const index =
+      Math.abs(direction) > step * FLICK_RATIO
+        ? direction < 0
+          ? Math.floor(raw)   // pushed left: the card after this one
+          : Math.ceil(raw)    // pushed right: the card before it
+        : Math.round(raw);
+    settleTo(index * step);
+  }
+
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 
   function frame(now) {
@@ -559,7 +634,17 @@ function renderCarousel() {
     const dt = now - lastFrame;
     lastFrame = now;
 
-    const drifting = !dragging && now >= resumeAt && !reduceMotion?.matches;
+    if (!isMarquee()) {
+      // Leave the desktop grid exactly where CSS put it.
+      if (offset !== 0) {
+        offset = 0;
+        track.style.transform = "";
+      }
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    const drifting = !dragging && !settling && now >= resumeAt && !reduceMotion?.matches;
     if (drifting && copyWidth) {
       offset -= (copyWidth / CYCLE_MS) * dt;
       normalise();
@@ -574,6 +659,7 @@ function renderCarousel() {
   // claimed until it has travelled further horizontally than vertically, so a
   // vertical swipe still scrolls the page instead of being swallowed here.
   viewport.addEventListener("pointerdown", (e) => {
+    if (!isMarquee()) return;
     dragging = true;
     claimed = false;
     startX = e.clientX;
@@ -600,6 +686,7 @@ function renderCarousel() {
         viewport.classList.add("is-dragging");
       }
 
+      lastDx = dx;
       offset = startOffset + dx;
       normalise();
       paint();
@@ -611,14 +698,20 @@ function renderCarousel() {
   function endDrag(e) {
     if (!dragging) return;
     dragging = false;
+    const wasClaimed = claimed;
     if (claimed) {
       viewport.releasePointerCapture?.(e.pointerId);
       viewport.classList.remove("is-dragging");
     }
     claimed = false;
-    // Pause briefly so the strip does not slide out from under a finger that
-    // has only just let go.
-    resumeAt = performance.now() + RESUME_MS;
+
+    if (wasClaimed) {
+      // Land on a review rather than stopping halfway between two.
+      settleToNearestCard(lastDx);
+    } else {
+      resumeAt = performance.now() + RESUME_MS;
+    }
+    lastDx = 0;
   }
   viewport.addEventListener("pointerup", endDrag);
   viewport.addEventListener("pointercancel", endDrag);
@@ -631,12 +724,18 @@ function renderCarousel() {
   viewport.addEventListener(
     "wheel",
     (e) => {
+      if (!isMarquee()) return;
       const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : 0;
       if (!dx) return;
+      settling = false;
       offset -= dx;
       normalise();
       paint();
       resumeAt = performance.now() + RESUME_MS;
+      // A wheel gesture arrives as a burst of events, so the settle waits for
+      // the burst to stop rather than firing on every tick.
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => settleToNearestCard(-dx), 120);
       e.preventDefault();
     },
     { passive: false }
