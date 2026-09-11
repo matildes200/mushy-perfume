@@ -314,6 +314,15 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   const email = document.getElementById("registerEmail").value.trim();
   const phone = `${countryCodeSelect.value} ${document.getElementById("phone").value.trim()}`;
   const password = document.getElementById("registerPassword").value;
+  const confirm = document.getElementById("registerPasswordConfirm").value;
+
+  // Checked before the request: a typo in a password you cannot see is only
+  // discoverable at the next sign-in, by which point the account exists.
+  if (password !== confirm) {
+    btn.disabled = false;
+    showAuthAlert(window.t?.("auth.password.mismatch"));
+    return;
+  }
 
   const { data, error } = await supabaseClient.auth.signUp({
     email,

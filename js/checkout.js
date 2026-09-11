@@ -8,6 +8,16 @@ const checkoutStepAuth = document.getElementById("checkoutStepAuth");
 const checkoutStepPayment = document.getElementById("checkoutStepPayment");
 const checkoutStepDone = document.getElementById("checkoutStepDone");
 
+// Dial codes for the sign-up phone field, same list the account page uses.
+// Angola is preselected, since that is where the shop ships.
+(() => {
+  const select = document.getElementById("ckRegCountry");
+  if (!select || typeof COUNTRY_CODES === "undefined") return;
+  select.innerHTML = COUNTRY_CODES.map(
+    (c) => `<option value="${c.dial}" ${c.iso === "AO" ? "selected" : ""}>${c.name} (${c.dial})</option>`
+  ).join("");
+})();
+
 function showCheckoutStep(step) {
   [checkoutStepAuth, checkoutStepPayment, checkoutStepDone].forEach((el) => el?.classList.remove("active"));
   step?.classList.add("active");
@@ -162,10 +172,29 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
   const full_name = document.getElementById("ckRegName").value.trim();
   const email = document.getElementById("ckRegEmail").value.trim();
   const password = document.getElementById("ckRegPassword").value;
+  const confirm = document.getElementById("ckRegPasswordConfirm").value;
+  const rawPhone = document.getElementById("ckRegPhone").value.trim();
+  const dial = document.getElementById("ckRegCountry").value;
+
+  if (password !== confirm) {
+    btn.disabled = false;
+    showCheckoutAuthAlert(window.t?.("auth.password.mismatch"));
+    return;
+  }
+  // Collected here as well as on the account page: someone who signs up at
+  // this point is about to place an order, and the order needs a number to
+  // reach them on.
+  if (!rawPhone) {
+    btn.disabled = false;
+    showCheckoutAuthAlert(window.t?.("auth.phone.required"));
+    return;
+  }
+  const phone = `${dial} ${rawPhone}`;
+
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
-    options: { data: { full_name }, emailRedirectTo: `${window.location.origin}/conta.html` },
+    options: { data: { full_name, phone }, emailRedirectTo: `${window.location.origin}/conta.html` },
   });
   btn.disabled = false;
 

@@ -105,6 +105,10 @@
                 <label for="registerPassword" data-i18n="account.password">Palavra-passe</label>
                 <input type="password" id="registerPassword" autocomplete="new-password" minlength="6" required>
               </div>
+              <div class="account-field">
+                <label for="registerPasswordConfirm" data-i18n="account.password.confirm">Confirmar palavra-passe</label>
+                <input type="password" id="registerPasswordConfirm" autocomplete="new-password" minlength="6" required>
+              </div>
               <button type="submit" class="btn btn-primary btn-block" id="registerBtn" data-i18n="checkout.tab.register">Criar conta</button>
             </form>
           </div>
@@ -308,7 +312,15 @@
       <form id="checkoutRegisterForm" class="account-form-panel">
         <div class="account-field"><label>Nome completo</label><input type="text" id="ckRegName" required></div>
         <div class="account-field"><label>E-mail</label><input type="email" id="ckRegEmail" required></div>
-        <div class="account-field"><label>Palavra-passe</label><input type="password" id="ckRegPassword" minlength="6" required></div>
+        <div class="account-field">
+          <label for="ckRegCountry" data-i18n="account.contact">Contacto</label>
+          <div class="phone-field">
+            <select id="ckRegCountry" autocomplete="tel-country-code"></select>
+            <input type="tel" id="ckRegPhone" placeholder="Número de telefone" data-i18n-placeholder="account.phone.placeholder" autocomplete="tel-national" required>
+          </div>
+        </div>
+        <div class="account-field"><label for="ckRegPassword" data-i18n="account.password">Palavra-passe</label><input type="password" id="ckRegPassword" autocomplete="new-password" minlength="6" required></div>
+        <div class="account-field"><label for="ckRegPasswordConfirm" data-i18n="account.password.confirm">Confirmar palavra-passe</label><input type="password" id="ckRegPasswordConfirm" autocomplete="new-password" minlength="6" required></div>
         <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.register">Criar conta</button>
       </form>
     </div>

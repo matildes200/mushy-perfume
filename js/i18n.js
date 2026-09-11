@@ -219,6 +219,7 @@ const TRANSLATIONS = {
     "account.contact": "Contacto",
     "account.fullname": "Nome completo",
     "account.password": "Palavra-passe",
+    "account.password.confirm": "Confirmar palavra-passe",
     "account.phone.placeholder": "Número de telefone",
     "account.address.label": "Morada de entrega",
     "account.address.placeholder": "Rua, número, bairro e cidade",
@@ -263,6 +264,8 @@ const TRANSLATIONS = {
     "auth.resend.success": "E-mail de confirmação reenviado! Verifique a sua caixa de entrada.",
     "auth.exists": "Este e-mail já tem uma conta associada. Tente iniciar sessão.",
     "auth.signup.error": "Não foi possível criar a conta. Tente novamente.",
+    "auth.password.mismatch": "As palavras-passe não coincidem.",
+    "auth.phone.required": "Indique o seu número de telefone.",
     "auth.created.account": "Conta criada! Verifique o seu e-mail para confirmar o registo antes de iniciar sessão.",
     "auth.created.checkout": "Conta criada! Verifique o seu e-mail para confirmar o registo e depois clique novamente em finalizar.",
 
@@ -491,6 +494,7 @@ const TRANSLATIONS = {
     "account.contact": "Contact",
     "account.fullname": "Full name",
     "account.password": "Password",
+    "account.password.confirm": "Confirm password",
     "account.phone.placeholder": "Phone number",
     "account.address.label": "Delivery address",
     "account.address.placeholder": "Street, number, area, city",
@@ -535,6 +539,8 @@ const TRANSLATIONS = {
     "auth.resend.success": "Confirmation email resent! Check your inbox.",
     "auth.exists": "That email already has an account. Try signing in.",
     "auth.signup.error": "We couldn't create the account. Please try again.",
+    "auth.password.mismatch": "The passwords do not match.",
+    "auth.phone.required": "Please give your phone number.",
     "auth.created.account": "Account created! Check your email to confirm your registration before signing in.",
     "auth.created.checkout": "Account created! Check your email to confirm, then tap checkout again.",
 
