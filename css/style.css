@@ -2345,3 +2345,39 @@ button { font-family: var(--font-body); }
   margin: 22px 0 0; font-weight: 500;
 }
 .policy-note { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin: 10px 0 0; }
+
+/* ---------- Fixação e projecção on the back of the card ----------
+   Same label/value shape as the pyramid rows above, so the block reads as one
+   list rather than two. The notes area is the flexible middle of the back
+   face, so it can shrink; min-height:0 lets it, and overflow:hidden means a
+   long product clips its own text instead of pushing the button off the card. */
+.flip-back-notes { min-height: 0; overflow: hidden; }
+.flip-scales { display: flex; flex-direction: column; gap: 6px; }
+.flip-scales:empty { display: none; }
+/* A separator only when there is something above it to separate from. */
+.flip-scales:not(:first-child) {
+  margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+}
+.flip-scale-row { align-items: center; }
+.flip-scale-value { flex: 1; display: flex; align-items: center; gap: 7px; min-width: 0; }
+.flip-scale-value .scale-dots { flex: 0 0 auto; gap: 3px; }
+.flip-scale-value .scale-dot { width: 6px; height: 6px; }
+.flip-scale-text {
+  font-size: 10.5px; line-height: 1.35; color: var(--text);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* With scales present the free-text fallback gives up lines rather than
+   letting the card overflow. */
+.flip-back-fallback.is-short { -webkit-line-clamp: 3; }
+
+/* After the base rules above, not inside the earlier 640px block: media
+   queries add no specificity, so an override written earlier in the file
+   simply loses to a later rule of equal weight. */
+@media (max-width: 640px) {
+  .flip-scales { gap: 5px; }
+  .flip-scales:not(:first-child) { margin-top: 6px; padding-top: 6px; }
+  .flip-scale-value { gap: 5px; }
+  .flip-scale-value .scale-dot { width: 5px; height: 5px; }
+  .flip-scale-text { font-size: 9.5px; }
+  .flip-back-fallback.is-short { -webkit-line-clamp: 2; }
+}
