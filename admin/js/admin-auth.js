@@ -45,5 +45,33 @@
     if (link.getAttribute("href") === current) link.classList.add("active");
   });
 
-  document.dispatchEvent(new CustomEvent("admin:ready", { detail: { session } }));
+  // ---- Why this waits for the parser -------------------------------------
+  // This file is loaded BEFORE each page's own script, and every page script
+  // registers its loader with document.addEventListener("admin:ready", ...).
+  //
+  // The browser drains the microtask queue after each <script> finishes. When
+  // the stored token is still valid, getSession() above resolves without a
+  // network request — purely in microtasks — so this function would resume and
+  // dispatch at that checkpoint, BEFORE the page script has been parsed. The
+  // listener would then be registered against an event that already fired, and
+  // the page would sit on "A carregar…" forever.
+  //
+  // That is not hypothetical: it is what happened when the is_admin() await was
+  // moved off this path. That await was an HTTP request, so it always settled
+  // in a macrotask and accidentally guaranteed the ordering. Nothing guarantees
+  // it now except this gate, so do not remove it — and do not reintroduce an
+  // await here and call the problem solved, because a warm cache can still make
+  // any await resolve in microtasks.
+  //
+  // DOMContentLoaded fires only once parsing is finished, so every page script
+  // at the end of <body> has run and registered by then. The is_admin() RPC
+  // above still overlaps with page loading, so the speed-up is unaffected.
+  const announce = () =>
+    document.dispatchEvent(new CustomEvent("admin:ready", { detail: { session } }));
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", announce, { once: true });
+  } else {
+    announce();
+  }
 })();
