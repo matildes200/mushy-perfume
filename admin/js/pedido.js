@@ -56,7 +56,7 @@ function renderItems() {
             : `<span class="order-item-noimg"></span>`;
           return `<div class="order-item">
             <span class="order-item-thumb">${img}</span>
-            <span class="order-item-name">${escapeHtml(it.name)}</span>
+            <span class="order-item-name">${escapeHtml(it.name)}${it.size ? ` <span class="order-item-size">${escapeHtml(it.size)}</span>` : ""}</span>
             <span class="order-item-qty">${it.qty} ×</span>
             <span class="order-item-price">${money(it.price)}</span>
             <span class="order-item-line">${money(it.price * it.qty)}</span>
@@ -341,7 +341,7 @@ receiptZoom.addEventListener("click", (e) => { if (e.target === receiptZoom) rec
 document.getElementById("printNoteBtn").addEventListener("click", () => {
   if (!order) return;
   const items = (order.items || [])
-    .map((it) => `<tr><td>${escapeHtml(it.name)}</td><td>${it.qty}</td><td>${money(it.price)}</td><td>${money(it.price * it.qty)}</td></tr>`)
+    .map((it) => `<tr><td>${escapeHtml(it.name)}${it.size ? ` (${escapeHtml(it.size)})` : ""}</td><td>${it.qty}</td><td>${money(it.price)}</td><td>${money(it.price * it.qty)}</td></tr>`)
     .join("");
   const address = [order.customer_address || order.shipping_address, order.customer_city || order.shipping_city]
     .filter(Boolean)

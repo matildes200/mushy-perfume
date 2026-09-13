@@ -14,7 +14,10 @@ const textFields = [
   // "notes" summary is what the storefront card actually falls back to.
   "notes", "image",
 ];
-const numberFields = ["price", "discount_percent", "volume_ml", "stock", "low_stock_threshold"];
+// stock is deliberately absent: it is the sum of the product's sizes, kept by
+// a database trigger. Writing it here would be overwritten on the next stock
+// change, and would disagree with the sizes in the meantime.
+const numberFields = ["price", "discount_percent", "volume_ml", "low_stock_threshold"];
 // 1-5 scales that may legitimately be unset. Blank saves as NULL rather than 0,
 // which the database would reject and which would also mean "level zero".
 const nullableScaleFields = ["fixacao", "projecao"];
@@ -31,7 +34,103 @@ function showAlert(el, message, type = "error") {
 
 const NUMBER_DEFAULTS = { discount_percent: 0, stock: 0, low_stock_threshold: 5 };
 
-function openModal(product) {
+// ---------------------------------------------------- sizes and prices ---
+// Every product carries one row per size. The price column is an override:
+// empty means "follow the percentage", which is what lets a change to the base
+// price reprice the whole product at once.
+
+let SIZES = [];
+const variantTableBody = document.querySelector("#variantTable tbody");
+
+const derivedPrice = (base, pct) => Math.round(Number(base || 0) * (Number(pct || 100) / 100));
+
+async function loadSizes() {
+  const { data, error } = await supabaseClient
+    .from("product_sizes")
+    .select("id, label, volume_ml, price_pct, sort_order")
+    .eq("active", true)
+    .order("sort_order");
+  if (error) {
+    showAlert(productsAlert, "Não foi possível carregar os tamanhos.");
+    return;
+  }
+  SIZES = data || [];
+}
+
+// `variants` is keyed by size id. A product being created has none yet, so
+// every row starts empty and is inserted on save.
+function renderVariantRows(variants) {
+  if (!variantTableBody) return;
+  if (!SIZES.length) {
+    variantTableBody.innerHTML =
+      `<tr><td colspan="4" class="admin-empty">Nenhum tamanho definido. Crie-os em Definições &rarr; Tamanhos.</td></tr>`;
+    return;
+  }
+  const base = Number(document.getElementById("price").value) || 0;
+  variantTableBody.innerHTML = SIZES.map((s) => {
+    const v = variants[s.id] || {};
+    const derived = derivedPrice(base, s.price_pct);
+    return `<tr data-size-id="${s.id}">
+      <td class="wrap"><strong>${escapeHtml(s.label)}</strong>
+        <span class="variant-pct">${Number(s.price_pct)}% do base</span></td>
+      <td class="variant-derived" data-pct="${s.price_pct}">${money(derived)}</td>
+      <td><input type="number" class="variant-price" min="0" step="1"
+        value="${v.price ?? ""}" placeholder="${derived}"></td>
+      <td><input type="number" class="variant-stock" min="0" step="1"
+        value="${Number(v.stock || 0)}"></td>
+    </tr>`;
+  }).join("");
+  syncVariantTotals();
+}
+
+// The calculated column and the placeholders follow the base price as it is
+// typed, so the effect of a change is visible before saving.
+function syncVariantTotals() {
+  const base = Number(document.getElementById("price").value) || 0;
+  variantTableBody?.querySelectorAll("tr[data-size-id]").forEach((row) => {
+    const cell = row.querySelector(".variant-derived");
+    if (!cell) return;
+    const derived = derivedPrice(base, cell.dataset.pct);
+    cell.textContent = money(derived);
+    const priceInput = row.querySelector(".variant-price");
+    if (priceInput) priceInput.placeholder = String(derived);
+  });
+  const totalStock = Array.from(variantTableBody?.querySelectorAll(".variant-stock") || [])
+    .reduce((sum, el) => sum + (Number(el.value) || 0), 0);
+  const stockEl = document.getElementById("stock");
+  if (stockEl) stockEl.value = String(totalStock);
+}
+
+document.getElementById("price")?.addEventListener("input", syncVariantTotals);
+variantTableBody?.addEventListener("input", (e) => {
+  if (e.target.classList.contains("variant-stock")) syncVariantTotals();
+});
+
+// Reads the table back. A blank price is null, meaning "follow the percentage";
+// zero is a real price and is kept as zero.
+function collectVariants() {
+  return Array.from(variantTableBody?.querySelectorAll("tr[data-size-id]") || []).map((row) => {
+    const raw = row.querySelector(".variant-price")?.value.trim() ?? "";
+    return {
+      size_id: Number(row.dataset.sizeId),
+      price: raw === "" ? null : Number(raw),
+      stock: Number(row.querySelector(".variant-stock")?.value) || 0,
+    };
+  });
+}
+
+async function saveVariants(productId) {
+  const rows = collectVariants().map((v) => ({ ...v, product_id: productId, active: true }));
+  if (!rows.length) return null;
+  // onConflict on the pair, so editing a product updates its rows rather than
+  // failing on the unique constraint.
+  const { error } = await supabaseClient
+    .from("product_variants")
+    .upsert(rows, { onConflict: "product_id,size_id" });
+  return error;
+}
+
+function openModal(product, variants = []) {
   productForm.reset();
   showAlert(productFormAlert, "");
   document.getElementById("productId").value = product?.id || "";
@@ -54,6 +153,9 @@ function openModal(product) {
     const el = document.getElementById(f);
     if (el) el.checked = product ? Boolean(product[f]) : f === "active";
   });
+  // Keyed by size so a row can find its own values without scanning the list.
+  renderVariantRows(Object.fromEntries((variants || []).map((v) => [v.size_id, v])));
+
   document.getElementById("images").value = (product?.images || []).join("\n");
 
   document.getElementById("imageFile").value = "";
@@ -180,12 +282,18 @@ productsTableBody.addEventListener("click", async (e) => {
       .select("*")
       .eq("id", Number(editBtn.dataset.edit))
       .single();
+    // Fetched alongside the product rather than after it, so opening the form
+    // stays one round trip's worth of waiting.
+    const { data: variants } = await supabaseClient
+      .from("product_variants")
+      .select("size_id, price, stock")
+      .eq("product_id", Number(editBtn.dataset.edit));
     editBtn.disabled = false;
     if (error || !product) {
       showAlert(productsAlert, "Não foi possível abrir este produto.");
       return;
     }
-    openModal(product);
+    openModal(product, variants || []);
     return;
   }
 
@@ -243,7 +351,22 @@ productForm.addEventListener("submit", async (e) => {
   }
 
   const productId = id ? Number(id) : savedProduct?.id;
-  const stockDelta = payload.stock - previousStock;
+
+  // Saved after the product, since a new product has no id until it exists.
+  // A failure here is reported rather than swallowed: the product would
+  // otherwise be saved with prices and stock that were silently discarded.
+  if (productId) {
+    const variantError = await saveVariants(productId);
+    if (variantError) {
+      showAlert(productFormAlert, "O produto foi guardado, mas os tamanhos não. Tente guardar de novo.");
+      return;
+    }
+  }
+
+  // products.stock is maintained by a trigger from the sizes, so the movement
+  // is measured against what the rows now add up to.
+  const newStock = collectVariants().reduce((sum, v) => sum + v.stock, 0);
+  const stockDelta = newStock - previousStock;
   if (productId && stockDelta !== 0) {
     await supabaseClient.from("stock_history").insert({
       product_id: productId,
@@ -257,4 +380,10 @@ productForm.addEventListener("submit", async (e) => {
   loadProducts();
 });
 
-document.addEventListener("admin:ready", loadProducts);
+document.addEventListener("admin:ready", () => {
+}
+ .qq{  // In parallel: the sizes are only needed once a product form is opened.
+}
+ .qq{  loadSizes();
+  loadProducts();
+});

@@ -8,7 +8,7 @@ Campos por preencher usam `XXX`. Números de telefone de exemplo usam a gama
 reservada `+244 900 000 000`, que não pertence a ninguém: quem ligue não
 incomoda um estranho.
 
-Última actualização: 13 de Setembro de 2026 (fim de B2 e B3).
+Última actualização: 13 de Setembro de 2026 (B2, B3 e o modelo de tamanhos).
 
 ---
 
@@ -83,7 +83,35 @@ registados aqui.
 O limite para entrega grátis está **desactivado** por omissão, sem valor
 definido. Se for activado sem valor, o formulário recusa guardar.
 
-## 5. Por fazer, fora do âmbito de B2 e B3
+## 5. Tamanhos e preços por tamanho — **novo**
+
+Definidos em [supabase/migration_16_product_variants.sql](supabase/migration_16_product_variants.sql)
+e editáveis em **Definições → Tamanhos** (os tamanhos e as percentagens) e em
+**Produtos → editar produto** (o preço e o stock de cada tamanho).
+
+| Tamanho | % do preço base | Estado |
+|---|---|---|
+| 35 ml | 55% | **percentagem de exemplo** |
+| 50 ml | 75% | **percentagem de exemplo** |
+| 100 ml | 100% (preço base) | corresponde ao preço já praticado |
+
+O preço base de cada produto é o que já lá estava e é real; é o preço do 100 ml.
+As percentagens de 55% e 75% vieram do briefing como ponto de partida e **não
+foram calculadas a partir de custos**. Dão apenas o valor por omissão: o preço
+de qualquer tamanho pode ser escrito à mão no produto, e nesse caso deixa de
+seguir a percentagem.
+
+> **35 ml ou 30 ml?** O briefing inicial dizia 30 ml; a indicação mais recente
+> disse 35 ml, que foi o que ficou. Muda-se em Definições → Tamanhos, num campo.
+
+**Stock:** os 100 ml herdaram o stock que cada produto já tinha. Os 35 ml e os
+50 ml começaram a zero, e aparecem como esgotados até serem preenchidos, porque
+sabemos que stock existe mas não sabemos que stock existe num tamanho que nunca
+foi vendido. Inventá-lo poria pedidos na lista que não podem ser satisfeitos.
+O stock total do produto passou a ser a soma dos tamanhos, calculada
+automaticamente.
+
+## 6. Por fazer, fora do âmbito de B2 e B3
 
 - **Definições → Contactos não chega ao site.** Os três campos gravam
   correctamente mas nenhuma página pública os lê; o rodapé e o cartão de

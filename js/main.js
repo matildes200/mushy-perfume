@@ -65,20 +65,60 @@ const newsletterNote = document.getElementById("newsletterNote");
 // number and "Kz" could end up wrapping onto separate lines.
 const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
 
+// ---------- Sizes and prices ----------
+// A product's `price` is its base, meaning the 100 ml. Every other size is that
+// base scaled by the size's percentage, unless the variant carries its own
+// price — an override typed into the admin product form. null there means
+// "follow the percentage", which is what makes changing the base reprice the
+// whole product at once.
+function sizePrice(p, variant) {
+  if (!variant) return Number(p.price) || 0;
+  if (variant.price !== null && variant.price !== undefined) return Number(variant.price);
+  return Math.round(Number(p.price || 0) * (Number(variant.size?.price_pct || 100) / 100));
+}
+
+// The variants worth showing. A product with one size behaves exactly as it did
+// before variants existed, so nothing has to special-case the single-size case.
+const productVariants = (p) => (Array.isArray(p.variants) ? p.variants : []);
+const hasSizeChoice = (p) => productVariants(p).length > 1;
+
+const variantInStock = (v) => Number(v?.stock || 0) > 0;
+
+// What a card shows before anything is picked: the cheapest size that can
+// actually be bought, so the headline price is never one you cannot have.
+function defaultVariant(p) {
+  const vs = productVariants(p);
+  if (!vs.length) return null;
+  const buyable = vs.filter(variantInStock);
+  const pool = buyable.length ? buyable : vs;
+  return pool.reduce((best, v) => (sizePrice(p, v) < sizePrice(p, best) ? v : best), pool[0]);
+}
+
+const findVariant = (p, sizeId) =>
+  productVariants(p).find((v) => String(v.size_id) === String(sizeId)) || null;
+
 // Effective price after discount_percent (0 when the column doesn't exist yet
-// or hasn't been set, so pre-migration data still renders correctly).
-const effectivePrice = (p) => p.price * (1 - (p.discount_percent || 0) / 100);
+// or hasn't been set, so pre-migration data still renders correctly). The
+// discount is a property of the product, so it applies to whichever size.
+const effectivePrice = (p, variant) =>
+  sizePrice(p, variant === undefined ? defaultVariant(p) : variant) *
+  (1 - (p.discount_percent || 0) / 100);
+
+// products.stock is kept as the sum of its variants by a database trigger, so
+// this stays true whether or not a product has sizes.
 const isOutOfStock = (p) => p.stock !== undefined && p.stock !== null && p.stock <= 0;
 
 // The discount sits on its own line *under* the price rather than beside it,
 // so the current price is always the first line of the block and every card in
 // a row lines its name and price up at the same height, discounted or not.
-function priceMarkup(p, className) {
-  if (!p.discount_percent) return `<span class="${className}"><span class="price-final">${money(p.price)}</span></span>`;
+function priceMarkup(p, className, variant) {
+  const v = variant === undefined ? defaultVariant(p) : variant;
+  const base = sizePrice(p, v);
+  if (!p.discount_percent) return `<span class="${className}"><span class="price-final">${money(base)}</span></span>`;
   return `<span class="${className} price-discounted">
-    <span class="price-final">${money(effectivePrice(p))}</span>
+    <span class="price-final">${money(effectivePrice(p, v))}</span>
     <span class="price-was">
-      <span class="price-original">${money(p.price)}</span>
+      <span class="price-original">${money(base)}</span>
       <span class="price-badge">-${p.discount_percent}%</span>
     </span>
   </span>`;
@@ -89,9 +129,70 @@ function stockBadge(p) {
 }
 
 function addButton(p, label, labelKey) {
-  return isOutOfStock(p)
-    ? `<button class="btn btn-small" disabled data-i18n="product.soldout">Esgotado</button>`
-    : `<button class="btn btn-small" data-add="${p.id}" data-i18n="${labelKey}">${label}</button>`;
+  if (isOutOfStock(p)) {
+    return `<button class="btn btn-small" disabled data-i18n="product.soldout">Esgotado</button>`;
+  }
+  // data-size is what the click handler adds to the cart. It starts on the
+  // default size and is rewritten by selectCardSize() as sizes are picked.
+  const v = defaultVariant(p);
+  const sizeAttr = v ? ` data-size="${v.size_id}"` : "";
+  return `<button class="btn btn-small" data-add="${p.id}"${sizeAttr} data-i18n="${labelKey}">${label}</button>`;
+}
+
+// ---------- Size picker on the back of the card ----------
+// One row of pills. A size with no stock stays visible but cannot be chosen:
+// hiding it would make the range look smaller than it is, and silently
+// swapping to another size would sell someone the wrong bottle.
+function sizePicker(p) {
+  if (!hasSizeChoice(p)) return "";
+  const selected = defaultVariant(p);
+  const pills = productVariants(p)
+    .map((v) => {
+      const out = !variantInStock(v);
+      const on = selected && v.size_id === selected.size_id;
+      // No tooltip: this is a phone-first shop and a title attribute never
+      // appears on touch. The unavailable state is carried by the styling and
+      // by disabled, which screen readers announce.
+      return `<button type="button" class="size-pill${on ? " selected" : ""}${out ? " out" : ""}"
+        data-size="${v.size_id}" data-product="${p.id}"${out ? " disabled" : ""}
+        aria-pressed="${on ? "true" : "false"}">${v.size.label}</button>`;
+    })
+    .join("");
+  return `<div class="size-picker" role="group" data-size-group="${p.id}">${pills}</div>`;
+}
+
+// Repricing in place rather than re-rendering: rebuilding the grid would drop
+// the .flipped class and turn every open card back to its front face.
+function selectCardSize(btn) {
+  const productId = Number(btn.dataset.product);
+  const sizeId = Number(btn.dataset.size);
+  const product = PRODUCTS.find((x) => x.id === productId);
+  const variant = product && findVariant(product, sizeId);
+  if (!product || !variant || !variantInStock(variant)) return;
+
+  const group = btn.closest("[data-size-group]");
+  group?.querySelectorAll(".size-pill").forEach((el) => {
+    const on = el === btn;
+    el.classList.toggle("selected", on);
+    el.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+
+  // The same picker is used on the back of a card and inside the detail modal,
+  // which has no .flip-card around it — hence the two branches.
+  const card = btn.closest(".flip-card");
+  if (card) {
+    const priceEl = card.querySelector(".flip-back-price");
+    if (priceEl) priceEl.outerHTML = priceMarkup(product, "flip-back-price", variant);
+    const addBtn = card.querySelector("[data-add]");
+    if (addBtn) addBtn.dataset.size = String(sizeId);
+    return;
+  }
+
+  if (btn.closest("#pdSizes")) {
+    productDetailSize = sizeId;
+    const pdPrice = document.getElementById("pdPrice");
+    if (pdPrice) pdPrice.innerHTML = priceMarkup(product, "pd-price", variant);
+  }
 }
 
 // Resolved to an absolute URL: a relative url() stored in a CSS custom property
@@ -258,6 +359,53 @@ let cart = JSON.parse(localStorage.getItem("mushy-cart") || "{}");
 let wishlist = JSON.parse(localStorage.getItem("mushy-wishlist") || "[]");
 let activeFilter = "todos";
 
+// ---------- Cart keys ----------
+// The same perfume in two sizes is two lines, so the cart is keyed by
+// "<productId>:<sizeId>" rather than by product alone.
+const cartKey = (productId, sizeId) => `${productId}:${sizeId}`;
+
+function parseCartKey(key) {
+  const [pid, sid] = String(key).split(":");
+  return { productId: Number(pid), sizeId: sid === undefined ? null : Number(sid) };
+}
+
+// Resolves a key back to what it refers to. Returns null for a line whose
+// product or size no longer exists, so a stale cart is dropped rather than
+// throwing or silently pricing at zero.
+function cartLine(key) {
+  const { productId, sizeId } = parseCartKey(key);
+  const product = PRODUCTS.find((x) => x.id === productId);
+  if (!product) return null;
+  const variant = sizeId === null ? defaultVariant(product) : findVariant(product, sizeId);
+  // A size that has been removed invalidates the line; a product that never
+  // had sizes is still valid with no variant.
+  if (sizeId !== null && !variant && productVariants(product).length) return null;
+  return { key, product, variant, qty: cart[key], unitPrice: effectivePrice(product, variant) };
+}
+
+const cartLines = () => Object.keys(cart).map(cartLine).filter(Boolean);
+
+const inCart = (productId) =>
+  Object.keys(cart).some((k) => parseCartKey(k).productId === productId);
+
+// Carts saved before sizes existed are keyed by product id alone. Rewriting
+// them on load means an old tab's cart keeps its contents instead of emptying.
+function migrateLegacyCart() {
+  let changed = false;
+  Object.keys(cart).forEach((key) => {
+    if (String(key).includes(":")) return;
+    const product = PRODUCTS.find((x) => x.id === Number(key));
+    const variant = product && defaultVariant(product);
+    const qty = cart[key];
+    delete cart[key];
+    changed = true;
+    if (!variant) return;
+    const next = cartKey(product.id, variant.size_id);
+    cart[next] = (cart[next] || 0) + qty;
+  });
+  if (changed) saveCart();
+}
+
 function saveCart() {
   localStorage.setItem("mushy-cart", JSON.stringify(cart));
 }
@@ -408,8 +556,9 @@ function backContent(p) {
       ${fallbackNotes ? `<p class="flip-back-fallback${scales ? " is-short" : ""}">${fallbackNotes}</p>` : ""}
       ${scales ? `<div class="flip-scales">${scales}</div>` : ""}
     </div>
+    ${sizePicker(p)}
     <div class="flip-back-meta">
-      ${size ? `<span class="flip-back-size">${size}</span>` : ""}
+      ${hasSizeChoice(p) ? "" : size ? `<span class="flip-back-size">${size}</span>` : ""}
       ${priceMarkup(p, "flip-back-price")}
     </div>`;
 }
@@ -825,10 +974,7 @@ function saveCoupon() {
 }
 
 function cartSubtotal() {
-  return Object.keys(cart).reduce((sum, id) => {
-    const p = PRODUCTS.find((x) => x.id === Number(id));
-    return p ? sum + effectivePrice(p) * cart[id] : sum;
-  }, 0);
+  return cartLines().reduce((sum, line) => sum + line.unitPrice * line.qty, 0);
 }
 
 function couponDiscountAmount(subtotal) {
@@ -914,12 +1060,15 @@ setCouponToggleState();
 function updateCartUI() {
   // Keeps the "entrega a partir de" line and the free-delivery progress honest.
   window.updateCartDeliveryHint?.();
+  // Lines whose product or size no longer exists are dropped rather than
+  // rendered as a blank row at zero.
+  const lines = cartLines();
   const ids = Object.keys(cart);
-  const totalCount = ids.reduce((sum, id) => sum + cart[id], 0);
+  const totalCount = lines.reduce((sum, line) => sum + line.qty, 0);
   cartCountEl.textContent = totalCount;
   cartCountEl.style.display = totalCount > 0 ? "flex" : "none";
 
-  if (ids.length === 0) {
+  if (lines.length === 0) {
     cartItemsEl.innerHTML = `<p class="cart-empty" data-i18n="cart.empty">O seu carrinho está vazio.</p>`;
     window.applyTranslations?.(window.getLang?.());
     if (cartSubtotalEl) cartSubtotalEl.textContent = money(0);
@@ -933,24 +1082,27 @@ function updateCartUI() {
   checkoutBtn.classList.remove("disabled");
 
   let subtotal = 0;
-  cartItemsEl.innerHTML = ids
-    .map((id) => {
-      const p = PRODUCTS.find((x) => x.id === Number(id));
-      const qty = cart[id];
-      subtotal += effectivePrice(p) * qty;
+  cartItemsEl.innerHTML = lines
+    .map(({ key, product: p, variant, qty, unitPrice }) => {
+      subtotal += unitPrice * qty;
+      // The size goes next to the name, or the same perfume twice reads as a
+      // duplicate line rather than two different bottles.
+      const sizeTag = variant?.size
+        ? `<span class="cart-item-size">${variant.size.label}</span>`
+        : "";
       return `
       <div class="cart-item" data-cart-view="${p.id}">
         <div class="cart-item-media ${p.image ? "" : p.tone}">${mediaContent(p)}</div>
         <div class="cart-item-info">
-          <strong>${p.name}</strong>
-          <span>${money(effectivePrice(p))}</span>
+          <strong>${p.name}${sizeTag}</strong>
+          <span>${money(unitPrice)}</span>
           <div class="qty-control">
-            <button data-dec="${p.id}" aria-label="Diminuir quantidade">−</button>
+            <button data-dec="${key}" aria-label="Diminuir quantidade">−</button>
             <span>${qty}</span>
-            <button data-inc="${p.id}" aria-label="Aumentar quantidade">+</button>
+            <button data-inc="${key}" aria-label="Aumentar quantidade">+</button>
           </div>
         </div>
-        <button class="remove-btn" data-remove="${p.id}" aria-label="Remover item">
+        <button class="remove-btn" data-remove="${key}" aria-label="Remover item">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
       </div>`;
@@ -977,8 +1129,21 @@ function updateCartUI() {
   cartTotalEl.textContent = money(total);
 }
 
-function addToCart(id) {
-  cart[id] = (cart[id] || 0) + 1;
+// sizeId is optional: without it the product's default size is used, which is
+// what the favourites drawer and any single-size product rely on.
+function addToCart(productId, sizeId) {
+  const product = PRODUCTS.find((x) => x.id === Number(productId));
+  if (!product) return;
+  const variant = sizeId === undefined || sizeId === null
+    ? defaultVariant(product)
+    : findVariant(product, sizeId);
+
+  // Refuse a size with no stock here as well as in the markup: the button is
+  // disabled, but the handler is what actually protects the cart.
+  if (variant && !variantInStock(variant)) return;
+
+  const key = variant ? cartKey(product.id, variant.size_id) : String(product.id);
+  cart[key] = (cart[key] || 0) + 1;
   saveCart();
   updateCartUI();
   // Keeps the "No carrinho" marker in the favourites drawer honest.
@@ -986,21 +1151,21 @@ function addToCart(id) {
   openCart();
 }
 
-function changeQty(id, delta) {
-  const next = (cart[id] || 0) + delta;
+function changeQty(key, delta) {
+  const next = (cart[key] || 0) + delta;
   if (next <= 0) {
-    delete cart[id];
+    delete cart[key];
   } else {
-    cart[id] = next;
+    cart[key] = next;
   }
   saveCart();
   updateCartUI();
   renderWishlistDrawer();
 }
 
-function removeFromCart(id) {
+function removeFromCart(key) {
   // (see addToCart: the favourites marker follows the cart)
-  delete cart[id];
+  delete cart[key];
   saveCart();
   updateCartUI();
   renderWishlistDrawer();
@@ -1066,7 +1231,7 @@ function renderWishlistDrawer() {
         <div class="cart-item-info">
           <strong>${p.name}</strong>
           <span>${money(effectivePrice(p))}</span>
-          ${cart[p.id] ? `<span class="in-cart-tag" data-i18n="wishlist.incart">No carrinho</span>` : ""}
+          ${inCart(p.id) ? `<span class="in-cart-tag" data-i18n="wishlist.incart">No carrinho</span>` : ""}
         </div>
         <div class="wishlist-item-actions">
           <button class="remove-btn add-to-cart-btn" data-wishlist-add="${p.id}" aria-label="Adicionar ao carrinho">
@@ -1085,6 +1250,9 @@ function renderWishlistDrawer() {
 const productDetailOverlay = document.getElementById("productDetailOverlay");
 const pdAddToCartBtn = document.getElementById("pdAddToCart");
 let productDetailId = null;
+// Which size the modal currently has selected, so the add button agrees with
+// the price on screen.
+let productDetailSize = null;
 
 function openProductDetail(p) {
   if (!productDetailOverlay) return;
@@ -1096,6 +1264,11 @@ function openProductDetail(p) {
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdNotes").textContent = p.notes;
   document.getElementById("pdScales").innerHTML = scentScales(p);
+  // The modal is the other way into the cart, so it offers the same choice as
+  // the card. Without this, adding from Favoritos would silently pick a size.
+  const sizesEl = document.getElementById("pdSizes");
+  if (sizesEl) sizesEl.innerHTML = sizePicker(p);
+  productDetailSize = defaultVariant(p)?.size_id ?? null;
   document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
   productDetailOverlay.classList.add("open");
 }
@@ -1111,7 +1284,7 @@ productDetailOverlay?.addEventListener("click", (e) => { if (e.target === produc
 pdAddToCartBtn?.addEventListener("click", () => {
   if (productDetailId != null) {
     // Same rule here: buying something does not un-favourite it.
-    addToCart(productDetailId);
+    addToCart(productDetailId, productDetailSize ?? undefined);
   }
   closeProductDetail();
 });
@@ -1146,8 +1319,20 @@ function closeWishlist() {
 
 // ---------- Delegated click handling (grid / featured / carousel / cart / wishlist / filters) ----------
 document.body.addEventListener("click", (e) => {
+  // Picking a size on the back of a card: swaps the selection and reprices in
+  // place, without rebuilding the card — a rebuild would flip it back over.
+  const sizeBtn = e.target.closest("[data-size]");
+  if (sizeBtn) {
+    e.stopPropagation();
+    selectCardSize(sizeBtn);
+    return;
+  }
+
   const addBtn = e.target.closest("[data-add]");
-  if (addBtn) return addToCart(Number(addBtn.dataset.add));
+  if (addBtn) {
+    const sizeId = addBtn.dataset.size ? Number(addBtn.dataset.size) : undefined;
+    return addToCart(Number(addBtn.dataset.add), sizeId);
+  }
 
   const wishBtn = e.target.closest("[data-wishlist]");
   if (wishBtn) return toggleWishlist(Number(wishBtn.dataset.wishlist));
@@ -1176,14 +1361,15 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  // These carry a cart key ("12:3"), not a product id, so they are used as-is.
   const inc = e.target.closest("[data-inc]");
-  if (inc) return changeQty(Number(inc.dataset.inc), 1);
+  if (inc) return changeQty(inc.dataset.inc, 1);
 
   const dec = e.target.closest("[data-dec]");
-  if (dec) return changeQty(Number(dec.dataset.dec), -1);
+  if (dec) return changeQty(dec.dataset.dec, -1);
 
   const rem = e.target.closest("[data-remove]");
-  if (rem) return removeFromCart(Number(rem.dataset.remove));
+  if (rem) return removeFromCart(rem.dataset.remove);
 
   const cartView = e.target.closest("[data-cart-view]");
   if (cartView) {
@@ -1314,16 +1500,23 @@ initCustomerSession();
 // Called from js/checkout.js once the receipt has been uploaded to Storage;
 // receiptPath is the object's path within the private "receipts" bucket.
 async function logOrder(name, phone, receiptPath, paymentMethod, address, city, delivery) {
-  const ids = Object.keys(cart);
   let subtotal = 0;
-  const items = ids.map((id) => {
-    const p = PRODUCTS.find((x) => x.id === Number(id));
-    const qty = cart[id];
-    const unitPrice = effectivePrice(p);
+  const items = cartLines().map(({ product: p, variant, qty, unitPrice }) => {
     subtotal += unitPrice * qty;
     // The image is snapshotted onto the order line so "os meus pedidos" can
-    // still show the bottle after the product is edited or delisted.
-    return { id: p.id, name: p.name, price: unitPrice, qty, image: p.image || null };
+    // still show the bottle after the product is edited or delisted. The size
+    // is snapshotted for the same reason: renaming or removing a size later
+    // must never rewrite what was actually ordered.
+    return {
+      id: p.id,
+      name: p.name,
+      size: variant?.size?.label || null,
+      size_id: variant?.size_id ?? null,
+      volume_ml: variant?.size?.volume_ml ?? null,
+      price: unitPrice,
+      qty,
+      image: p.image || null,
+    };
   });
   const discount = couponDiscountAmount(subtotal);
   // The delivery fee is part of what the customer agreed to pay, so it
@@ -1548,6 +1741,9 @@ if (searchQueryParam && searchInput) {
 }
 
 document.addEventListener("products:ready", () => {
+  // Has to run before anything reads the cart: a cart saved before sizes
+  // existed is keyed by product id alone, and would otherwise be dropped.
+  migrateLegacyCart();
   // The filter chip has to reflect ?cat= too, or the grid would show one
   // section while "Todos" still looks selected.
   setActiveFilterButton(activeFilter);

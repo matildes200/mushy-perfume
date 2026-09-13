@@ -759,3 +759,19 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 @media (prefers-reduced-motion: reduce) {
   .skel-bar { animation: none; }
 }
+
+/* ---------- Sizes and prices in the product form ---------- */
+.form-hint { font-size: 12px; line-height: 1.55; color: var(--text-muted); margin: 0 0 12px; }
+.form-field .form-hint { margin: 5px 0 0; }
+.variant-table th, .variant-table td { vertical-align: middle; }
+.variant-table input { width: 100%; }
+.variant-pct { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.variant-derived { white-space: nowrap; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+/* Read-only because a database trigger owns it: it is the sum of the sizes. */
+#stock[readonly] { background: var(--bg-alt, #f3efe6); color: var(--text-muted); cursor: not-allowed; }
+#sizesTable input[type="text"], #sizesTable input[type="number"] { width: 100%; }
+.order-item-size {
+  display: inline-block; margin-left: 6px; padding: 1px 7px;
+  border: 1px solid var(--border); border-radius: 999px;
+  font-size: 10px; color: var(--text-muted); vertical-align: middle;
+}

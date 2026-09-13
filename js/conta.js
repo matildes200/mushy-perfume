@@ -91,7 +91,7 @@ async function renderAccountOrders(customerId) {
             : `<span class="account-order-thumb-empty" aria-hidden="true"></span>`;
           return `<li class="account-order-item">
             <span class="account-order-thumb">${thumb}</span>
-            <span class="account-order-item-name">${it.name}<small>${it.qty} × ${money(it.price)}</small></span>
+            <span class="account-order-item-name">${it.name}${it.size ? ` · ${it.size}` : ""}<small>${it.qty} × ${money(it.price)}</small></span>
           </li>`;
         })
         .join("");

@@ -2381,3 +2381,65 @@ button { font-family: var(--font-body); }
   .flip-scale-text { font-size: 9.5px; }
   .flip-back-fallback.is-short { -webkit-line-clamp: 2; }
 }
+
+/* ---------- Size picker (back of the card, and the detail modal) ----------
+   A row of pills rather than a <select>: three options is few enough to show
+   all at once, and a tap beats opening a picker. Sits above the price, which
+   is what it changes. */
+.size-picker { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+.size-pill {
+  flex: 1 1 0; min-width: 0;
+  padding: 7px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color .18s, color .18s, background .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.size-pill.selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-hero);
+}
+/* Still shown, never selectable: hiding it would make the range look smaller
+   than it is, and quietly swapping to another size sells the wrong bottle. */
+.size-pill.out {
+  opacity: .4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+@media (hover: hover) and (pointer: fine) {
+  .size-pill:not(.out):not(.selected):hover { border-color: var(--ink); color: var(--text); }
+}
+
+/* The modal has more room than a card, so the pills can breathe. */
+.pd-sizes .size-picker { margin: 4px 0 14px; gap: 8px; }
+.pd-sizes .size-pill { font-size: 12.5px; padding: 9px 6px; }
+.pd-sizes:empty { display: none; }
+
+/* The size next to a cart line's name, so the same perfume twice reads as two
+   different bottles rather than a duplicated row. */
+.cart-item-size {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  .size-picker { gap: 5px; margin-bottom: 8px; }
+  .size-pill { font-size: 10px; padding: 6px 3px; }
+  .pd-sizes .size-pill { font-size: 12px; padding: 8px 5px; }
+  .cart-item-size { font-size: 9px; margin-left: 5px; }
+}

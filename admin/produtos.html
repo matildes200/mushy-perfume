@@ -182,11 +182,34 @@
         </div>
       </div>
 
-      <h3 class="form-section">Stock</h3>
+      <h3 class="form-section">Tamanhos, preços e stock</h3>
+      <p class="form-hint">
+        O preço base acima é o do frasco maior. Cada tamanho é calculado a partir dele
+        pela percentagem definida em Definições &rarr; Tamanhos. Para praticar outro
+        preço num tamanho, escreva-o na coluna <strong>Preço a praticar</strong>;
+        deixe em branco para voltar ao valor calculado.
+      </p>
+      <div class="admin-table-wrap">
+        <table class="admin-table variant-table" id="variantTable">
+          <thead>
+            <tr>
+              <th>Tamanho</th>
+              <th>Preço calculado</th>
+              <th>Preço a praticar (Kz)</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4" class="admin-empty">A carregar tamanhos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="form-grid">
         <div class="form-field">
-          <label for="stock">Quantidade em stock</label>
-          <input type="number" id="stock" min="0" step="1" value="0">
+          <label for="stock">Stock total</label>
+          <input type="number" id="stock" value="0" readonly tabindex="-1">
+          <span class="form-hint">Soma dos tamanhos acima. Calculado automaticamente.</span>
         </div>
         <div class="form-field">
           <label for="low_stock_threshold">Limite de stock baixo</label>

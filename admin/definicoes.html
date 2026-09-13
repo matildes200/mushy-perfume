@@ -140,6 +140,32 @@
   <div class="admin-panel">
     <div class="admin-panel-head panel-head-stack">
       <div>
+        <h2>Tamanhos</h2>
+        <p class="panel-sub">Os tamanhos em que cada perfume é vendido, e quanto custa cada um em relação ao preço base do produto.</p>
+      </div>
+    </div>
+    <div class="admin-alert admin-alert-error" style="margin:0 24px 16px;">
+      <strong>Percentagens de exemplo.</strong> 55% e 75% vieram do briefing como ponto de partida, não de custos reais. O preço de cada tamanho pode ser escrito à mão em cada produto, sem mexer aqui.
+    </div>
+    <div id="sizesAlert"></div>
+    <form id="sizesForm">
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="sizesTable">
+          <thead>
+            <tr><th>Nome</th><th>Volume (ml)</th><th>% do preço base</th><th>Visível</th></tr>
+          </thead>
+          <tbody><tr><td colspan="4" class="admin-empty">A carregar…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="settings-actions">
+        <button type="submit" class="btn-admin" id="saveSizesBtn">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-head panel-head-stack">
+      <div>
         <h2>Zonas de entrega</h2>
         <p class="panel-sub">Preços apresentados ao cliente no checkout. Alterar aqui muda o site de imediato.</p>
       </div>
