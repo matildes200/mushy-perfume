@@ -2304,7 +2304,11 @@ button { font-family: var(--font-body); }
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   font-size: 13.5px; color: var(--text-muted);
 }
-.ck-total-row span:last-child { white-space: nowrap; }
+/* The value never breaks; the label wraps instead. min-width:0 is what lets it
+   wrap at all — without it a long zone name ("Luanda Centro / Ingombota") would
+   push the price off the edge of a narrow phone. */
+.ck-total-row span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.ck-total-row span:last-child { white-space: nowrap; flex-shrink: 0; }
 .ck-total-final {
   border-top: 1px solid var(--border); padding-top: 10px; margin-top: 3px;
   font-family: var(--font-head); font-size: 16px; color: var(--text);
@@ -2317,7 +2321,9 @@ button { font-family: var(--font-body); }
 
 /* The zone table in Políticas has to stay readable on a phone, where a normal
    table would force the page to scroll sideways. */
+.zone-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .zone-table { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 14px; }
+.zone-table td:first-child { overflow-wrap: anywhere; }
 .zone-table th, .zone-table td {
   text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border);
 }

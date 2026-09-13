@@ -418,8 +418,9 @@ function renderZoneTable() {
 
   wrap.innerHTML =
     `<h4 class="zone-table-title">${heading}</h4>` +
-    `<table class="zone-table"><thead><tr><th>${colZone}</th><th>${colCost}</th></tr></thead>` +
-    `<tbody>${rows}</tbody></table>` +
+    `<div class="zone-table-scroll"><table class="zone-table">` +
+    `<thead><tr><th>${colZone}</th><th>${colCost}</th></tr></thead>` +
+    `<tbody>${rows}</tbody></table></div>` +
     freeLine;
 }
 
