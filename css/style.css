@@ -595,7 +595,7 @@ button { font-family: var(--font-body); }
   width: 270px;
   /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
      tall band of empty plate under the price now the front is one panel. */
-  min-height: 442px;
+  min-height: 476px;
   flex: 0 0 auto;
   cursor: pointer;
   perspective: 1400px;
@@ -2085,7 +2085,7 @@ button { font-family: var(--font-body); }
      the start instead puts the first bottle right where the section begins. */
   .carousel { scroll-padding-left: 16px; }
   .carousel-track { gap: 16px; padding: 24px 16px 10px; }
-  .carousel-card, .carousel-end-card { width: 224px; min-height: 348px; scroll-snap-align: start; }
+  .carousel-card, .carousel-end-card { width: 224px; min-height: 380px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
   /* Continuous marquee. The viewport just clips; all motion is one transform
@@ -2361,9 +2361,9 @@ button { font-family: var(--font-body); }
 .flip-scale-row { align-items: center; }
 .flip-scale-value { flex: 1; display: flex; align-items: center; gap: 7px; min-width: 0; }
 .flip-scale-value .scale-dots { flex: 0 0 auto; gap: 3px; }
-.flip-scale-value .scale-dot { width: 6px; height: 6px; }
+.flip-scale-value .scale-dot { width: 7px; height: 7px; }
 .flip-scale-text {
-  font-size: 10.5px; line-height: 1.35; color: var(--text);
+  font-size: 12px; line-height: 1.35; color: var(--text); font-weight: 500;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* With scales present the free-text fallback gives up lines rather than
@@ -2377,8 +2377,8 @@ button { font-family: var(--font-body); }
   .flip-scales { gap: 5px; }
   .flip-scales:not(:first-child) { margin-top: 6px; padding-top: 6px; }
   .flip-scale-value { gap: 5px; }
-  .flip-scale-value .scale-dot { width: 5px; height: 5px; }
-  .flip-scale-text { font-size: 9.5px; }
+  .flip-scale-value .scale-dot { width: 6px; height: 6px; }
+  .flip-scale-text { font-size: 11px; }
   .flip-back-fallback.is-short { -webkit-line-clamp: 2; }
 }
 

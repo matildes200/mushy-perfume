@@ -381,9 +381,7 @@ productForm.addEventListener("submit", async (e) => {
 });
 
 document.addEventListener("admin:ready", () => {
-}
- .qq{  // In parallel: the sizes are only needed once a product form is opened.
-}
- .qq{  loadSizes();
+  // In parallel: the sizes are only needed once a product form is opened.
+  loadSizes();
   loadProducts();
 });
