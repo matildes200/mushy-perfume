@@ -59,7 +59,7 @@ const TRANSLATIONS = {
     "reviews.title": "Experiências reais",
     "newsletter.title": "Faça parte da colecção",
     "newsletter.subtitle": "Receba lançamentos exclusivos e ofertas privadas.",
-    "newsletter.placeholder": "O seu morada de e-mail",
+    "newsletter.placeholder": "O seu endereço de e-mail",
     "newsletter.cta": "Subscrever",
     "contacto.eyebrow": "Fale connosco",
     "contacto.title": "Tem alguma pergunta?",
@@ -116,6 +116,8 @@ const TRANSLATIONS = {
     "footer.envio": "Envio",
     "footer.devolucoes": "Devoluções",
     "footer.privacidade": "Política de Privacidade",
+    "footer.privacidade.short": "Privacidade",
+    "footer.termos": "Termos",
 
     "cart.title": "O seu carrinho",
     "cart.empty": "O seu carrinho está vazio.",
@@ -202,10 +204,6 @@ const TRANSLATIONS = {
     "politicas.devolucoes.title": "Devoluções",
     "politicas.devolucoes.p1": "Aceitamos trocas e devoluções até 7 dias seguidos após a recepção, desde que o produto esteja selado, por usar e na embalagem original.",
     "politicas.devolucoes.p2": "Para pedir uma troca ou devolução, contacte a nossa equipa indicando o número do pedido. Produtos com sinais de uso ou com a embalagem violada não são elegíveis, salvo defeito de fabrico.",
-    "politicas.privacidade.title": "Política de Privacidade",
-    "politicas.privacidade.p1": "Recolhemos apenas os dados necessários para processar o seu pedido e melhorar a sua experiência: nome, contacto, morada de entrega e histórico de compras.",
-    "politicas.privacidade.p2": "Os seus dados nunca são vendidos a terceiros. São utilizados exclusivamente para apoio ao cliente, processamento de pedidos e comunicação sobre promoções, caso tenha optado por recebê-las.",
-    "politicas.privacidade.p3": "Pode pedir a eliminação dos seus dados a qualquer momento, contactando a nossa equipa.",
 
 
     "review1": "\"Esta fragrância é inesquecível.\"",
@@ -266,6 +264,12 @@ const TRANSLATIONS = {
     "auth.signup.error": "Não foi possível criar a conta. Tente novamente.",
     "auth.password.mismatch": "As palavras-passe não coincidem.",
     "auth.phone.required": "Indique o seu número de telefone.",
+    "legal.accept.required": "Tem de aceitar os Termos e Condições e a Política de Privacidade.",
+    "auth.forgot": "Esqueceu-se da palavra-passe?",
+    "auth.recover.lead": "Indique o e-mail da sua conta e enviamos-lhe as instruções para definir uma nova palavra-passe.",
+    "auth.recover.submit": "Enviar instruções",
+    "auth.recover.back": "Voltar ao início de sessão",
+    "auth.recover.sent": "Se existir uma conta associada a este e-mail, receberá as instruções em breve.",
     "auth.created.account": "Conta criada! Verifique o seu e-mail para confirmar o registo antes de iniciar sessão.",
     "auth.created.checkout": "Conta criada! Verifique o seu e-mail para confirmar o registo e depois clique novamente em finalizar.",
 
@@ -391,6 +395,8 @@ const TRANSLATIONS = {
     "footer.envio": "Shipping",
     "footer.devolucoes": "Returns",
     "footer.privacidade": "Privacy Policy",
+    "footer.privacidade.short": "Privacy",
+    "footer.termos": "Terms",
 
     "cart.title": "Your cart",
     "cart.empty": "Your cart is empty.",
@@ -477,10 +483,6 @@ const TRANSLATIONS = {
     "politicas.devolucoes.title": "Returns",
     "politicas.devolucoes.p1": "We accept exchanges and returns within 7 calendar days of receipt, provided the product is sealed, unused and in its original packaging.",
     "politicas.devolucoes.p2": "To request an exchange or return, contact our team with your order number. Products showing signs of use or with broken packaging aren't eligible, except in the case of a manufacturing defect.",
-    "politicas.privacidade.title": "Privacy Policy",
-    "politicas.privacidade.p1": "We only collect the data necessary to process your order and improve your experience: name, contact details, delivery address and purchase history.",
-    "politicas.privacidade.p2": "Your information is never sold to third parties. It's used solely for customer support, order processing and promotional communication, if you've opted in to receive it.",
-    "politicas.privacidade.p3": "You can request deletion of your data at any time by contacting our team.",
 
 
     "review1": "\"This fragrance is unforgettable.\"",
@@ -541,6 +543,12 @@ const TRANSLATIONS = {
     "auth.signup.error": "We couldn't create the account. Please try again.",
     "auth.password.mismatch": "The passwords do not match.",
     "auth.phone.required": "Please give your phone number.",
+    "legal.accept.required": "You must accept the Terms and Conditions and the Privacy Policy.",
+    "auth.forgot": "Forgotten your password?",
+    "auth.recover.lead": "Give us the e-mail on your account and we will send you instructions to set a new password.",
+    "auth.recover.submit": "Send instructions",
+    "auth.recover.back": "Back to sign in",
+    "auth.recover.sent": "If an account exists for this e-mail, you will receive the instructions shortly.",
     "auth.created.account": "Account created! Check your email to confirm your registration before signing in.",
     "auth.created.checkout": "Account created! Check your email to confirm, then tap checkout again.",
 

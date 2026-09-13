@@ -323,6 +323,11 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     showAuthAlert(window.t?.("auth.password.mismatch"));
     return;
   }
+  if (!document.getElementById("registerAcceptTerms")?.checked) {
+    btn.disabled = false;
+    showAuthAlert(window.t?.("legal.accept.required"));
+    return;
+  }
 
   const { data, error } = await supabaseClient.auth.signUp({
     email,
@@ -398,4 +403,43 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   document.getElementById("loginForm").reset();
   showAuthAlert("");
   showAuthForms();
+});
+
+// ---------- Password recovery request ----------
+// The reply is identical whether or not the address has an account. Saying
+// "no account found" would turn this form into a way of testing which e-mails
+// are registered here.
+const recoverPanel = document.getElementById("recoverPanel");
+
+function showRecoverPanel(show) {
+  document.getElementById("loginPanel")?.classList.toggle("active", !show);
+  recoverPanel?.classList.toggle("active", show);
+  authAlert.innerHTML = "";
+}
+
+document.getElementById("forgotPasswordBtn")?.addEventListener("click", () => showRecoverPanel(true));
+document.getElementById("backToLoginBtn")?.addEventListener("click", () => showRecoverPanel(false));
+
+// Arriving at conta.html#recuperar (from the checkout modal) opens it directly.
+if (window.location.hash === "#recuperar") {
+  document.querySelector('#authView .account-tab[data-tab="login"]')?.click();
+  showRecoverPanel(true);
+}
+
+document.getElementById("recoverForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("recoverBtn");
+  const email = document.getElementById("recoverEmail").value.trim();
+  btn.disabled = true;
+  authAlert.innerHTML = "";
+
+  await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/redefinir-palavra-passe.html`,
+  });
+
+  // The result is deliberately ignored: success and "no such user" must look
+  // the same from out here. Supabase rate-limits the endpoint itself.
+  btn.disabled = false;
+  showAuthAlert(window.t?.("auth.recover.sent"), "success");
+  document.getElementById("recoverForm").reset();
 });

@@ -103,9 +103,14 @@
         <a href="https://www.instagram.com/mushy_parfum?igsh=eGd1Ym4yNGVkaG9t" target="_blank" rel="noopener" aria-label="Instagram">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
         </a>
-        <a href="#" aria-label="TikTok">
+        <!-- PLACEHOLDER: no Facebook account yet. Swap the span for an <a href="..."> when there is one. -->
+        <span class="social-soon" aria-label="Facebook (em breve)" title="Em breve">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h-2.5A3.5 3.5 0 0 0 9 6.5V9H7v3h2v9h3v-9h2.5l.5-3H12V6.9c0-.6.4-.9 1-.9h2V3z"/></svg>
+        </span>
+        <!-- PLACEHOLDER: no TikTok account yet. Was a dead "#" anchor. -->
+        <span class="social-soon" aria-label="TikTok (em breve)" title="Em breve">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3v10.5a3.5 3.5 0 1 1-3-3.46"/><path d="M14 3c.4 2.4 2 4 4.5 4.3"/></svg>
-        </a>
+        </span>
       </div>
     </div>
     <nav class="footer-col">
@@ -120,7 +125,8 @@
       <a href="contacto.html#faq" data-i18n="footer.faq">Perguntas frequentes</a>
       <a href="politicas.html#envio" data-i18n="footer.envio">Envio</a>
       <a href="politicas.html#devolucoes" data-i18n="footer.devolucoes">Devoluções</a>
-      <a href="politicas.html#privacidade" data-i18n="footer.privacidade">Política de Privacidade</a>
+      <a href="politica-de-privacidade.html" data-i18n="footer.privacidade">Política de Privacidade</a>
+      <a href="termos-e-condicoes.html" data-i18n="footer.termos">Termos</a>
     </nav>
     <div class="footer-col footer-contact">
       <h4 data-i18n="footer.col.contacto">Fale connosco</h4>
@@ -129,8 +135,12 @@
     </div>
   </div>
   <div class="container footer-bottom">
-    <span>© 2026 Mushy Parfum. <span data-i18n="footer.direitos">Todos os direitos reservados.</span> <span class="footer-credit">innoweb</span></span>
-    <span data-i18n="footer.tagline">Feito com carinho para quem gosta de perfumaria.</span>
+    <span>&copy; 2026 Mushy Parfum &times; InnoWeb Soluções</span>
+    <nav class="footer-legal">
+      <a href="politica-de-privacidade.html" data-i18n="footer.privacidade.short">Privacidade</a>
+      <span aria-hidden="true">|</span>
+      <a href="termos-e-condicoes.html" data-i18n="footer.termos">Termos</a>
+    </nav>
   </div>
 </footer>
 
@@ -207,6 +217,7 @@
       <form id="checkoutLoginForm" class="account-form-panel active">
         <div class="account-field"><label>E-mail</label><input type="email" id="ckLoginEmail" required></div>
         <div class="account-field"><label>Palavra-passe</label><input type="password" id="ckLoginPassword" required></div>
+        <a class="link-quiet" href="conta.html#recuperar" data-i18n="auth.forgot">Esqueceu-se da palavra-passe?</a>
         <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.login">Iniciar sessão</button>
       </form>
       <form id="checkoutRegisterForm" class="account-form-panel">
@@ -221,6 +232,10 @@
         </div>
         <div class="account-field"><label for="ckRegPassword" data-i18n="account.password">Palavra-passe</label><input type="password" id="ckRegPassword" autocomplete="new-password" minlength="6" required></div>
         <div class="account-field"><label for="ckRegPasswordConfirm" data-i18n="account.password.confirm">Confirmar palavra-passe</label><input type="password" id="ckRegPasswordConfirm" autocomplete="new-password" minlength="6" required></div>
+        <label class="legal-accept">
+          <input type="checkbox" id="ckRegAcceptTerms" required>
+          <span>Li e aceito os <a href="termos-e-condicoes.html" target="_blank" rel="noopener">Termos e Condições</a> e a <a href="politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+        </label>
         <button type="submit" class="btn btn-primary btn-block" data-i18n="checkout.tab.register">Criar conta</button>
       </form>
     </div>
@@ -261,6 +276,10 @@
           <span id="ckReceiptLabel" data-i18n="checkout.receipt.label">Enviar comprovativo (imagem ou PDF), obrigatório</span>
         </label>
         <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
+        <label class="legal-accept">
+          <input type="checkbox" id="ckAcceptTerms" required>
+          <span>Li e aceito os <a href="termos-e-condicoes.html" target="_blank" rel="noopener">Termos e Condições</a> e a <a href="politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+        </label>
         <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled data-i18n="checkout.submit">Confirmar pedido</button>
       </form>
     </div>

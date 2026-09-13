@@ -181,6 +181,11 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
     showCheckoutAuthAlert(window.t?.("auth.password.mismatch"));
     return;
   }
+  if (!document.getElementById("ckRegAcceptTerms")?.checked) {
+    btn.disabled = false;
+    showCheckoutAuthAlert(window.t?.("legal.accept.required"));
+    return;
+  }
   // Collected here as well as on the account page: someone who signs up at
   // this point is about to place an order, and the order needs a number to
   // reach them on.
@@ -253,6 +258,12 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
   }
   if (!street || !city) {
     showCheckoutPaymentAlert(window.t?.("checkout.err.address"));
+    return;
+  }
+  // Acceptance is checked here as well as by the markup's required attribute,
+  // which is trivially bypassed.
+  if (!document.getElementById("ckAcceptTerms")?.checked) {
+    showCheckoutPaymentAlert(window.t?.("legal.accept.required"));
     return;
   }
   if (!file) {

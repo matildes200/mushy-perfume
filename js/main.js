@@ -1356,26 +1356,75 @@ function handleScroll() {
 window.addEventListener("scroll", handleScroll, { passive: true });
 handleScroll();
 
-// ---------- Fade-in on scroll ----------
-const revealEls = document.querySelectorAll(".reveal");
-if (revealEls.length) {
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    revealEls.forEach((el) => io.observe(el));
-  } else {
-    revealEls.forEach((el) => el.classList.add("in-view"));
+// ---------- Scroll-triggered reveal ----------
+// Sections fade in and rise as they enter the viewport, with their contents
+// arriving in sequence — heading, then text, then the cards or the button.
+//
+// The hidden state is applied by this script, never by the stylesheet alone.
+// That is deliberate: the previous version set opacity:0 on .reveal in CSS, so
+// if the script failed the sections stayed invisible for good. Now a page
+// without working JS simply shows everything.
+const RISE_CHILDREN = [
+  ".section-head > *",
+  ".historia-content > *",
+  ".quiz-teaser-inner > *",
+  ".newsletter-inner > *",
+  ".contato-panel",
+  ".contato-aside",
+  ".featured-grid",
+  ".product-grid",
+  ".carousel",
+  ".carousel-controls",
+  ".reviews-grid",
+  ".sobre-banner-text",
+  ".sobre-stats",
+  ".processo-media",
+  ".processo-content > *",
+].join(", ");
+
+const STAGGER_MS = 100;
+const MAX_STAGGER_STEPS = 6; // past this the last item feels like it is lagging
+
+(() => {
+  const sections = document.querySelectorAll(".reveal");
+  if (!sections.length) return;
+
+  const noMotion =
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+    !("IntersectionObserver" in window);
+
+  // Nothing is hidden under reduced motion, or where the observer is missing.
+  if (noMotion) {
+    sections.forEach((s) => s.classList.add("in-view"));
+    return;
   }
-}
+
+  sections.forEach((section) => {
+    const children = section.querySelectorAll(RISE_CHILDREN);
+    // A section with nothing to stagger still fades in as a whole.
+    const targets = children.length ? children : [section];
+    targets.forEach((el, i) => {
+      el.classList.add("rise");
+      el.style.transitionDelay = `${Math.min(i, MAX_STAGGER_STEPS) * STAGGER_MS}ms`;
+    });
+  });
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in-view");
+        // Unobserved once shown: the brief asks for this to happen once, not
+        // to re-trigger on every pass over the section.
+        io.unobserve(entry.target);
+      });
+    },
+    // A little of the section has to be on screen before it starts, but not so
+    // much that a tall section never qualifies.
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+  );
+  sections.forEach((s) => io.observe(s));
+})();
 
 // ---------- Idle autoplay for the reviews strip (mobile) ----------
 // Advances one card at a time while the shopper isn't touching it; any
