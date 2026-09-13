@@ -42,7 +42,7 @@ document.querySelectorAll("[data-range]").forEach((btn) => {
 
 document.addEventListener("admin:ready", async () => {
   const [{ data: orders }, { data: products }, { data: customers }] = await Promise.all([
-    supabaseClient.from("orders").select("*"),
+    supabaseClient.from("orders").select("id, total, status, created_at, items, customer_id"),
     supabaseClient.from("products").select("id, name, image"),
     supabaseClient.from("customers").select("id"),
   ]);

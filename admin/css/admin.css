@@ -736,3 +736,26 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   flex: 0 0 auto;
   accent-color: var(--ink);
 }
+
+/* ---------- Loading skeletons ----------
+   Shown while a list is in flight, so the panel has shape instead of being
+   blank. Purely visual: nothing here gates the data. */
+.skel-row td { padding: 14px 12px; }
+.skel-bar {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(100deg, var(--bg-alt) 28%, var(--surface) 48%, var(--bg-alt) 68%);
+  background-size: 300% 100%;
+  animation: admin-skeleton 1.25s ease-in-out infinite;
+}
+.skel-bar.w-40 { width: 40%; }
+.skel-bar.w-60 { width: 60%; }
+.skel-bar.w-80 { width: 80%; }
+@keyframes admin-skeleton {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel-bar { animation: none; }
+}

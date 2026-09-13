@@ -51,7 +51,7 @@ function orderRow(o) {
 
 async function loadOrders() {
   const f = currentFilters();
-  tableBody.innerHTML = `<tr><td colspan="7" class="admin-empty">A carregar…</td></tr>`;
+  tableBody.innerHTML = skeletonRows(7);
 
   let query = supabaseClient
     .from("orders")

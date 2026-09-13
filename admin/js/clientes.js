@@ -35,9 +35,22 @@ function renderCustomerRow(c) {
 }
 
 async function loadCustomers() {
+  customersTableBody.innerHTML = skeletonRows(8);
+  // This used to pull customers.* AND orders.* in full — every order's items
+  // JSON, addresses and receipt paths — and join them in the browser to show a
+  // count and a total per client. Fine at eight orders, ruinous at five
+  // hundred. The orders query now returns only the four columns the join
+  // actually consumes.
   const [{ data: customers, error: cErr }, { data: orders, error: oErr }] = await Promise.all([
-    supabaseClient.from("customers").select("*").order("created_at", { ascending: false }),
-    supabaseClient.from("orders").select("*").not("customer_id", "is", null).order("created_at", { ascending: false }),
+    supabaseClient
+      .from("customers")
+      .select("id, full_name, email, phone, created_at, address")
+      .order("created_at", { ascending: false }),
+    supabaseClient
+      .from("orders")
+      .select("id, customer_id, total, status, created_at, customer_address, customer_city, shipping_address, shipping_city")
+      .not("customer_id", "is", null)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (cErr || oErr) {
@@ -70,10 +83,13 @@ function openCustomerModal(customer) {
   document.getElementById("cdTotalSpent").textContent = money(spent);
   document.getElementById("cdAvgOrder").textContent = money(orders.length ? spent / orders.length : 0);
 
-  const withAddress = orders.find((o) => o.shipping_address);
+  // customer_address is what checkout writes; shipping_address is only set
+  // when an admin edits it by hand, so the customer one is tried first.
+  const withAddress = orders.find((o) => o.customer_address || o.shipping_address);
   document.getElementById("cdAddress").textContent = withAddress
-    ? [withAddress.shipping_address, withAddress.shipping_city].filter(Boolean).join(", ")
-    : "Nenhuma morada registrada ainda.";
+    ? [withAddress.customer_address || withAddress.shipping_address,
+       withAddress.customer_city || withAddress.shipping_city].filter(Boolean).join(", ")
+    : "Nenhuma morada registada ainda.";
 
   document.querySelector("#customerOrdersTable tbody").innerHTML = orders.length
     ? orders

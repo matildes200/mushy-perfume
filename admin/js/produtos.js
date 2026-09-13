@@ -117,7 +117,7 @@ function renderRow(p) {
     : money(p.price);
   return `
     <tr data-id="${p.id}">
-      <td>${p.image ? `<img class="admin-table-thumb" src="${escapeHtml(resolveAdminImageSrc(p.image))}" alt="">` : ""}</td>
+      <td>${p.image ? `<img class="admin-table-thumb" src="${escapeHtml(resolveAdminImageSrc(p.image))}" alt="" loading="lazy" decoding="async" width="44" height="54">` : ""}</td>
       <td class="wrap">${escapeHtml(p.name)}${p.brand ? `<br><span style="color:var(--text-muted);font-size:11.5px;">${escapeHtml(p.brand)}</span>` : ""}</td>
       <td>${escapeHtml(p.category)}</td>
       <td>${priceCell}</td>
@@ -138,7 +138,14 @@ function renderRow(p) {
 }
 
 async function loadProducts() {
-  const { data, error } = await supabaseClient.from("products").select("*").order("id");
+  productsTableBody.innerHTML = skeletonRows(8);
+  const { data, error } = await supabaseClient
+    .from("products")
+    // The list renders a thumbnail, name, category, price, discount and stock.
+    // Everything else (descriptions, notes, images array) is fetched only when
+    // a product is actually opened for editing.
+    .select("id, name, brand, category, price, discount_percent, stock, low_stock_threshold, image, active, archived, featured, bestseller, new_arrival")
+    .order("id");
   if (error) {
     showAlert(productsAlert, "Não foi possível carregar os produtos. Confirme se as migrações do banco de dados foram executadas.");
     productsTableBody.innerHTML = `<tr><td colspan="8" class="admin-empty">Erro ao carregar.</td></tr>`;
@@ -157,7 +164,20 @@ modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) c
 productsTableBody.addEventListener("click", async (e) => {
   const editBtn = e.target.closest("[data-edit]");
   if (editBtn) {
-    const product = productsCache.find((p) => p.id === Number(editBtn.dataset.edit));
+    // The list query no longer carries descriptions, notes or the images
+    // array, so the full row is fetched here — one small request when a
+    // product is actually opened, instead of all of it on every page load.
+    editBtn.disabled = true;
+    const { data: product, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .eq("id", Number(editBtn.dataset.edit))
+      .single();
+    editBtn.disabled = false;
+    if (error || !product) {
+      showAlert(productsAlert, "Não foi possível abrir este produto.");
+      return;
+    }
     openModal(product);
     return;
   }

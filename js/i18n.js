@@ -129,6 +129,7 @@ const TRANSLATIONS = {
     "cart.note": "Pagamento por transferência bancária.",
     "wishlist.title": "Os seus favoritos",
     "wishlist.empty": "Ainda não adicionou favoritos.",
+    "wishlist.incart": "No carrinho",
 
     "checkout.auth.title": "Inicie sessão para continuar",
     "checkout.auth.subtitle": "Precisa de ter sessão iniciada para finalizar o pedido.",
@@ -408,6 +409,7 @@ const TRANSLATIONS = {
     "cart.note": "Payment by bank transfer.",
     "wishlist.title": "Your favourites",
     "wishlist.empty": "You haven't added any favourites yet.",
+    "wishlist.incart": "In your cart",
 
     "checkout.auth.title": "Sign in to continue",
     "checkout.auth.subtitle": "You need to be signed in to complete your order.",

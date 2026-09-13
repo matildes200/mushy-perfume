@@ -908,6 +908,8 @@ function addToCart(id) {
   cart[id] = (cart[id] || 0) + 1;
   saveCart();
   updateCartUI();
+  // Keeps the "No carrinho" marker in the favourites drawer honest.
+  renderWishlistDrawer();
   openCart();
 }
 
@@ -920,12 +922,15 @@ function changeQty(id, delta) {
   }
   saveCart();
   updateCartUI();
+  renderWishlistDrawer();
 }
 
 function removeFromCart(id) {
+  // (see addToCart: the favourites marker follows the cart)
   delete cart[id];
   saveCart();
   updateCartUI();
+  renderWishlistDrawer();
 }
 
 // Recomputed from whatever is actually open rather than toggled per panel, so
@@ -988,6 +993,7 @@ function renderWishlistDrawer() {
         <div class="cart-item-info">
           <strong>${p.name}</strong>
           <span>${money(effectivePrice(p))}</span>
+          ${cart[p.id] ? `<span class="in-cart-tag" data-i18n="wishlist.incart">No carrinho</span>` : ""}
         </div>
         <div class="wishlist-item-actions">
           <button class="remove-btn add-to-cart-btn" data-wishlist-add="${p.id}" aria-label="Adicionar ao carrinho">
@@ -1030,7 +1036,7 @@ document.getElementById("productDetailClose")?.addEventListener("click", closePr
 productDetailOverlay?.addEventListener("click", (e) => { if (e.target === productDetailOverlay) closeProductDetail(); });
 pdAddToCartBtn?.addEventListener("click", () => {
   if (productDetailId != null) {
-    if (wishlist.includes(productDetailId)) toggleWishlist(productDetailId);
+    // Same rule here: buying something does not un-favourite it.
     addToCart(productDetailId);
   }
   closeProductDetail();
@@ -1078,9 +1084,11 @@ document.body.addEventListener("click", (e) => {
   const wishAdd = e.target.closest("[data-wishlist-add]");
   if (wishAdd) {
     const id = Number(wishAdd.dataset.wishlistAdd);
-    toggleWishlist(id); // it's always present when clicked from the wishlist drawer, so this removes it
-    closeWishlist();
+    // Deliberately does NOT remove it from the wishlist. A wishlist is
+    // something the shopper saved on purpose, not a queue that empties itself
+    // as things are bought.
     addToCart(id);
+    renderWishlistDrawer();
     return;
   }
 
@@ -1515,3 +1523,31 @@ function nudgeHeaderRepaint() {
     headerRepaintTimer = setTimeout(nudgeHeaderRepaint, 80);
   }, { passive: true });
 });
+
+// ---------- Promotional banner ----------
+// Read live from the database on every page load, so switching it on in
+// Definições shows it on the next load — no deploy, no cache to clear.
+//
+// It reads public.site_banner, a view exposing only the two banner columns.
+// payment_settings itself stays closed to anonymous visitors because it also
+// holds the IBAN, and most of the traffic here is logged out.
+(async () => {
+  if (!siteHeader) return;
+  try {
+    const { data, error } = await supabaseClient.from("site_banner").select("*").maybeSingle();
+    if (error || !data?.banner_active) return;
+    const text = (data.banner_text || "").trim();
+    if (!text) return;
+
+    const bar = document.createElement("div");
+    bar.className = "promo-banner";
+    // textContent, not innerHTML: this string is admin-entered and has no
+    // business being able to inject markup into every page of the site.
+    bar.textContent = text;
+    siteHeader.prepend(bar);
+    document.body.classList.add("has-promo-banner");
+  } catch (err) {
+    // A banner is decoration. It must never be the reason a page fails.
+    console.warn("promo banner:", err);
+  }
+})();

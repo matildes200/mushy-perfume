@@ -133,3 +133,12 @@ function bucketOrdersByMonth(orders, metricFn = (o) => Number(o.total || 0)) {
   });
   return buckets;
 }
+
+// Skeleton rows for a table that is still loading. Called in place of the
+// "A carregar…" text so a slow connection sees the shape of the page rather
+// than an empty panel.
+function skeletonRows(columns, rows = 6) {
+  const widths = ["w-80", "w-60", "w-40"];
+  const cells = Array.from({ length: columns }, (_, i) => `<td><span class="skel-bar ${widths[i % widths.length]}"></span></td>`).join("");
+  return Array.from({ length: rows }, () => `<tr class="skel-row" aria-hidden="true">${cells}</tr>`).join("");
+}

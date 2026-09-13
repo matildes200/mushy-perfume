@@ -26,7 +26,7 @@ function renderSubRow(s) {
 }
 
 async function loadSubs() {
-  const { data, error } = await supabaseClient.from("subscriptions").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabaseClient.from("subscriptions").select("id, email, created_at, active").order("created_at", { ascending: false });
   if (error) {
     showSubsAlert("Não foi possível carregar as assinaturas. Confirme se a migração do banco de dados foi executada.");
     subsTableBody.innerHTML = `<tr><td colspan="4" class="admin-empty">Erro ao carregar.</td></tr>`;

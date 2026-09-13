@@ -86,7 +86,7 @@ function renderRow(c) {
 }
 
 async function loadCoupons() {
-  const { data, error } = await supabaseClient.from("coupons").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabaseClient.from("coupons").select("id, name, code, discount_type, discount_value, start_date, end_date, min_order_value, max_uses, times_used, active").order("created_at", { ascending: false });
   if (error) {
     showAlert(couponsAlert, "Não foi possível carregar os cupões. Confirme se a migração do banco de dados foi executada.");
     couponsTableBody.innerHTML = `<tr><td colspan="8" class="admin-empty">Erro ao carregar.</td></tr>`;
