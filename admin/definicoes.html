@@ -136,6 +136,40 @@
     </form>
   </div>
 
+
+  <div class="admin-panel">
+    <div class="admin-panel-head panel-head-stack">
+      <div>
+        <h2>Zonas de entrega</h2>
+        <p class="panel-sub">Preços apresentados ao cliente no checkout. Alterar aqui muda o site de imediato.</p>
+      </div>
+      <button type="button" class="btn-admin" id="newZoneBtn">+ Adicionar zona</button>
+    </div>
+    <div class="admin-alert admin-alert-error" style="margin:0 24px 16px;">
+      <strong>Valores de exemplo.</strong> Os preços abaixo vieram do briefing como exemplo e ainda não foram confirmados. Reveja-os antes do lançamento.
+    </div>
+    <div id="zonesAlert"></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="zonesTable">
+        <thead><tr><th>Zona</th><th>Preço</th><th>Ordem</th><th>Estado</th><th></th></tr></thead>
+        <tbody><tr><td colspan="5" class="admin-empty">A carregar…</td></tr></tbody>
+      </table>
+    </div>
+    <form id="freeDeliveryForm" class="settings-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="free_delivery_threshold">Entrega grátis acima de (Kz)</label>
+          <input type="number" id="free_delivery_threshold" min="0" step="1" placeholder="80000">
+        </div>
+        <div class="form-field field-check">
+          <label for="free_delivery_active"><input type="checkbox" id="free_delivery_active"> Activar entrega grátis</label>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button type="submit" class="btn-admin" id="saveFreeDeliveryBtn">Guardar</button>
+      </div>
+    </form>
+  </div>
   <div class="admin-panel">
     <div class="admin-panel-head panel-head-stack">
       <div>
@@ -153,6 +187,41 @@
     </div>
   </div>
 </main>
+
+<div class="modal-overlay" id="zoneModalOverlay">
+  <div class="modal">
+    <h2 id="zoneModalTitle">Adicionar zona</h2>
+    <p class="modal-sub">O nome e o preço aparecem tal como os escrever, na lista de zonas do checkout.</p>
+    <div id="zoneFormAlert"></div>
+    <form id="zoneForm">
+      <input type="hidden" id="zoneId">
+      <div class="form-grid">
+        <div class="form-field span-2">
+          <label for="zone_name">Nome da zona</label>
+          <input type="text" id="zone_name" required placeholder="Talatona">
+        </div>
+        <div class="form-field">
+          <label for="zone_price">Preço (Kz)</label>
+          <input type="number" id="zone_price" min="0" step="1" placeholder="2500">
+        </div>
+        <div class="form-field">
+          <label for="zone_sort_order">Ordem na lista</label>
+          <input type="number" id="zone_sort_order" min="0" step="1" placeholder="1">
+        </div>
+        <div class="form-field span-2 field-check">
+          <label for="zone_on_request"><input type="checkbox" id="zone_on_request"> Preço sob consulta (combinado por contacto directo)</label>
+        </div>
+        <div class="form-field span-2 field-check">
+          <label for="zone_active"><input type="checkbox" id="zone_active" checked> Visível no checkout</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin btn-admin-outline" id="cancelZoneBtn">Cancelar</button>
+        <button type="submit" class="btn-admin" id="saveZoneBtn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <div class="modal-overlay" id="adminModalOverlay">
   <div class="modal">

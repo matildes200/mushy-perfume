@@ -50,9 +50,13 @@ async function enterPaymentStep() {
   document.getElementById("pdAccountNumber").textContent = settings?.account_number || "A combinar";
   document.getElementById("pdExpressPhone").textContent = settings?.express_phone || "A combinar";
 
-  const subtotal = cartSubtotal();
-  const discount = couponDiscountAmount(subtotal);
-  document.getElementById("pdAmount").textContent = money(Math.max(0, subtotal - discount));
+  // The zones normally load on DOMContentLoaded; retry here so a slow or failed
+  // first fetch doesn't leave the customer with an empty zone list.
+  if (!deliveryZones.length) await loadDeliveryZones();
+
+  // Draws subtotal, discount, delivery and total, and sets the amount to
+  // transfer from the same figure the customer is shown.
+  renderCheckoutTotals();
 
   resetPaymentMethodTabs();
   showCheckoutStep(checkoutStepPayment);
@@ -260,6 +264,14 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     showCheckoutPaymentAlert(window.t?.("checkout.err.address"));
     return;
   }
+  // A zone is required: it decides the delivery fee, and the fee is part of
+  // the total the customer is about to transfer. Conditional on there being
+  // zones to choose from — if the table is empty or failed to load, blocking
+  // the order would be worse than taking it without a delivery line.
+  if (deliveryZones.length && !selectedZone) {
+    showCheckoutPaymentAlert(window.t?.("checkout.err.zone"));
+    return;
+  }
   // Acceptance is checked here as well as by the markup's required attribute,
   // which is trivially bypassed.
   if (!document.getElementById("ckAcceptTerms")?.checked) {
@@ -286,7 +298,16 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
 
     // District is optional, so it's only appended when there's something there.
     const address = district ? `${street}, ${district}` : street;
-    const order = await logOrder(name, phone, path, paymentMethod, address, city);
+    const subtotalNow = cartSubtotal();
+    const afterDiscount = Math.max(0, subtotalNow - couponDiscountAmount(subtotalNow));
+    const deliveryFee = deliveryFeeFor(selectedZone, afterDiscount);
+    const order = await logOrder(name, phone, path, paymentMethod, address, city, {
+      // Optional: with no zones configured the guard above lets the order
+      // through, and the order simply carries no delivery line.
+      zone: selectedZone?.name || null,
+      fee: deliveryFee,
+      onRequest: Boolean(selectedZone?.on_request),
+    });
     await notifyOrderConfirmation(order, session.user.email, name, phone);
     showCheckoutStep(checkoutStepDone);
   } catch (err) {
@@ -306,4 +327,209 @@ document.getElementById("checkoutDoneBtn")?.addEventListener("click", () => {
   const label = document.getElementById("ckReceiptLabel");
   if (label) label.textContent = window.t?.("checkout.receipt.label");
   document.getElementById("ckSubmitBtn").disabled = true;
+});
+
+// ---------- B3: zonas de entrega ----------
+// The shop used to tell people the delivery cost would be "agreed before
+// dispatch", which meant reaching the end of checkout without knowing the
+// total. Zones and prices live in the database so they can be changed from
+// Definições without a developer.
+
+let deliveryZones = [];
+let deliverySettings = { free_delivery_threshold: null, free_delivery_active: false };
+let selectedZone = null;
+
+// Zone names are typed by an administrator and end up inside innerHTML.
+const escapeZone = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+
+// Translated string with a literal fallback: t() echoes the key back when it is
+// missing, so an unresolved key would otherwise print as "cart.delivery.free".
+function tx(key, fallback, vars) {
+  const out = window.t?.(key, vars);
+  return !out || out === key ? fallback : out;
+}
+
+async function loadDeliveryZones() {
+  const [zonesRes, settingsRes] = await Promise.all([
+    supabaseClient.from("delivery_zones").select("*").eq("active", true).order("sort_order"),
+    supabaseClient.from("site_delivery_settings").select("*").maybeSingle(),
+  ]);
+  deliveryZones = zonesRes.data || [];
+  if (settingsRes.data) deliverySettings = settingsRes.data;
+
+  renderZoneOptions();
+  updateCartDeliveryHint();
+  renderZoneTable();
+}
+
+// Rebuilt rather than relabelled, so a language switch redraws the prices and
+// the "sob consulta" label without losing what the customer already chose.
+function renderZoneOptions() {
+  const select = document.getElementById("ckZone");
+  if (!select) return;
+  const previous = select.value;
+  const placeholder = select.querySelector('option[value=""]');
+  select.innerHTML = "";
+  if (placeholder) select.appendChild(placeholder);
+  deliveryZones.forEach((z) => {
+    const opt = document.createElement("option");
+    opt.value = String(z.id);
+    opt.textContent = z.on_request
+      ? `${z.name} — ${tx("checkout.zone.onrequest", "Sob consulta")}`
+      : `${z.name} — ${money(Number(z.price))}`;
+    select.appendChild(opt);
+  });
+  if (previous) select.value = previous;
+}
+
+// Políticas shows the same zones and prices as the checkout, read from the same
+// table — a price changed in Definições is correct on both without an edit here.
+function renderZoneTable() {
+  const wrap = document.getElementById("zoneTableWrap");
+  if (!wrap) return;
+  if (!deliveryZones.length) { wrap.innerHTML = ""; return; }
+
+  const heading = tx("politicas.envio.zones", "Zonas de entrega em Luanda");
+  const colZone = tx("politicas.envio.zone", "Zona");
+  const colCost = tx("politicas.envio.cost", "Custo");
+  const onRequestLabel = tx("checkout.zone.onrequest", "Sob consulta");
+
+  const rows = deliveryZones
+    .map(
+      (z) =>
+        `<tr><td>${escapeZone(z.name)}</td><td>${
+          z.on_request ? onRequestLabel : money(Number(z.price))
+        }</td></tr>`
+    )
+    .join("");
+
+  const threshold = freeDeliveryThreshold();
+  const freeLine =
+    threshold !== null
+      ? `<p class="policy-note">${tx(
+          "politicas.envio.free",
+          `Entrega grátis em pedidos a partir de ${money(threshold)}.`,
+          { amount: money(threshold) }
+        )}</p>`
+      : "";
+
+  wrap.innerHTML =
+    `<h4 class="zone-table-title">${heading}</h4>` +
+    `<table class="zone-table"><thead><tr><th>${colZone}</th><th>${colCost}</th></tr></thead>` +
+    `<tbody>${rows}</tbody></table>` +
+    freeLine;
+}
+
+// Free delivery is optional and configurable; a threshold of zero disables it.
+function freeDeliveryThreshold() {
+  if (!deliverySettings.free_delivery_active) return null;
+  const t = Number(deliverySettings.free_delivery_threshold || 0);
+  return t > 0 ? t : null;
+}
+
+function qualifiesForFreeDelivery(subtotalAfterDiscount) {
+  const t = freeDeliveryThreshold();
+  return t !== null && subtotalAfterDiscount >= t;
+}
+
+// What the customer actually pays for delivery, given the zone and the cart.
+function deliveryFeeFor(zone, subtotalAfterDiscount) {
+  if (!zone || zone.on_request) return 0;
+  if (qualifiesForFreeDelivery(subtotalAfterDiscount)) return 0;
+  return Number(zone.price || 0);
+}
+
+// The cart shows the cheapest real zone before checkout, so the cost is never
+// a surprise that appears only at the last step.
+function updateCartDeliveryHint() {
+  const el = document.getElementById("cartDeliveryHint");
+  if (!el) return;
+  const priced = deliveryZones.filter((z) => !z.on_request);
+  if (!priced.length) { el.hidden = true; return; }
+
+  const cheapest = Math.min(...priced.map((z) => Number(z.price || 0)));
+  const subtotal = cartSubtotal();
+  const afterDiscount = Math.max(0, subtotal - couponDiscountAmount(subtotal));
+  const threshold = freeDeliveryThreshold();
+
+  if (threshold !== null && afterDiscount >= threshold) {
+    el.textContent = tx("cart.delivery.free", "Entrega grátis neste pedido.");
+  } else if (threshold !== null && subtotal > 0) {
+    el.textContent = tx(
+      "cart.delivery.remaining",
+      `Faltam ${money(threshold - afterDiscount)} para ter entrega grátis.`,
+      { amount: money(threshold - afterDiscount) }
+    );
+  } else {
+    el.textContent = tx(
+      "cart.delivery.from",
+      `Entrega a partir de ${money(cheapest)} · calculada no checkout`,
+      { amount: money(cheapest) }
+    );
+  }
+  el.hidden = false;
+}
+
+// Subtotal, discount, delivery, total — each on its own line.
+function renderCheckoutTotals() {
+  const box = document.getElementById("ckTotals");
+  if (!box) return;
+  const subtotal = cartSubtotal();
+  const discount = couponDiscountAmount(subtotal);
+  const afterDiscount = Math.max(0, subtotal - discount);
+  const fee = deliveryFeeFor(selectedZone, afterDiscount);
+  const free = selectedZone && !selectedZone.on_request && qualifiesForFreeDelivery(afterDiscount);
+
+  const deliveryLabel = `${tx("checkout.delivery", "Entrega")} (${escapeZone(selectedZone?.name)})`;
+  const rows = [[tx("cart.subtotal", "Subtotal"), money(subtotal)]];
+  if (discount > 0) rows.push([tx("cart.discount", "Desconto"), `− ${money(discount)}`]);
+  if (selectedZone) {
+    if (selectedZone.on_request) {
+      rows.push([deliveryLabel, tx("checkout.zone.onrequest", "Sob consulta")]);
+    } else {
+      rows.push([deliveryLabel, free ? tx("checkout.delivery.free", "Grátis") : money(fee)]);
+    }
+  }
+
+  box.innerHTML =
+    rows.map(([k, v]) => `<div class="ck-total-row"><span>${k}</span><span>${v}</span></div>`).join("") +
+    `<div class="ck-total-row ck-total-final"><span>${tx("cart.total", "Total")}</span><span>${money(
+      afterDiscount + fee
+    )}</span></div>`;
+
+  // The amount to transfer must match the total the customer just read.
+  const amountEl = document.getElementById("pdAmount");
+  if (amountEl) amountEl.textContent = money(afterDiscount + fee);
+}
+
+document.getElementById("ckZone")?.addEventListener("change", (e) => {
+  selectedZone = deliveryZones.find((z) => String(z.id) === e.target.value) || null;
+  const note = document.getElementById("ckZoneNote");
+  if (note) {
+    if (selectedZone?.on_request) {
+      note.textContent = tx(
+        "checkout.zone.note",
+        "Entregamos fora de Luanda. O custo é confirmado consigo por contacto directo antes do envio, e o pedido segue normalmente."
+      );
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+  }
+  renderCheckoutTotals();
+});
+
+window.updateCartDeliveryHint = updateCartDeliveryHint;
+document.addEventListener("DOMContentLoaded", loadDeliveryZones);
+
+// These three are built in JS, so data-i18n can't reach them on a language
+// switch — they have to redraw themselves.
+document.addEventListener("lang:changed", () => {
+  renderZoneOptions();
+  updateCartDeliveryHint();
+  renderCheckoutTotals();
+  renderZoneTable();
 });

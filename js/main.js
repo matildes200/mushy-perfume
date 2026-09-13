@@ -841,6 +841,8 @@ removeCouponBtn?.addEventListener("click", removeCoupon);
 setCouponToggleState();
 
 function updateCartUI() {
+  // Keeps the "entrega a partir de" line and the free-delivery progress honest.
+  window.updateCartDeliveryHint?.();
   const ids = Object.keys(cart);
   const totalCount = ids.reduce((sum, id) => sum + cart[id], 0);
   cartCountEl.textContent = totalCount;
@@ -1022,6 +1024,7 @@ function openProductDetail(p) {
   document.getElementById("pdCategory").textContent = p.category;
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdNotes").textContent = p.notes;
+  document.getElementById("pdScales").innerHTML = scentScales(p);
   document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
   productDetailOverlay.classList.add("open");
 }
@@ -1239,7 +1242,7 @@ initCustomerSession();
 
 // Called from js/checkout.js once the receipt has been uploaded to Storage;
 // receiptPath is the object's path within the private "receipts" bucket.
-async function logOrder(name, phone, receiptPath, paymentMethod, address, city) {
+async function logOrder(name, phone, receiptPath, paymentMethod, address, city, delivery) {
   const ids = Object.keys(cart);
   let subtotal = 0;
   const items = ids.map((id) => {
@@ -1252,7 +1255,11 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city) 
     return { id: p.id, name: p.name, price: unitPrice, qty, image: p.image || null };
   });
   const discount = couponDiscountAmount(subtotal);
-  const total = Math.max(0, subtotal - discount);
+  // The delivery fee is part of what the customer agreed to pay, so it
+  // belongs in the order total: otherwise the amount to transfer and the
+  // recorded order value disagree.
+  const deliveryFee = Number(delivery?.fee || 0);
+  const total = Math.max(0, subtotal - discount) + deliveryFee;
   const usedCoupon = discount > 0 ? appliedCoupon.code : null;
 
   const { data: order, error } = await supabaseClient
@@ -1260,7 +1267,11 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city) 
     .insert({
       items,
       total,
-      status: "pending",
+      // Checkout requires the comprovativo up front, so an order arrives already
+      // waiting for someone to validate it. This used to say "pending", which
+      // migration_12 removed from the allowed set — every new order was being
+      // rejected by the status check constraint.
+      status: "comprovativo_recebido",
       payment_status: "pending",
       payment_method: paymentMethod || null,
       customer_id: currentCustomer?.id || null,
@@ -1268,6 +1279,11 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city) 
       customer_phone: phone,
       customer_address: address || null,
       customer_city: city || null,
+      // Snapshot of the zone and the fee charged, so a later price change in
+      // Definições never rewrites what an old order actually cost.
+      delivery_zone: delivery?.zone || null,
+      delivery_fee: deliveryFee,
+      delivery_on_request: Boolean(delivery?.onRequest),
       customer_email: currentCustomer?.email || null,
       discount,
       coupon_code: usedCoupon,
@@ -1551,3 +1567,50 @@ function nudgeHeaderRepaint() {
     console.warn("promo banner:", err);
   }
 })();
+
+// ---------- B2: fixação e projecção ----------
+// Five dots plus a written label. The label is not optional decoration: four
+// filled dots mean nothing to someone who does not buy perfume often, and
+// "8 a 10 horas" is the actual question they are asking.
+// Portuguese is the fallback rather than the only option: t() echoes the key
+// back when it is missing, which would print "scale.fixacao.3" on the page.
+const tScale = (key, fallback) => {
+  const out = window.t?.(key);
+  return !out || out === key ? fallback : out;
+};
+const FIXACAO_LABELS = {
+  1: () => tScale("scale.fixacao.1", "Até 2 horas"),
+  2: () => tScale("scale.fixacao.2", "2 a 4 horas"),
+  3: () => tScale("scale.fixacao.3", "4 a 6 horas"),
+  4: () => tScale("scale.fixacao.4", "8 a 10 horas"),
+  5: () => tScale("scale.fixacao.5", "Mais de 12 horas"),
+};
+const PROJECAO_LABELS = {
+  1: () => tScale("scale.projecao.1", "Junto à pele"),
+  2: () => tScale("scale.projecao.2", "Discreta"),
+  3: () => tScale("scale.projecao.3", "Moderada"),
+  4: () => tScale("scale.projecao.4", "Forte"),
+  5: () => tScale("scale.projecao.5", "Muito forte"),
+};
+
+function scaleRow(title, value, labels) {
+  const level = Number(value);
+  if (!level || level < 1 || level > 5) return "";
+  const dots = Array.from({ length: 5 }, (_, i) =>
+    `<span class="scale-dot${i < level ? " on" : ""}"></span>`
+  ).join("");
+  return `<div class="scale-row">
+    <span class="scale-name">${title}</span>
+    <span class="scale-dots" role="img" aria-label="${tScale("scale.outof", "{n} de 5").replace("{n}", level)}">${dots}</span>
+    <span class="scale-label">${labels[level]()}</span>
+  </div>`;
+}
+
+// Returns "" when a product has neither value set, so the block simply does not
+// appear rather than showing an empty frame.
+function scentScales(p) {
+  return (
+    scaleRow(tScale("scale.fixacao", "Fixação"), p.fixacao, FIXACAO_LABELS) +
+    scaleRow(tScale("scale.projecao", "Projecção"), p.projecao, PROJECAO_LABELS)
+  );
+}

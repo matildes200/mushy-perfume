@@ -40,7 +40,11 @@ function currentFilters() {
 function orderRow(o) {
   return `<tr>
     <td><a class="order-link" href="pedido.html?id=${encodeURIComponent(o.id)}">${orderCode(o.id)}</a></td>
-    <td class="wrap">${escapeHtml(o.customer_name || "—")}</td>
+    <td class="wrap">${escapeHtml(o.customer_name || "—")}${
+      o.delivery_on_request
+        ? ' <span class="pill pill-pending" title="A entrega é fora de Luanda: o custo tem de ser combinado com o cliente antes do envio.">Entrega por orçamentar</span>'
+        : ""
+    }</td>
     <td>${formatDate(o.created_at)}</td>
     <td>${money(o.total)}</td>
     <td class="wrap">${escapeHtml(o.payment_method || "—")}</td>
@@ -55,7 +59,7 @@ async function loadOrders() {
 
   let query = supabaseClient
     .from("orders")
-    .select("id, created_at, customer_name, total, payment_method, status", { count: "exact" })
+    .select("id, created_at, customer_name, total, payment_method, status, delivery_on_request", { count: "exact" })
     .eq("archived", false)
     .order("created_at", { ascending: false });
 

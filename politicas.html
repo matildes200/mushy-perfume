@@ -80,8 +80,13 @@
 
       <div class="policy-block" id="envio">
         <h3 data-i18n="politicas.envio.title">Envio</h3>
-        <p data-i18n="politicas.envio.p1">Preparamos os pedidos no prazo de um dia útil após a confirmação do pagamento. O prazo de entrega varia consoante a localidade e o custo de envio, quando aplicável, é combinado consigo antes do envio.</p>
+        <p data-i18n="politicas.envio.p1">Preparamos os pedidos no prazo de um dia útil após a confirmação do pagamento. O prazo de entrega varia consoante a localidade. Dentro de Luanda, o custo de entrega é apresentado no checkout, antes de confirmar o pedido.</p>
         <p data-i18n="politicas.envio.p2">Recebe actualizações sobre o estado do seu pedido através do contacto que indicou ao finalizar a compra.</p>
+
+        <!-- Rendered from the same delivery_zones table the checkout reads, so
+             a price changed in Definições is correct here on the next load. -->
+        <div id="zoneTableWrap"></div>
+        <p class="policy-note" data-i18n="politicas.envio.p4">Entregamos fora de Luanda. Nesse caso o custo é confirmado consigo por contacto directo antes do envio, e o pedido segue normalmente enquanto isso é combinado.</p>
       </div>
 
       <div class="policy-block" id="devolucoes">
@@ -167,6 +172,7 @@
       <span><span data-i18n="cart.discount">Desconto</span> <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · <span data-i18n="cart.coupon.remove">remover</span>)</button></span>
       <strong id="cartDiscount">-0,00 Kz</strong>
     </div>
+    <p class="cart-delivery-hint" id="cartDeliveryHint" hidden></p>
     <div class="cart-total cart-total-final">
       <span data-i18n="cart.total">Total</span>
       <strong id="cartTotal">0,00 Kz</strong>
@@ -195,6 +201,7 @@
       <span class="pd-category" id="pdCategory"></span>
       <h3 class="pd-name" id="pdName"></h3>
       <p class="pd-notes" id="pdNotes"></p>
+      <div class="scent-scales" id="pdScales"></div>
       <div class="pd-price" id="pdPrice"></div>
       <button class="btn btn-primary" id="pdAddToCart" data-i18n="pd.addToCart">Adicionar ao carrinho</button>
     </div>
@@ -270,6 +277,17 @@
           <input type="text" id="ckCity" class="checkout-input" placeholder="Cidade" data-i18n-placeholder="checkout.city.placeholder" required>
           <input type="text" id="ckDistrict" class="checkout-input" placeholder="Bairro / Município" data-i18n-placeholder="checkout.district.placeholder">
         </div>
+        <div class="checkout-zone">
+          <label for="ckZone" data-i18n="checkout.zone.label">Zona de entrega</label>
+          <select id="ckZone" class="checkout-input" required>
+            <option value="" data-i18n="checkout.zone.placeholder">Seleccione a sua zona</option>
+          </select>
+          <p class="zone-note" id="ckZoneNote" hidden></p>
+        </div>
+
+        <!-- Running total, so the delivery cost is visible before paying and
+             not a surprise on the bank transfer screen. -->
+        <div class="checkout-totals" id="ckTotals"></div>
         <label class="receipt-upload" for="ckReceipt">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           <span id="ckReceiptLabel" data-i18n="checkout.receipt.label">Enviar comprovativo (imagem ou PDF), obrigatório</span>

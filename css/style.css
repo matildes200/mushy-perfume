@@ -2251,3 +2251,91 @@ button { font-family: var(--font-body); }
 @media (max-width: 640px) {
   .promo-banner { font-size: 10.5px; letter-spacing: 1px; padding: 8px 12px; }
 }
+
+/* ---------- Fixação e projecção ---------- */
+.scent-scales { display: flex; flex-direction: column; gap: 9px; margin: 4px 0 16px; }
+.scent-scales:empty { display: none; }
+.scale-row { display: grid; grid-template-columns: 76px auto 1fr; align-items: center; gap: 10px; }
+.scale-name {
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.scale-dots { display: inline-flex; gap: 4px; }
+.scale-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.scale-dot.on { background: var(--ink); }
+.scale-label { font-size: 12.5px; color: var(--text); min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .scale-row { grid-template-columns: 66px auto 1fr; gap: 8px; }
+  .scale-name { font-size: 9px; letter-spacing: 1px; }
+  .scale-label { font-size: 11.5px; }
+  .scale-dot { width: 8px; height: 8px; }
+}
+
+/* ---------- B3: zonas de entrega ---------- */
+/* The zone selector sits with the address fields, and the running total sits
+   directly under it, so the delivery cost is read before the payment step. */
+.checkout-zone { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.checkout-zone label {
+  font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+/* The native select is kept deliberately: on a phone it opens the platform
+   picker, which is far easier to use than anything custom, and it keeps its
+   own dropdown arrow. Only the height is normalised, since a bare select
+   renders shorter than the text inputs beside it. */
+.checkout-zone select.checkout-input { width: 100%; min-height: 44px; }
+.zone-note {
+  margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-muted);
+  background: var(--bg-soft); border-left: 2px solid var(--ink);
+  padding: 9px 11px; border-radius: 0 6px 6px 0;
+}
+
+.checkout-totals { margin: 4px 0 18px; display: flex; flex-direction: column; gap: 7px; }
+.checkout-totals:empty { display: none; }
+.ck-total-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 13.5px; color: var(--text-muted);
+}
+.ck-total-row span:last-child { white-space: nowrap; }
+.ck-total-final {
+  border-top: 1px solid var(--border); padding-top: 10px; margin-top: 3px;
+  font-family: var(--font-head); font-size: 16px; color: var(--text);
+}
+
+.cart-delivery-hint {
+  margin: 0 0 10px; font-size: 12px; line-height: 1.45; color: var(--text-muted);
+  text-align: right;
+}
+
+/* The zone table in Políticas has to stay readable on a phone, where a normal
+   table would force the page to scroll sideways. */
+.zone-table { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 14px; }
+.zone-table th, .zone-table td {
+  text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.zone-table th {
+  font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+.zone-table td:last-child, .zone-table th:last-child { text-align: right; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .zone-table { font-size: 13px; }
+  .zone-table th, .zone-table td { padding: 9px 6px; }
+  .ck-total-row { font-size: 13px; }
+  .ck-total-final { font-size: 15px; }
+}
+
+.zone-table-title {
+  font-family: var(--font-head); font-size: 17px; color: var(--text);
+  margin: 22px 0 0; font-weight: 500;
+}
+.policy-note { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin: 10px 0 0; }

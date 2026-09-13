@@ -35,6 +35,11 @@ function renderClient() {
     ["E-mail", order.customer_email],
     ["Telefone", order.customer_phone],
     ["Morada", [order.customer_address || order.shipping_address, order.customer_city || order.shipping_city].filter(Boolean).join(", ")],
+    // Whoever packs the order needs the zone, and needs to know when the cost
+    // still has to be agreed with the customer before it can be dispatched.
+    ["Zona de entrega", order.delivery_on_request
+      ? `${order.delivery_zone || "Fora de Luanda"} — custo por combinar`
+      : order.delivery_zone],
   ];
   document.getElementById("orderClient").innerHTML = rows
     .map(([k, v]) => `<div><span>${k}</span><strong>${escapeHtml(v || "—")}</strong></div>`)
@@ -68,7 +73,15 @@ function renderItems() {
     ["Subtotal", money(subtotal)],
     order.coupon_code ? ["Cupão aplicado", escapeHtml(order.coupon_code)] : null,
     discount ? ["Desconto", `− ${money(discount)}`] : null,
-    Number(order.delivery_fee) ? ["Custo de envio", money(order.delivery_fee)] : null,
+    // An on-request zone is charged nothing at checkout on purpose, so the row
+    // has to say so rather than quietly showing a delivery cost of zero.
+    order.delivery_on_request
+      ? [`Entrega (${escapeHtml(order.delivery_zone || "fora de Luanda")})`, "Sob consulta"]
+      : Number(order.delivery_fee)
+      ? [`Entrega (${escapeHtml(order.delivery_zone || "—")})`, money(order.delivery_fee)]
+      : order.delivery_zone
+      ? [`Entrega (${escapeHtml(order.delivery_zone)})`, "Grátis"]
+      : null,
   ].filter(Boolean);
 
   document.getElementById("orderTotals").innerHTML =
