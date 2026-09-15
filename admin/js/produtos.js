@@ -18,9 +18,6 @@ const textFields = [
 // a database trigger. Writing it here would be overwritten on the next stock
 // change, and would disagree with the sizes in the meantime.
 const numberFields = ["price", "discount_percent", "volume_ml", "low_stock_threshold"];
-// 1-5 scales that may legitimately be unset. Blank saves as NULL rather than 0,
-// which the database would reject and which would also mean "level zero".
-const nullableScaleFields = ["fixacao", "projecao"];
 const checkboxFields = ["active", "featured", "bestseller", "new_arrival"];
 
 function resolveAdminImageSrc(path) {
@@ -145,10 +142,6 @@ function openModal(product, variants = []) {
     const el = document.getElementById(f);
     if (el) el.value = product?.[f] ?? NUMBER_DEFAULTS[f] ?? "";
   });
-  nullableScaleFields.forEach((f) => {
-    const el = document.getElementById(f);
-    if (el) el.value = product?.[f] ?? "";
-  });
   checkboxFields.forEach((f) => {
     const el = document.getElementById(f);
     if (el) el.checked = product ? Boolean(product[f]) : f === "active";
@@ -253,7 +246,7 @@ async function loadProducts() {
     // The list renders a thumbnail, name, category, price, discount and stock.
     // Everything else (descriptions, notes, images array) is fetched only when
     // a product is actually opened for editing.
-    .select("id, name, brand, category, price, discount_percent, stock, low_stock_threshold, image, active, archived, featured, bestseller, new_arrival, fixacao, projecao")
+    .select("id, name, brand, category, price, discount_percent, stock, low_stock_threshold, image, active, archived, featured, bestseller, new_arrival")
     .order("id");
   if (error) {
     showAlert(productsAlert, "Não foi possível carregar os produtos. Confirme se as migrações do banco de dados foram executadas.");
@@ -323,10 +316,6 @@ productForm.addEventListener("submit", async (e) => {
   textFields.forEach((f) => { payload[f] = document.getElementById(f).value.trim(); });
   numberFields.forEach((f) => { payload[f] = Number(document.getElementById(f).value) || 0; });
   checkboxFields.forEach((f) => { payload[f] = document.getElementById(f).checked; });
-  nullableScaleFields.forEach((f) => {
-    const raw = document.getElementById(f)?.value;
-    payload[f] = raw ? Number(raw) : null;
-  });
   payload.images = document.getElementById("images").value.split("\n").map((s) => s.trim()).filter(Boolean);
 
   // A promotional price entered directly always wins over a manually typed discount %.

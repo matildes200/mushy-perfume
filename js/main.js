@@ -154,7 +154,7 @@ function sizePicker(p) {
       // appears on touch. The unavailable state is carried by the styling and
       // by disabled, which screen readers announce.
       return `<button type="button" class="size-pill${on ? " selected" : ""}${out ? " out" : ""}"
-        data-size="${v.size_id}" data-product="${p.id}"${out ? " disabled" : ""}
+        data-size-pick="${v.size_id}" data-product="${p.id}"${out ? " disabled" : ""}
         aria-pressed="${on ? "true" : "false"}">${v.size.label}</button>`;
     })
     .join("");
@@ -165,7 +165,7 @@ function sizePicker(p) {
 // the .flipped class and turn every open card back to its front face.
 function selectCardSize(btn) {
   const productId = Number(btn.dataset.product);
-  const sizeId = Number(btn.dataset.size);
+  const sizeId = Number(btn.dataset.sizePick);
   const product = PRODUCTS.find((x) => x.id === productId);
   const variant = product && findVariant(product, sizeId);
   if (!product || !variant || !variantInStock(variant)) return;
@@ -448,53 +448,6 @@ function badgeMarkup(p) {
   return "";
 }
 
-// ---------- B2: fixação e projecção ----------
-// Five dots plus a written label. The label is not optional decoration: four
-// filled dots mean nothing to someone who does not buy perfume often, and
-// "8 a 10 horas" is the actual question they are asking.
-// Portuguese is the fallback rather than the only option: t() echoes the key
-// back when it is missing, which would print "scale.fixacao.3" on the page.
-const tScale = (key, fallback) => {
-  const out = window.t?.(key);
-  return !out || out === key ? fallback : out;
-};
-const FIXACAO_LABELS = {
-  1: () => tScale("scale.fixacao.1", "Até 2 horas"),
-  2: () => tScale("scale.fixacao.2", "2 a 4 horas"),
-  3: () => tScale("scale.fixacao.3", "4 a 6 horas"),
-  4: () => tScale("scale.fixacao.4", "8 a 10 horas"),
-  5: () => tScale("scale.fixacao.5", "Mais de 12 horas"),
-};
-const PROJECAO_LABELS = {
-  1: () => tScale("scale.projecao.1", "Junto à pele"),
-  2: () => tScale("scale.projecao.2", "Discreta"),
-  3: () => tScale("scale.projecao.3", "Moderada"),
-  4: () => tScale("scale.projecao.4", "Forte"),
-  5: () => tScale("scale.projecao.5", "Muito forte"),
-};
-
-function scaleRow(title, value, labels) {
-  const level = Number(value);
-  if (!level || level < 1 || level > 5) return "";
-  const dots = Array.from({ length: 5 }, (_, i) =>
-    `<span class="scale-dot${i < level ? " on" : ""}"></span>`
-  ).join("");
-  return `<div class="scale-row">
-    <span class="scale-name">${title}</span>
-    <span class="scale-dots" role="img" aria-label="${tScale("scale.outof", "{n} de 5").replace("{n}", level)}">${dots}</span>
-    <span class="scale-label">${labels[level]()}</span>
-  </div>`;
-}
-
-// Returns "" when a product has neither value set, so the block simply does not
-// appear rather than showing an empty frame.
-function scentScales(p) {
-  return (
-    scaleRow(tScale("scale.fixacao", "Fixação"), p.fixacao, FIXACAO_LABELS) +
-    scaleRow(tScale("scale.projecao", "Projecção"), p.projecao, PROJECAO_LABELS)
-  );
-}
-
 // The back of the card is the detail view — there is no "ver detalhes" link,
 // because clicking through to another page would defeat the point of flipping.
 // Everything a shopper needs lives here: name and brand, the olfactory
@@ -511,34 +464,11 @@ function noteRow(labelKey, fallbackLabel, value) {
   </div>`;
 }
 
-// Fixação and projecção on the back of the card, in the same label/value shape
-// as the pyramid rows above them so the whole block reads as one list. The
-// written label is kept: the dots alone are decoration, "8 a 10 horas" is the
-// answer to what someone is actually asking.
-function flipScaleRow(labelKey, fallbackLabel, value, labels) {
-  const level = Number(value);
-  if (!level || level < 1 || level > 5) return "";
-  const dots = Array.from({ length: 5 }, (_, i) =>
-    `<span class="scale-dot${i < level ? " on" : ""}"></span>`
-  ).join("");
-  return `<div class="flip-note-row flip-scale-row">
-    <span class="flip-note-label" data-i18n="${labelKey}">${fallbackLabel}</span>
-    <span class="flip-scale-value">
-      <span class="scale-dots" role="img" aria-label="${tScale("scale.outof", "{n} de 5").replace("{n}", level)}">${dots}</span>
-      <span class="flip-scale-text">${labels[level]()}</span>
-    </span>
-  </div>`;
-}
-
 function backContent(p) {
   const pyramid =
     noteRow("notes.top", "Saída", p.notes_top) +
     noteRow("notes.heart", "Coração", p.notes_heart) +
     noteRow("notes.base", "Fundo", p.notes_base);
-
-  const scales =
-    flipScaleRow("scale.fixacao", "Fixação", p.fixacao, FIXACAO_LABELS) +
-    flipScaleRow("scale.projecao", "Projecção", p.projecao, PROJECAO_LABELS);
 
   // Nothing structured on this product yet — show whatever notes text exists.
   const fallbackNotes = !pyramid && (p.notes || p.short_description || p.description);
@@ -553,8 +483,7 @@ function backContent(p) {
     </div>
     <div class="flip-back-notes">
       ${pyramid}
-      ${fallbackNotes ? `<p class="flip-back-fallback${scales ? " is-short" : ""}">${fallbackNotes}</p>` : ""}
-      ${scales ? `<div class="flip-scales">${scales}</div>` : ""}
+      ${fallbackNotes ? `<p class="flip-back-fallback">${fallbackNotes}</p>` : ""}
     </div>
     ${sizePicker(p)}
     <div class="flip-back-meta">
@@ -1263,7 +1192,6 @@ function openProductDetail(p) {
   document.getElementById("pdCategory").textContent = p.category;
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdNotes").textContent = p.notes;
-  document.getElementById("pdScales").innerHTML = scentScales(p);
   // The modal is the other way into the cart, so it offers the same choice as
   // the card. Without this, adding from Favoritos would silently pick a size.
   const sizesEl = document.getElementById("pdSizes");
@@ -1321,7 +1249,11 @@ function closeWishlist() {
 document.body.addEventListener("click", (e) => {
   // Picking a size on the back of a card: swaps the selection and reprices in
   // place, without rebuilding the card — a rebuild would flip it back over.
-  const sizeBtn = e.target.closest("[data-size]");
+  //
+  // data-size-pick, not data-size: the add button carries data-size to remember
+  // the current choice, so matching on that made this branch swallow every
+  // click on Comprar and the button did nothing at all.
+  const sizeBtn = e.target.closest("[data-size-pick]");
   if (sizeBtn) {
     e.stopPropagation();
     selectCardSize(sizeBtn);

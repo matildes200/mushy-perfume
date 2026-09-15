@@ -41,7 +41,19 @@ async function loadProducts() {
   } catch (err) {
     console.error("Falha ao carregar produtos do Supabase:", err);
   }
-  document.dispatchEvent(new CustomEvent("products:ready"));
+  // Waits for the parser, for the same reason admin-auth.js does: this file is
+  // loaded before js/main.js, and main.js is what listens for this event. If
+  // the queries above ever resolve without a real network round trip, the
+  // dispatch lands at the microtask checkpoint after this script — before
+  // main.js has been parsed — and the grid stays empty with no error to show
+  // for it. Today the network makes that impossible; this makes it impossible
+  // on purpose.
+  const announce = () => document.dispatchEvent(new CustomEvent("products:ready"));
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", announce, { once: true });
+  } else {
+    announce();
+  }
 }
 
 loadProducts();
