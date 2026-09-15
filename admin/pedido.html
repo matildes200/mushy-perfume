@@ -84,6 +84,18 @@
         <div class="order-totals" id="orderTotals"></div>
       </div>
 
+      <!-- Only rendered when this order earned one. E-mail is not wired up yet,
+           so the code has to be readable here to be sent by WhatsApp. -->
+      <div class="admin-panel" id="creditPanel" hidden>
+        <div class="admin-panel-head panel-head-stack">
+          <div>
+            <h2>Crédito de amostra</h2>
+            <p class="panel-sub">Gerado automaticamente quando este pedido foi marcado como Entregue. Envie o código ao cliente.</p>
+          </div>
+        </div>
+        <div id="creditList"></div>
+      </div>
+
       <div class="admin-panel">
         <div class="admin-panel-head"><h2>Histórico do pedido</h2></div>
         <ol class="order-history" id="orderHistory"><li class="admin-empty">A carregar…</li></ol>

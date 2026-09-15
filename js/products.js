@@ -1,46 +1,27 @@
 let PRODUCTS = [];
-// Sizes are global (35/50/100 ml); each product carries its own row per size,
-// holding the stock and an optional price override. Both are needed before the
-// first card renders, so they load alongside the products rather than after.
-let SIZES = [];
 
 async function loadProducts() {
   try {
-    const [productsRes, sizesRes, variantsRes] = await Promise.all([
-      supabaseClient.from("products").select("*").order("id"),
-      supabaseClient
-        .from("product_sizes")
-        .select("id, label, volume_ml, price_pct, sort_order")
-        .eq("active", true)
-        .order("sort_order"),
-      supabaseClient
-        .from("product_variants")
-        .select("product_id, size_id, price, stock")
-        .eq("active", true),
-    ]);
-    if (productsRes.error) throw productsRes.error;
-
-    PRODUCTS = productsRes.data || [];
-    SIZES = sizesRes.data || [];
-
-    // Indexed by product so a card doesn't scan the whole variant list.
-    const bySize = new Map(SIZES.map((s) => [s.id, s]));
-    const byProduct = new Map();
-    (variantsRes.data || []).forEach((v) => {
-      const size = bySize.get(v.size_id);
-      if (!size) return;
-      if (!byProduct.has(v.product_id)) byProduct.set(v.product_id, []);
-      byProduct.get(v.product_id).push({ ...v, size });
-    });
-
-    PRODUCTS.forEach((p) => {
-      p.variants = (byProduct.get(p.id) || []).sort(
-        (a, b) => (a.size.sort_order || 0) - (b.size.sort_order || 0)
-      );
-    });
+    const { data, error } = await supabaseClient.from("products").select("*").order("id");
+    if (error) throw error;
+    PRODUCTS = data || [];
   } catch (err) {
     console.error("Falha ao carregar produtos do Supabase:", err);
   }
+
+  // The amostra volume is a setting rather than a constant in the page. A
+  // failure here is not worth blocking the catalogue for: main.js already
+  // defaults to 5 ml, which is what the shop sells.
+  try {
+    const { data } = await supabaseClient
+      .from("site_delivery_settings")
+      .select("amostra_volume_ml")
+      .maybeSingle();
+    if (data?.amostra_volume_ml) window.AMOSTRA_ML = Number(data.amostra_volume_ml);
+  } catch (err) {
+    console.warn("amostra volume:", err);
+  }
+
   // Waits for the parser, for the same reason admin-auth.js does: this file is
   // loaded before js/main.js, and main.js is what listens for this event. If
   // the queries above ever resolve without a real network round trip, the

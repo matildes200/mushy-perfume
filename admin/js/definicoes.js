@@ -43,6 +43,11 @@ async function loadSettings() {
   if (threshold) threshold.value = data?.free_delivery_threshold ?? "";
   const freeActive = document.getElementById("free_delivery_active");
   if (freeActive) freeActive.checked = Boolean(data?.free_delivery_active);
+
+  const amostraMl = document.getElementById("amostra_volume_ml");
+  if (amostraMl) amostraMl.value = data?.amostra_volume_ml ?? 5;
+  const amostraDays = document.getElementById("amostra_credit_days");
+  if (amostraDays) amostraDays.value = data?.amostra_credit_days ?? 30;
 }
 
 // upsert on a fixed id so the row is created the first time rather than the
@@ -100,70 +105,23 @@ document.getElementById("bannerForm").addEventListener("submit", async (e) => {
   );
 });
 
-// -------------------------------------------------------------- sizes ---
-// The sizes every product is sold in, and what each costs relative to the
-// product's base price. Editable here so changing "35 ml" to "30 ml", or
-// moving a percentage, is one field rather than a migration.
+// ------------------------------------------------------------ amostras ---
+// The amostra size, and how long the credit an amostra earns stays usable.
+// Both live on the same single settings row as the IBAN and the banner.
 
-const sizesAlert = document.getElementById("sizesAlert");
-const sizesTableBody = document.querySelector("#sizesTable tbody");
+const amostraAlert = document.getElementById("amostraAlert");
 
-async function loadSizes() {
-  if (!sizesTableBody) return;
-  const { data, error } = await supabaseClient
-    .from("product_sizes")
-    .select("*")
-    .order("sort_order");
-  if (error) {
-    showAlert(sizesAlert, "Não foi possível carregar os tamanhos.");
-    sizesTableBody.innerHTML = `<tr><td colspan="4" class="admin-empty">Erro ao carregar.</td></tr>`;
-    return;
-  }
-  sizesTableBody.innerHTML = (data || []).length
-    ? data
-        .map(
-          (s) => `<tr data-size-id="${s.id}">
-      <td><input type="text" class="size-label" value="${escapeHtml(s.label)}" required></td>
-      <td><input type="number" class="size-ml" min="1" step="1" value="${Number(s.volume_ml)}" required></td>
-      <td><input type="number" class="size-pct" min="1" max="1000" step="0.5" value="${Number(s.price_pct)}" required></td>
-      <td class="field-check"><label><input type="checkbox" class="size-active"${s.active ? " checked" : ""}></label></td>
-    </tr>`
-        )
-        .join("")
-    : `<tr><td colspan="4" class="admin-empty">Nenhum tamanho definido.</td></tr>`;
-}
-
-document.getElementById("sizesForm")?.addEventListener("submit", async (e) => {
+document.getElementById("amostraForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const rows = Array.from(sizesTableBody?.querySelectorAll("tr[data-size-id]") || []);
-  if (!rows.length) return;
-
-  const payload = rows.map((row) => ({
-    id: Number(row.dataset.sizeId),
-    label: row.querySelector(".size-label").value.trim(),
-    volume_ml: Number(row.querySelector(".size-ml").value),
-    price_pct: Number(row.querySelector(".size-pct").value),
-    active: row.querySelector(".size-active").checked,
-  }));
-
-  if (payload.some((s) => !s.label || !s.volume_ml || !s.price_pct)) {
-    showAlert(sizesAlert, "Preencha o nome, o volume e a percentagem de cada tamanho.");
-    return;
-  }
-  // Hiding every size would leave the storefront with nothing to sell.
-  if (!payload.some((s) => s.active)) {
-    showAlert(sizesAlert, "Pelo menos um tamanho tem de estar visível.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("product_sizes")
-    .upsert(payload, { onConflict: "id" });
-  if (error) return showAlert(sizesAlert, "Não foi possível guardar os tamanhos.");
-
-  await logActivity("sizes_update", "product_sizes", null, { sizes: payload });
-  showAlert(sizesAlert, "Tamanhos guardados.", "success");
-  loadSizes();
+  const ml = Number(document.getElementById("amostra_volume_ml").value);
+  const days = Number(document.getElementById("amostra_credit_days").value);
+  if (!ml || ml < 1) return showAlert(amostraAlert, "Indique o tamanho da amostra em ml.");
+  if (!days || days < 1) return showAlert(amostraAlert, "Indique a validade do crédito em dias.");
+  await saveSettings(
+    { amostra_volume_ml: ml, amostra_credit_days: days },
+    "Definições de amostra guardadas.",
+    amostraAlert
+  );
 });
 
 // ------------------------------------------------------- delivery zones ---
@@ -435,7 +393,6 @@ document.getElementById("adminForm").addEventListener("submit", async (e) => {
 
 document.addEventListener("admin:ready", () => {
   loadSettings();
-  loadSizes();
   loadZones();
   loadAdmins();
 });

@@ -142,8 +142,9 @@
           </select>
         </div>
         <div class="form-field">
-          <label for="volume_ml">Volume (ml)</label>
-          <input type="number" id="volume_ml" min="0" step="1" placeholder="100">
+          <label for="volume_ml">Tamanho do frasco (ml)</label>
+          <input type="number" id="volume_ml" min="1" step="1" placeholder="100" required>
+          <span class="form-hint">É este número que o cliente vê: "Frasco completo · 100 ml".</span>
         </div>
       </div>
 
@@ -155,38 +156,38 @@
         </div>
       </div>
 
-      <h3 class="form-section">Tamanhos, preços e stock</h3>
-      <p class="form-hint">
-        O preço base acima é o do frasco maior. Cada tamanho é calculado a partir dele
-        pela percentagem definida em Definições &rarr; Tamanhos. Para praticar outro
-        preço num tamanho, escreva-o na coluna <strong>Preço a praticar</strong>;
-        deixe em branco para voltar ao valor calculado.
-      </p>
-      <div class="admin-table-wrap">
-        <table class="admin-table variant-table" id="variantTable">
-          <thead>
-            <tr>
-              <th>Tamanho</th>
-              <th>Preço calculado</th>
-              <th>Preço a praticar (Kz)</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="4" class="admin-empty">A carregar tamanhos…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
+      <h3 class="form-section">Stock do frasco</h3>
       <div class="form-grid">
         <div class="form-field">
-          <label for="stock">Stock total</label>
-          <input type="number" id="stock" value="0" readonly tabindex="-1">
-          <span class="form-hint">Soma dos tamanhos acima. Calculado automaticamente.</span>
+          <label for="stock">Frascos em stock</label>
+          <input type="number" id="stock" min="0" step="1" value="0">
         </div>
         <div class="form-field">
           <label for="low_stock_threshold">Limite de stock baixo</label>
           <input type="number" id="low_stock_threshold" min="0" step="1" value="5">
+        </div>
+      </div>
+
+      <h3 class="form-section">Amostra</h3>
+      <p class="form-hint">
+        Uma amostra de <span data-amostra-ml>5</span> ml deste perfume, vendida à parte,
+        com o seu próprio preço e o seu próprio stock. Quando um pedido de amostra é
+        marcado como <strong>Entregue</strong>, o sistema gera um código de desconto do
+        valor da amostra, válido só no frasco completo deste mesmo perfume.
+      </p>
+      <div class="form-grid">
+        <div class="form-field span-2 field-check">
+          <label for="amostra_enabled">
+            <input type="checkbox" id="amostra_enabled"> Vender amostra deste perfume
+          </label>
+        </div>
+        <div class="form-field">
+          <label for="amostra_price">Preço da amostra (Kz)</label>
+          <input type="number" id="amostra_price" min="0" step="1" placeholder="3500">
+        </div>
+        <div class="form-field">
+          <label for="amostra_stock">Amostras em stock</label>
+          <input type="number" id="amostra_stock" min="0" step="1" value="0">
         </div>
       </div>
 

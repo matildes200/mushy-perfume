@@ -140,25 +140,25 @@
   <div class="admin-panel">
     <div class="admin-panel-head panel-head-stack">
       <div>
-        <h2>Tamanhos</h2>
-        <p class="panel-sub">Os tamanhos em que cada perfume é vendido, e quanto custa cada um em relação ao preço base do produto.</p>
+        <h2>Amostras</h2>
+        <p class="panel-sub">O tamanho da amostra, e durante quanto tempo o crédito gerado por uma amostra entregue pode ser usado.</p>
       </div>
     </div>
-    <div class="admin-alert admin-alert-error" style="margin:0 24px 16px;">
-      <strong>Percentagens de exemplo.</strong> 55% e 75% vieram do briefing como ponto de partida, não de custos reais. O preço de cada tamanho pode ser escrito à mão em cada produto, sem mexer aqui.
-    </div>
-    <div id="sizesAlert"></div>
-    <form id="sizesForm">
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="sizesTable">
-          <thead>
-            <tr><th>Nome</th><th>Volume (ml)</th><th>% do preço base</th><th>Visível</th></tr>
-          </thead>
-          <tbody><tr><td colspan="4" class="admin-empty">A carregar…</td></tr></tbody>
-        </table>
+    <div id="amostraAlert"></div>
+    <form id="amostraForm" class="settings-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="amostra_volume_ml">Tamanho da amostra (ml)</label>
+          <input type="number" id="amostra_volume_ml" min="1" step="1" value="5" required>
+        </div>
+        <div class="form-field">
+          <label for="amostra_credit_days">Validade do crédito (dias)</label>
+          <input type="number" id="amostra_credit_days" min="1" step="1" value="30" required>
+          <span class="form-hint">Contados a partir do dia em que o pedido da amostra é marcado como Entregue.</span>
+        </div>
       </div>
       <div class="settings-actions">
-        <button type="submit" class="btn-admin" id="saveSizesBtn">Guardar</button>
+        <button type="submit" class="btn-admin" id="saveAmostraBtn">Guardar</button>
       </div>
     </form>
   </div>

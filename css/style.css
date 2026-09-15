@@ -2325,46 +2325,6 @@ button { font-family: var(--font-body); }
    text instead of pushing the add-to-cart button off the bottom of the card. */
 .flip-back-notes { min-height: 0; overflow: hidden; }
 
-/* ---------- Size picker (back of the card, and the detail modal) ----------
-   A row of pills rather than a <select>: three options is few enough to show
-   all at once, and a tap beats opening a picker. Sits above the price, which
-   is what it changes. */
-.size-picker { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
-.size-pill {
-  flex: 1 1 0; min-width: 0;
-  padding: 7px 4px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: 11px;
-  letter-spacing: .04em;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color .18s, color .18s, background .18s;
-  -webkit-tap-highlight-color: transparent;
-}
-.size-pill.selected {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--on-hero);
-}
-/* Still shown, never selectable: hiding it would make the range look smaller
-   than it is, and quietly swapping to another size sells the wrong bottle. */
-.size-pill.out {
-  opacity: .4;
-  cursor: not-allowed;
-  text-decoration: line-through;
-}
-@media (hover: hover) and (pointer: fine) {
-  .size-pill:not(.out):not(.selected):hover { border-color: var(--ink); color: var(--text); }
-}
-
-/* The modal has more room than a card, so the pills can breathe. */
-.pd-sizes .size-picker { margin: 4px 0 14px; gap: 8px; }
-.pd-sizes .size-pill { font-size: 12.5px; padding: 9px 6px; }
-.pd-sizes:empty { display: none; }
-
 /* The size next to a cart line's name, so the same perfume twice reads as two
    different bottles rather than a duplicated row. */
 .cart-item-size {
@@ -2381,8 +2341,70 @@ button { font-family: var(--font-body); }
 }
 
 @media (max-width: 640px) {
-  .size-picker { gap: 5px; margin-bottom: 8px; }
-  .size-pill { font-size: 10px; padding: 6px 3px; }
-  .pd-sizes .size-pill { font-size: 12px; padding: 8px 5px; }
-  .cart-item-size { font-size: 9px; margin-left: 5px; }
+pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
+}
+
+/* ---------- Frasco completo / amostra ----------
+   Two rows rather than pills: each option carries a price, and a price needs
+   room to be read. The mark on the left is a radio in everything but name —
+   these are mutually exclusive choices, and they should look it. */
+.option-picker { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; }
+.option-row {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: transparent;
+  font-family: var(--font-body); font-size: 12px; color: var(--text);
+  text-align: left; cursor: pointer;
+  transition: border-color .18s, background .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.option-mark {
+  flex: 0 0 auto; width: 13px; height: 13px; border-radius: 50%;
+  border: 1px solid var(--text-muted); position: relative;
+}
+.option-row.selected { border-color: var(--ink); background: var(--bg-soft); }
+.option-row.selected .option-mark { border-color: var(--ink); }
+.option-row.selected .option-mark::after {
+  content: ""; position: absolute; inset: 2.5px; border-radius: 50%; background: var(--ink);
+}
+.option-label { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.option-price { flex: 0 0 auto; font-weight: 500; white-space: nowrap; }
+/* Still listed, never selectable: hiding it would make the range look smaller
+   than it is, and silently switching sells someone the wrong thing. */
+.option-row.out { opacity: .45; cursor: not-allowed; }
+.option-row.out .option-price { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+@media (hover: hover) and (pointer: fine) {
+  .option-row:not(.out):not(.selected):hover { border-color: var(--ink); }
+}
+
+/* The reason to buy an amostra at all. Discreet, but it has to be readable —
+   nobody buys a thing whose point they have to work out. */
+.amostra-note {
+  border-left: 2px solid var(--ink);
+  background: var(--bg-soft);
+  padding: 9px 11px; border-radius: 0 8px 8px 0;
+  margin: 0 0 10px;
+}
+.amostra-note strong {
+  display: block; font-family: var(--font-head); font-weight: 500;
+  font-size: 12.5px; color: var(--text); margin-bottom: 3px;
+}
+.amostra-note p { margin: 0; font-size: 11px; line-height: 1.5; color: var(--text-muted); }
+
+/* The modal has room to breathe. */
+.pd-sizes .option-row { font-size: 13.5px; padding: 11px 13px; }
+.pd-sizes .amostra-note { padding: 12px 14px; }
+.pd-sizes .amostra-note strong { font-size: 14px; }
+.pd-sizes .amostra-note p { font-size: 12.5px; }
+.pd-sizes:empty { display: none; }
+
+@media (max-width: 640px) {
+  .option-picker { gap: 5px; margin-bottom: 8px; }
+  .option-row { font-size: 11px; padding: 8px 9px; gap: 7px; }
+  .option-mark { width: 12px; height: 12px; }
+  .amostra-note { padding: 8px 10px; }
+  .amostra-note strong { font-size: 11.5px; }
+  .amostra-note p { font-size: 10.5px; }
+  .pd-sizes .option-row { font-size: 13px; padding: 10px 12px; }
 }

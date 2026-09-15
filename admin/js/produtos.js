@@ -14,11 +14,11 @@ const textFields = [
   // "notes" summary is what the storefront card actually falls back to.
   "notes", "image",
 ];
-// stock is deliberately absent: it is the sum of the product's sizes, kept by
-// a database trigger. Writing it here would be overwritten on the next stock
-// change, and would disagree with the sizes in the meantime.
-const numberFields = ["price", "discount_percent", "volume_ml", "low_stock_threshold"];
-const checkboxFields = ["active", "featured", "bestseller", "new_arrival"];
+const numberFields = ["price", "discount_percent", "volume_ml", "stock", "low_stock_threshold"];
+// The amostra price may legitimately be unset. Blank saves as NULL rather than
+// 0, which would mean "free" rather than "not priced yet".
+const nullableNumberFields = ["amostra_price"];
+const checkboxFields = ["active", "featured", "bestseller", "new_arrival", "amostra_enabled"];
 
 function resolveAdminImageSrc(path) {
   if (!path) return "";
@@ -31,103 +31,36 @@ function showAlert(el, message, type = "error") {
 
 const NUMBER_DEFAULTS = { discount_percent: 0, stock: 0, low_stock_threshold: 5 };
 
-// ---------------------------------------------------- sizes and prices ---
-// Every product carries one row per size. The price column is an override:
-// empty means "follow the percentage", which is what lets a change to the base
-// price reprice the whole product at once.
+// ------------------------------------------------------------- amostra ---
+// The amostra price and stock are plain columns on the product now, so the only
+// thing worth scripting is keeping the form honest: a disabled amostra has no
+// price or stock to set.
 
-let SIZES = [];
-const variantTableBody = document.querySelector("#variantTable tbody");
-
-const derivedPrice = (base, pct) => Math.round(Number(base || 0) * (Number(pct || 100) / 100));
-
-async function loadSizes() {
-  const { data, error } = await supabaseClient
-    .from("product_sizes")
-    .select("id, label, volume_ml, price_pct, sort_order")
-    .eq("active", true)
-    .order("sort_order");
-  if (error) {
-    showAlert(productsAlert, "Não foi possível carregar os tamanhos.");
-    return;
-  }
-  SIZES = data || [];
-}
-
-// `variants` is keyed by size id. A product being created has none yet, so
-// every row starts empty and is inserted on save.
-function renderVariantRows(variants) {
-  if (!variantTableBody) return;
-  if (!SIZES.length) {
-    variantTableBody.innerHTML =
-      `<tr><td colspan="4" class="admin-empty">Nenhum tamanho definido. Crie-os em Definições &rarr; Tamanhos.</td></tr>`;
-    return;
-  }
-  const base = Number(document.getElementById("price").value) || 0;
-  variantTableBody.innerHTML = SIZES.map((s) => {
-    const v = variants[s.id] || {};
-    const derived = derivedPrice(base, s.price_pct);
-    return `<tr data-size-id="${s.id}">
-      <td class="wrap"><strong>${escapeHtml(s.label)}</strong>
-        <span class="variant-pct">${Number(s.price_pct)}% do base</span></td>
-      <td class="variant-derived" data-pct="${s.price_pct}">${money(derived)}</td>
-      <td><input type="number" class="variant-price" min="0" step="1"
-        value="${v.price ?? ""}" placeholder="${derived}"></td>
-      <td><input type="number" class="variant-stock" min="0" step="1"
-        value="${Number(v.stock || 0)}"></td>
-    </tr>`;
-  }).join("");
-  syncVariantTotals();
-}
-
-// The calculated column and the placeholders follow the base price as it is
-// typed, so the effect of a change is visible before saving.
-function syncVariantTotals() {
-  const base = Number(document.getElementById("price").value) || 0;
-  variantTableBody?.querySelectorAll("tr[data-size-id]").forEach((row) => {
-    const cell = row.querySelector(".variant-derived");
-    if (!cell) return;
-    const derived = derivedPrice(base, cell.dataset.pct);
-    cell.textContent = money(derived);
-    const priceInput = row.querySelector(".variant-price");
-    if (priceInput) priceInput.placeholder = String(derived);
-  });
-  const totalStock = Array.from(variantTableBody?.querySelectorAll(".variant-stock") || [])
-    .reduce((sum, el) => sum + (Number(el.value) || 0), 0);
-  const stockEl = document.getElementById("stock");
-  if (stockEl) stockEl.value = String(totalStock);
-}
-
-document.getElementById("price")?.addEventListener("input", syncVariantTotals);
-variantTableBody?.addEventListener("input", (e) => {
-  if (e.target.classList.contains("variant-stock")) syncVariantTotals();
-});
-
-// Reads the table back. A blank price is null, meaning "follow the percentage";
-// zero is a real price and is kept as zero.
-function collectVariants() {
-  return Array.from(variantTableBody?.querySelectorAll("tr[data-size-id]") || []).map((row) => {
-    const raw = row.querySelector(".variant-price")?.value.trim() ?? "";
-    return {
-      size_id: Number(row.dataset.sizeId),
-      price: raw === "" ? null : Number(raw),
-      stock: Number(row.querySelector(".variant-stock")?.value) || 0,
-    };
+function syncAmostraFields() {
+  const on = document.getElementById("amostra_enabled")?.checked;
+  ["amostra_price", "amostra_stock"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = !on;
+    if (!on) el.value = id === "amostra_stock" ? "0" : "";
   });
 }
+document.getElementById("amostra_enabled")?.addEventListener("change", syncAmostraFields);
 
-async function saveVariants(productId) {
-  const rows = collectVariants().map((v) => ({ ...v, product_id: productId, active: true }));
-  if (!rows.length) return null;
-  // onConflict on the pair, so editing a product updates its rows rather than
-  // failing on the unique constraint.
-  const { error } = await supabaseClient
-    .from("product_variants")
-    .upsert(rows, { onConflict: "product_id,size_id" });
-  return error;
+// The volume shown in the form's explanation comes from settings, so the form
+// never states a size the storefront does not sell.
+async function loadAmostraVolume() {
+  const { data } = await supabaseClient
+    .from("payment_settings")
+    .select("amostra_volume_ml")
+    .eq("id", 1)
+    .maybeSingle();
+  const ml = data?.amostra_volume_ml;
+  if (!ml) return;
+  document.querySelectorAll("[data-amostra-ml]").forEach((el) => { el.textContent = ml; });
 }
 
-function openModal(product, variants = []) {
+function openModal(product) {
   productForm.reset();
   showAlert(productFormAlert, "");
   document.getElementById("productId").value = product?.id || "";
@@ -146,8 +79,11 @@ function openModal(product, variants = []) {
     const el = document.getElementById(f);
     if (el) el.checked = product ? Boolean(product[f]) : f === "active";
   });
-  // Keyed by size so a row can find its own values without scanning the list.
-  renderVariantRows(Object.fromEntries((variants || []).map((v) => [v.size_id, v])));
+  nullableNumberFields.forEach((f) => {
+    const el = document.getElementById(f);
+    if (el) el.value = product?.[f] ?? "";
+  });
+  syncAmostraFields();
 
   document.getElementById("images").value = (product?.images || []).join("\n");
 
@@ -275,18 +211,12 @@ productsTableBody.addEventListener("click", async (e) => {
       .select("*")
       .eq("id", Number(editBtn.dataset.edit))
       .single();
-    // Fetched alongside the product rather than after it, so opening the form
-    // stays one round trip's worth of waiting.
-    const { data: variants } = await supabaseClient
-      .from("product_variants")
-      .select("size_id, price, stock")
-      .eq("product_id", Number(editBtn.dataset.edit));
     editBtn.disabled = false;
     if (error || !product) {
       showAlert(productsAlert, "Não foi possível abrir este produto.");
       return;
     }
-    openModal(product, variants || []);
+    openModal(product);
     return;
   }
 
@@ -316,7 +246,20 @@ productForm.addEventListener("submit", async (e) => {
   textFields.forEach((f) => { payload[f] = document.getElementById(f).value.trim(); });
   numberFields.forEach((f) => { payload[f] = Number(document.getElementById(f).value) || 0; });
   checkboxFields.forEach((f) => { payload[f] = document.getElementById(f).checked; });
+  nullableNumberFields.forEach((f) => {
+    const raw = document.getElementById(f)?.value.trim();
+    payload[f] = raw === "" || raw === undefined ? null : Number(raw);
+  });
+  payload.amostra_stock = Number(document.getElementById("amostra_stock")?.value) || 0;
   payload.images = document.getElementById("images").value.split("\n").map((s) => s.trim()).filter(Boolean);
+
+  // The database refuses an enabled amostra with no price; catching it here
+  // turns a raw constraint error into something the form can explain.
+  if (payload.amostra_enabled && payload.amostra_price === null) {
+    showAlert(productFormAlert, "Indique o preço da amostra, ou desactive a amostra deste perfume.");
+    saveBtn.disabled = false;
+    return;
+  }
 
   // A promotional price entered directly always wins over a manually typed discount %.
   const price = Number(document.getElementById("price").value) || 0;
@@ -340,22 +283,7 @@ productForm.addEventListener("submit", async (e) => {
   }
 
   const productId = id ? Number(id) : savedProduct?.id;
-
-  // Saved after the product, since a new product has no id until it exists.
-  // A failure here is reported rather than swallowed: the product would
-  // otherwise be saved with prices and stock that were silently discarded.
-  if (productId) {
-    const variantError = await saveVariants(productId);
-    if (variantError) {
-      showAlert(productFormAlert, "O produto foi guardado, mas os tamanhos não. Tente guardar de novo.");
-      return;
-    }
-  }
-
-  // products.stock is maintained by a trigger from the sizes, so the movement
-  // is measured against what the rows now add up to.
-  const newStock = collectVariants().reduce((sum, v) => sum + v.stock, 0);
-  const stockDelta = newStock - previousStock;
+  const stockDelta = payload.stock - previousStock;
   if (productId && stockDelta !== 0) {
     await supabaseClient.from("stock_history").insert({
       product_id: productId,
@@ -370,7 +298,6 @@ productForm.addEventListener("submit", async (e) => {
 });
 
 document.addEventListener("admin:ready", () => {
-  // In parallel: the sizes are only needed once a product form is opened.
-  loadSizes();
+  loadAmostraVolume();
   loadProducts();
 });

@@ -89,6 +89,51 @@ function renderItems() {
     `<div class="total-row total-final"><span>Total</span><span>${money(order.total)}</span></div>`;
 }
 
+// A delivered amostra earns the customer its value back off the full bottle of
+// the same perfume. The database mints the code on the status change; this only
+// shows it, because there is no e-mail yet and it has to be sent by hand.
+async function renderCredits() {
+  const panel = document.getElementById("creditPanel");
+  const list = document.getElementById("creditList");
+  if (!panel || !list) return;
+
+  const { data, error } = await supabaseClient
+    .from("coupons")
+    .select("code, discount_value, end_date, times_used, max_uses, active, product_id")
+    .eq("source_order_id", order.id);
+
+  const credits = error ? [] : data || [];
+  if (!credits.length) { panel.hidden = true; return; }
+
+  const names = new Map();
+  const ids = credits.map((c) => c.product_id).filter(Boolean);
+  if (ids.length) {
+    const { data: prods } = await supabaseClient.from("products").select("id, name").in("id", ids);
+    (prods || []).forEach((p) => names.set(p.id, p.name));
+  }
+
+  list.innerHTML = credits
+    .map((c) => {
+      const used = Number(c.times_used || 0) > 0;
+      const expired = c.end_date && new Date(c.end_date) < new Date(new Date().toDateString());
+      const state = used
+        ? '<span class="pill pill-active">Já utilizado</span>'
+        : expired
+        ? '<span class="pill pill-inactive">Expirado</span>'
+        : '<span class="pill pill-pending">Por utilizar</span>';
+      return `<div class="credit-row">
+        <code class="credit-code">${escapeHtml(c.code)}</code>
+        <span class="credit-meta">
+          ${money(c.discount_value)} em <strong>${escapeHtml(names.get(c.product_id) || "—")}</strong>
+          &middot; válido até ${c.end_date ? formatDate(c.end_date) : "—"}
+        </span>
+        ${state}
+      </div>`;
+    })
+    .join("");
+  panel.hidden = false;
+}
+
 // The comprovativo is shown inline. Receipts live in a private bucket, so the
 // page needs a signed URL — a plain path would 404.
 async function renderReceipt() {
@@ -180,6 +225,7 @@ async function loadOrder() {
   document.getElementById("odCourier").value = order.courier || "";
   document.getElementById("odTracking").value = order.tracking_number || "";
   await renderReceipt();
+  await renderCredits();
   await loadHistory();
 }
 
@@ -195,6 +241,8 @@ async function changeStatus(next, note) {
   if (next === "cancelado") patch.cancel_reason = note || null;
 
   const { data, error } = await supabaseClient.from("orders").update(patch).eq("id", order.id).select().single();
+  // A credit may have just been minted by the delivery trigger.
+  if (!error) setTimeout(renderCredits, 0);
   if (error) {
     showAlert("Não foi possível guardar o novo estado.");
     return false;
