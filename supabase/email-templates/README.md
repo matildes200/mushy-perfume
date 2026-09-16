@@ -3,9 +3,9 @@
 Os dois e-mails da recuperação de palavra-passe, em português de Portugal e com
 a identidade da Mushy Parfum:
 
-- **Redefinir a sua palavra-passe** — enviado quando alguém pede a recuperação.
+- **Redefinir a sua palavra-passe**, enviado quando alguém pede a recuperação.
   A ligação é válida 60 minutos (`mailer_otp_exp: 3600`) e é de utilização única.
-- **A sua palavra-passe foi alterada** — enviado depois de a alteração ser
+- **A sua palavra-passe foi alterada**, enviado depois de a alteração ser
   concluída, para que o cliente saiba caso não tenha sido ele.
 
 ## Porque é que ainda não estão aplicados

@@ -378,8 +378,8 @@ function renderZoneOptions() {
     const opt = document.createElement("option");
     opt.value = String(z.id);
     opt.textContent = z.on_request
-      ? `${z.name} — ${tx("checkout.zone.onrequest", "Sob consulta")}`
-      : `${z.name} — ${money(Number(z.price))}`;
+      ? `${z.name} (${tx("checkout.zone.onrequest", "sob consulta")})`
+      : `${z.name} (${money(Number(z.price))})`;
     select.appendChild(opt);
   });
   if (previous) select.value = previous;

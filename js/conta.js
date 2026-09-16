@@ -79,7 +79,7 @@ async function renderAccountOrders(customerId) {
   }
   el.innerHTML = orders
     .map((o) => {
-      const date = o.created_at ? new Date(o.created_at).toLocaleDateString("pt-PT") : "—";
+      const date = o.created_at ? new Date(o.created_at).toLocaleDateString("pt-PT") : "sem data";
       const items = o.items || [];
       // Orders placed before the image was snapshotted onto the line fall back
       // to the live product, so old orders still show a bottle where they can.

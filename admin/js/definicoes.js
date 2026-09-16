@@ -35,14 +35,16 @@ async function loadSettings() {
     const el = document.getElementById(f);
     if (el) el.value = data?.[f] || "";
   });
-  document.getElementById("banner_active").checked = Boolean(data?.banner_active);
   ["banner_cta_label", "banner_cta_url"].forEach((f) => {
     const el = document.getElementById(f);
     if (el) el.value = data?.[f] || "";
   });
-  bannerCampaignId = data?.banner_campaign_id ?? "";
+  const mode = data?.banner_mode || (data?.banner_active ? "manual" : "off");
+  const radio = document.querySelector(`input[name="banner_mode"][value="${mode}"]`);
+  if (radio) radio.checked = true;
   const campSelect = document.getElementById("banner_campaign_id");
-  if (campSelect) campSelect.value = bannerCampaignId || "";
+  if (campSelect) campSelect.value = data?.banner_campaign_id ?? "";
+  syncTopbar();
 
   // Free delivery lives on the same single settings row as the banner and the
   // IBAN, so it is loaded here rather than with the zones.
@@ -101,34 +103,18 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
   );
 });
 
-// The campaigns that can be advertised: anything not archived and not already
-// over. A finished campaign in the list would only invite attaching a banner
-// that could never show.
-let bannerCampaignId = "";
-let bannerCampaigns = [];
-// Messages this page generated. Kept so a generated one can be replaced when
-// the campaign changes, while anything typed by hand is left alone.
-const autoBannerTexts = new Set();
+// ----------------------------------------------------- barra superior ---
+// One slot at the top of the site, in one of three states. The states are
+// mutually exclusive by construction: they are radio buttons over a single
+// column, so there is no way to have a manual message and a campaign showing
+// at the same time. That used to be possible, and it put two strips above the
+// header.
 
-async function loadBannerCampaigns() {
-  const select = document.getElementById("banner_campaign_id");
-  if (!select) return;
-  const today = new Date().toISOString().slice(0, 10);
-  const { data } = await supabaseClient
-    .from("campaigns")
-    .select("id, name, start_date, end_date, discount_type, discount_value, target_all, target_categories")
-    .eq("archived", false)
-    .gte("end_date", today)
-    .order("start_date");
-  bannerCampaigns = data || [];
-  bannerCampaigns.forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = String(c.id);
-    opt.textContent = c.name;
-    select.appendChild(opt);
-  });
-  if (bannerCampaignId) select.value = String(bannerCampaignId);
-}
+const topbarAlert = document.getElementById("topbarAlert");
+let topbarCampaigns = [];
+// Messages this page generated. A generated one is replaced when the campaign
+// changes; anything typed by hand is left alone.
+const autoTopbarTexts = new Set();
 
 const MONTHS_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -142,10 +128,10 @@ function longDate(iso) {
   return y && m && d ? `${d} de ${MONTHS_PT[m - 1]}` : "";
 }
 
-// The banner message for a campaign, written from what the campaign already
-// says. There is no reason to type the same promotion out twice, and a message
-// typed by hand is one that can end up disagreeing with the prices.
-function campaignBannerText(c) {
+const topbarMode = () =>
+  document.querySelector('input[name="banner_mode"]:checked')?.value || "off";
+
+function campaignTopbarText(c) {
   const off = c.discount_type === "percentage"
     ? `${Number(c.discount_value)}%`
     : `${Number(c.discount_value).toLocaleString("pt-PT")} Kz`;
@@ -158,41 +144,131 @@ function campaignBannerText(c) {
   return `${off} de desconto ${where}${until ? ` até ${until}` : ""}`;
 }
 
-// Choosing a campaign writes the message, the button and the link, so the
-// banner is one click rather than three fields. Every one of them stays
-// editable afterwards.
+async function loadTopbarCampaigns() {
+  const select = document.getElementById("banner_campaign_id");
+  if (!select) return;
+  // Only what can still be advertised. A finished campaign in the list would
+  // invite attaching a bar that could never show.
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabaseClient
+    .from("campaigns")
+    .select("id, name, start_date, end_date, discount_type, discount_value, target_all, target_categories")
+    .eq("archived", false)
+    .gte("end_date", today)
+    .order("start_date");
+  topbarCampaigns = data || [];
+  topbarCampaigns.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = String(c.id);
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
+// Which fields are relevant, and what the bar will look like. Redrawn on every
+// change so nothing is saved unseen.
+function syncTopbar() {
+  const mode = topbarMode();
+  document.getElementById("topbarCampaignWrap").hidden = mode !== "campaign";
+  document.getElementById("topbarTextWrap").hidden = mode === "off";
+  renderTopbarPreview();
+}
+
+function renderTopbarPreview() {
+  const box = document.getElementById("topbarPreview");
+  if (!box) return;
+  const mode = topbarMode();
+
+  if (mode === "off") {
+    box.innerHTML = `<p class="topbar-preview-empty">Sem faixa. O site começa no cabeçalho.</p>`;
+    return;
+  }
+
+  const text = document.getElementById("banner_text").value.trim();
+  const label = document.getElementById("banner_cta_label").value.trim();
+
+  if (mode === "campaign" && !document.getElementById("banner_campaign_id").value) {
+    box.innerHTML = `<p class="topbar-preview-empty">Escolha a campanha para ver a pré-visualização.</p>`;
+    return;
+  }
+  if (!text) {
+    box.innerHTML = `<p class="topbar-preview-empty">Escreva o texto para ver a pré-visualização.</p>`;
+    return;
+  }
+
+  box.innerHTML =
+    `<div class="topbar-preview-bar">` +
+    `<span class="topbar-preview-text">${escapeHtml(text)}</span>` +
+    (label ? `<span class="topbar-preview-cta">${escapeHtml(label)}</span>` : "") +
+    `<span class="topbar-preview-close">&times;</span>` +
+    `</div>`;
+}
+
+document.querySelectorAll('input[name="banner_mode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    const mode = topbarMode();
+    // Switching away from a campaign when a generated message is in the box
+    // clears it, rather than leaving a promotion advertised as a plain notice.
+    const text = document.getElementById("banner_text");
+    if (mode !== "campaign" && autoTopbarTexts.has(text.value.trim())) {
+      text.value = "";
+      document.getElementById("banner_cta_label").value = "";
+      document.getElementById("banner_cta_url").value = "";
+    }
+    syncTopbar();
+  });
+});
+
+["banner_text", "banner_cta_label", "banner_cta_url"].forEach((id) => {
+  document.getElementById(id)?.addEventListener("input", renderTopbarPreview);
+});
+
 document.getElementById("banner_campaign_id")?.addEventListener("change", (e) => {
   const id = e.target.value;
+  const text = document.getElementById("banner_text");
   const label = document.getElementById("banner_cta_label");
   const url = document.getElementById("banner_cta_url");
-  const text = document.getElementById("banner_text");
-  if (!id) { url.value = ""; return; }
+  if (!id) { renderTopbarPreview(); return; }
 
   url.value = `colecao.html?campanha=${id}`;
   if (!label.value.trim()) label.value = "Ver promoção";
 
-  const c = bannerCampaigns.find((x) => String(x.id) === String(id));
-  // Only fills an empty field, or a message this same helper wrote before:
-  // something typed by hand is never overwritten.
-  if (c && (!text.value.trim() || autoBannerTexts.has(text.value.trim()))) {
-    text.value = campaignBannerText(c);
-    autoBannerTexts.add(text.value);
+  const c = topbarCampaigns.find((x) => String(x.id) === String(id));
+  if (c && (!text.value.trim() || autoTopbarTexts.has(text.value.trim()))) {
+    text.value = campaignTopbarText(c);
+    autoTopbarTexts.add(text.value);
   }
+  renderTopbarPreview();
 });
 
-document.getElementById("bannerForm").addEventListener("submit", async (e) => {
+document.getElementById("topbarForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const mode = topbarMode();
+  const text = val("banner_text");
   const campaignId = document.getElementById("banner_campaign_id").value;
-  await saveSettings(
+
+  if (mode === "campaign" && !campaignId) {
+    return showAlert(topbarAlert, "Escolha a campanha a que a faixa fica ligada.");
+  }
+  if (mode !== "off" && !text) {
+    return showAlert(topbarAlert, "Escreva o texto da faixa, ou desligue-a.");
+  }
+
+  const ok = await saveSettings(
     {
-      banner_text: val("banner_text"),
-      banner_active: document.getElementById("banner_active").checked,
-      banner_campaign_id: campaignId ? Number(campaignId) : null,
-      banner_cta_label: val("banner_cta_label") || null,
-      banner_cta_url: val("banner_cta_url") || null,
+      banner_mode: mode,
+      // Kept in step with the mode so anything still reading the old column
+      // agrees with the new one.
+      banner_active: mode !== "off",
+      banner_text: mode === "off" ? val("banner_text") : text,
+      banner_campaign_id: mode === "campaign" ? Number(campaignId) : null,
+      banner_cta_label: mode === "off" ? null : val("banner_cta_label") || null,
+      banner_cta_url: mode === "off" ? null : val("banner_cta_url") || null,
     },
-    "Banner guardado."
+    mode === "off" ? "Barra superior desligada." : "Barra superior guardada.",
+    topbarAlert
   );
+  if (ok) renderTopbarPreview();
 });
 
 // ------------------------------------------------------------ amostras ---
@@ -483,7 +559,7 @@ document.getElementById("adminForm").addEventListener("submit", async (e) => {
 
 document.addEventListener("admin:ready", async () => {
   // The campaign list has to exist before loadSettings can select one in it.
-  await loadBannerCampaigns();
+  await loadTopbarCampaigns();
   loadSettings();
   loadZones();
   loadAdmins();

@@ -409,7 +409,7 @@ button { font-family: var(--font-body); }
 .hero-media {
   position: absolute;
   inset: -8% -8%;
-  background: image-set(url("../img/hero-mobile-bg.webp") type("image/webp"), url("../img/hero-mobile-bg.png") type("image/png")) center 30% / cover no-repeat;
+  background: url("../img/hero-mobile-bg.png") center 30% / cover no-repeat;
   /* Promoted to its own compositor layer. Without translateZ the parallax
      transform repaints a background larger than the viewport on every frame,
      which is what the stutter was. */
@@ -710,7 +710,7 @@ button { font-family: var(--font-body); }
   position: relative;
   padding: 90px 0 64px;
   margin-bottom: 56px;
-  background: image-set(url("../img/hero-mobile-bg.webp") type("image/webp"), url("../img/hero-mobile-bg.png") type("image/png")) center 30% / cover no-repeat;
+  background: url("../img/hero-mobile-bg.png") center 30% / cover no-repeat;
   overflow: hidden;
 }
 .colecao-banner::before {
@@ -798,9 +798,12 @@ button { font-family: var(--font-body); }
    a row however much or little a product has to say. */
 .flip-back { justify-content: flex-start; text-align: left; gap: 0; }
 .flip-back-head { flex: 0 0 auto; padding-bottom: 11px; }
-/* margin-top:auto takes every remaining pixel, which pins this block to the
-   bottom of the card and keeps the slack in one predictable place. */
-.flip-back-buy { flex: 0 0 auto; margin-top: auto; padding-top: 14px; }
+/* No margin-top:auto here. Pinning this block to the bottom put every spare
+   pixel into ONE gap, directly between the name and the ml row, which read as
+   though something was missing between them. space-between on the back face
+   spreads the same slack across both gaps instead, so the three bands stay
+   evenly spaced whatever the product has to say. */
+.flip-back-buy { flex: 0 0 auto; padding-top: 12px; }
 .flip-back-brand {
   display: block;
   font-size: 9.5px;
@@ -824,10 +827,18 @@ button { font-family: var(--font-body); }
   text-transform: uppercase;
   color: var(--text-muted);
 }
+/* The band takes the leftover height and centres what is in it. A product
+   with a full pyramid fills it exactly, so the name sits close to it and the
+   ml row close beneath. A product with only one line of description — because
+   its olfactory notes have never been filled in — keeps that line centred in a
+   roomier panel instead of pushing a blank gap between the name and the size.
+   Either way the gaps AROUND the band stay small and equal. */
 .flip-back-notes {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 9px;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -2058,7 +2069,7 @@ button { font-family: var(--font-body); }
   .hero { min-height: 68vh; align-items: flex-end; }
   .hero-inner { padding-top: 70px; padding-bottom: 56px; }
   .hero-media {
-    background: image-set(url("../img/hero-mobile-bg.webp") type("image/webp"), url("../img/hero-mobile-bg.png") type("image/png")) 84% center / cover no-repeat;
+    background: url("../img/hero-mobile-bg.png") 84% center / cover no-repeat;
   }
   .hero-media::after {
     background: linear-gradient(180deg, rgba(38, 26, 15, 0.2) 0%, rgba(38, 26, 15, 0.3) 45%, rgba(38, 26, 15, 0.7) 100%);
@@ -2317,19 +2328,6 @@ button { font-family: var(--font-body); }
 
 /* Promotional banner: a strip inside the header, so it travels with it and
    needs no layout offset of its own on the fixed-header home page. */
-.promo-banner {
-  background: var(--ink);
-  color: var(--on-hero);
-  text-align: center;
-  padding: 9px 16px;
-  font-size: 12px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  line-height: 1.4;
-}
-@media (max-width: 640px) {
-  .promo-banner { font-size: 10.5px; letter-spacing: 1px; padding: 8px 12px; }
-}
 
 
 /* ---------- B3: zonas de entrega ---------- */
@@ -2501,17 +2499,6 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
 }
 .pd-price .campaign-until { font-size: 11px; margin-top: 6px; }
 
-/* The banner's button through to the filtered collection. */
-.promo-banner-cta {
-  margin-left: 10px;
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  white-space: nowrap;
-}
-@media (hover: hover) and (pointer: fine) {
-  .promo-banner-cta:hover { opacity: .75; }
-}
 
 /* Arriving from the banner shows part of the collection, so the page says which
    part, and offers the way back out. */
@@ -2540,7 +2527,6 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
   .campaign-banner-note { padding: 10px 12px; margin-bottom: 16px; }
   .campaign-banner-note strong { font-size: 14.5px; }
   .campaign-banner-note a { margin-left: 0; }
-  .promo-banner-cta { margin-left: 8px; }
 }
 
 /* The back of a card has a fixed height it cannot exceed, and the scent notes
@@ -2649,44 +2635,81 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
   .faq-item[open] summary ~ * { animation: none; }
 }
 
-/* ---------- Campaign bar ----------
-   The campaign names itself above the banner. The two stack rather than
-   compete: the campaign is what is happening, the banner is what the shop
-   wants to say about it. Darker than the banner so the order reads top-down
-   even at a glance. */
-.campaign-bar {
+
+/* ---------- The one bar at the top of the site ----------
+   Exactly one slot, never two. It sits BEFORE the header in the document, not
+   inside it: the header is fixed, so a bar inside it was fixed too and could
+   never scroll away. From out here it scrolls with the page while js/main.js
+   walks the header down to meet it and then pins it at the top.
+
+   --topbar-h is set by script to the bar's measured height and is 0 when there
+   is no bar, which is what leaves no empty strip behind when it is switched
+   off or dismissed. */
+:root { --topbar-h: 0px; }
+
+.site-topbar {
+  position: relative;
+  z-index: 61;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
+  gap: 6px 14px;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  padding: 10px 16px;
-  background: var(--btn);
+  padding: 10px 44px;
+  background: var(--ink);
   color: var(--on-hero);
   text-align: center;
-  text-decoration: none;
-  transition: background-color 0.25s ease;
 }
-.campaign-bar strong {
-  font-family: var(--font-head);
-  font-weight: 500;
-  font-size: 15px;
-  letter-spacing: 0.3px;
-}
-.campaign-bar span {
-  font-size: 11px;
-  letter-spacing: 1.3px;
+.site-topbar-text {
+  font-size: 12px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  opacity: 0.8;
+  line-height: 1.4;
+}
+.site-topbar-cta {
+  color: inherit;
+  font-size: 12px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  transition: opacity 0.25s ease;
+}
+/* Absolute so the message stays centred on the bar rather than being shoved
+   off-centre by the close button's width. */
+.site-topbar-close {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.25s ease, background-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) and (pointer: fine) {
-  .campaign-bar:hover { background: var(--btn-hover); }
+  .site-topbar-cta:hover { opacity: 0.75; }
+  .site-topbar-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
 }
-/* A hairline so two stacked bars do not read as one tall block. */
-.campaign-bar + .promo-banner { border-top: 1px solid rgba(255, 255, 255, 0.14); }
+
+/* Pages whose content clears the fixed header have to clear the bar as well,
+   or the first heading hides underneath it. */
+body.has-topbar .page-offset { padding-top: calc(84px + var(--topbar-h)); }
 
 @media (max-width: 640px) {
-  .campaign-bar { padding: 8px 12px; gap: 2px 8px; }
-  .campaign-bar strong { font-size: 13px; }
-  .campaign-bar span { font-size: 9.5px; letter-spacing: 1px; }
+  .site-topbar { padding: 9px 40px; gap: 4px 10px; }
+  .site-topbar-text, .site-topbar-cta { font-size: 10.5px; letter-spacing: 1px; }
+  .site-topbar-close { right: 6px; width: 26px; height: 26px; font-size: 18px; }
 }

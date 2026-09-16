@@ -117,42 +117,69 @@
   <div class="admin-panel">
     <div class="admin-panel-head panel-head-stack">
       <div>
-        <h2>Banner promocional</h2>
-        <p class="panel-sub">Faixa no topo do site. Desligue para não mostrar nada.</p>
+        <h2>Barra superior</h2>
+        <p class="panel-sub">A faixa no topo do site. Há sempre uma só, nunca duas.</p>
       </div>
     </div>
-    <form id="bannerForm" class="settings-form">
-      <div class="form-grid">
+    <div id="topbarAlert"></div>
+    <form id="topbarForm" class="settings-form">
+      <div class="topbar-modes">
+        <label class="topbar-mode">
+          <input type="radio" name="banner_mode" value="off" checked>
+          <span class="topbar-mode-body">
+            <strong>Desligada</strong>
+            <span>Nenhuma faixa. O site começa no cabeçalho.</span>
+          </span>
+        </label>
+        <label class="topbar-mode">
+          <input type="radio" name="banner_mode" value="manual">
+          <span class="topbar-mode-body">
+            <strong>Mensagem própria</strong>
+            <span>Um aviso escrito por si, sem relação com descontos.</span>
+          </span>
+        </label>
+        <label class="topbar-mode">
+          <input type="radio" name="banner_mode" value="campaign">
+          <span class="topbar-mode-body">
+            <strong>Ligada a uma campanha</strong>
+            <span>Aparece e desaparece sozinha com as datas da campanha.</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="form-grid" id="topbarCampaignWrap" hidden>
+        <div class="form-field span-2">
+          <label for="banner_campaign_id">Campanha</label>
+          <select id="banner_campaign_id">
+            <option value="">Escolher campanha…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid" id="topbarTextWrap" hidden>
         <div class="form-field span-2">
           <label for="banner_text">Texto</label>
           <input type="text" id="banner_text" placeholder="Portes grátis em Luanda esta semana">
         </div>
-        <div class="form-field span-2 field-check">
-          <label for="banner_active"><input type="checkbox" id="banner_active"> Mostrar no site</label>
-        </div>
-        <div class="form-field span-2">
-          <label for="banner_campaign_id">Associar a uma campanha</label>
-          <select id="banner_campaign_id">
-            <option value="">Não associar — aviso independente</option>
-          </select>
-          <span class="form-hint">Associado a uma campanha, o banner aparece e desaparece com ela. Sem associação, fica no site até o desligar.</span>
-        </div>
         <div class="form-field">
           <label for="banner_cta_label">Texto do botão</label>
-          <input type="text" id="banner_cta_label" placeholder="Ver promoção">
+          <input type="text" id="banner_cta_label" placeholder="opcional">
         </div>
         <div class="form-field">
           <label for="banner_cta_url">Link do botão</label>
-          <input type="text" id="banner_cta_url" placeholder="colecao.html?campanha=1">
-          <span class="form-hint">Preenchido sozinho ao escolher uma campanha. Só links dentro do site.</span>
+          <input type="text" id="banner_cta_url" placeholder="colecao.html">
+          <span class="form-hint">Só links dentro do site.</span>
         </div>
       </div>
+
+      <p class="form-hint">Pré-visualização, tal como aparecerá no topo do site:</p>
+      <div class="topbar-preview" id="topbarPreview"></div>
+
       <div class="settings-actions">
-        <button type="submit" class="btn-admin" id="saveBannerBtn">Guardar</button>
+        <button type="submit" class="btn-admin" id="saveTopbarBtn">Guardar</button>
       </div>
     </form>
   </div>
-
 
   <div class="admin-panel">
     <div class="admin-panel-head panel-head-stack">

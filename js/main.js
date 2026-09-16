@@ -81,8 +81,10 @@ function productOptions(p) {
   const options = [
     {
       kind: "full",
-      label: `Frasco completo · ${p.volume_ml ? `${p.volume_ml} ml` : "—"}`,
-      short: p.volume_ml ? `${p.volume_ml} ml` : "—",
+      // A bottle whose size has never been set says so, rather than showing
+      // a dash the customer has to interpret.
+      label: p.volume_ml ? `Frasco completo · ${p.volume_ml} ml` : "Frasco completo",
+      short: p.volume_ml ? `${p.volume_ml} ml` : "Frasco completo",
       price: Number(p.price) || 0,
       stock: Number(p.stock ?? 0),
     },
@@ -1758,10 +1760,26 @@ newsletterForm?.addEventListener("submit", async (e) => {
 // is what makes the parallax smooth rather than stepped.
 let scrollTicking = false;
 
+// How tall the top bar is, and therefore how far down the fixed header has to
+// start. Zero when there is no bar, which is what leaves no empty strip behind
+// when it is switched off or dismissed.
+let topbarHeight = 0;
+let topbarEl = null;
+
+function setTopbarHeight(px) {
+  topbarHeight = Math.max(0, Math.round(px) || 0);
+  document.documentElement.style.setProperty("--topbar-h", `${topbarHeight}px`);
+}
+
 function applyScroll() {
   scrollTicking = false;
   const y = window.scrollY;
   if (siteHeader) {
+    // The bar is in normal flow above a fixed header, so the header starts
+    // below it and rises as the bar scrolls off. Clamped at zero, which is
+    // where it stays for the rest of the page.
+    const offset = Math.max(0, topbarHeight - y);
+    siteHeader.style.top = topbarHeight ? `${offset}px` : "";
     // Pages without a hero (e.g. sobre.html) have no transparent state to fall back to.
     if (heroMedia) siteHeader.classList.toggle("scrolled", y > 40);
     else siteHeader.classList.add("scrolled");
@@ -1957,96 +1975,87 @@ function nudgeHeaderRepaint() {
 // Read live from the database on every page load, so switching it on in
 // Definições shows it on the next load — no deploy, no cache to clear.
 //
-// It reads public.site_banner, a view exposing only the two banner columns.
-// payment_settings itself stays closed to anonymous visitors because it also
-// holds the IBAN, and most of the traffic here is logged out.
+// ---------- The one bar at the top of the site ----------
+// There is exactly one slot above the header, never two. It reads
+// public.site_banner, a view that resolves the whole decision server-side and
+// hands back a mode: "off", "manual" or "campaign". payment_settings itself
+// stays closed to anonymous visitors because it also holds the IBAN.
+//
+// The bar sits BEFORE the header in the document rather than inside it. The
+// header is fixed, so a bar inside it was fixed too and could never scroll
+// away; from out here it scrolls with the page while the header follows it down
+// and then sticks to the top.
 (async () => {
   if (!siteHeader) return;
   try {
     const { data, error } = await supabaseClient.from("site_banner").select("*").maybeSingle();
-    if (error || !data?.banner_active) return;
-
-    // Attached to a campaign: the banner comes and goes with it, so a promotion
-    // that has ended cannot keep advertising itself. null means the banner is a
-    // plain announcement and stands on its own.
-    if (data.banner_campaign_active === false) return;
+    if (error || !data || data.mode === "off") return;
 
     const text = (data.banner_text || "").trim();
     if (!text) return;
 
+    // Dismissed for this visit only, and keyed to the message: putting up a new
+    // one is not silently hidden because the last one was dismissed.
+    const key = `mushy-topbar-${data.banner_key || "x"}`;
+    try {
+      if (sessionStorage.getItem(key) === "1") return;
+    } catch (err) {
+      // Private browsing can refuse sessionStorage. Showing the bar is the
+      // right thing to do when we cannot tell.
+    }
+
     const bar = document.createElement("div");
-    bar.className = "promo-banner";
+    bar.className = "site-topbar";
+
+    const message = document.createElement("span");
+    message.className = "site-topbar-text";
     // textContent, not innerHTML: these strings are admin-entered and have no
     // business being able to inject markup into every page of the site.
+    message.textContent = text;
+    bar.append(message);
+
     const label = (data.banner_cta_label || "").trim();
     const url = (data.banner_cta_url || "").trim();
     if (label && url) {
-      const span = document.createElement("span");
-      span.textContent = text;
       const link = document.createElement("a");
-      link.className = "promo-banner-cta";
+      link.className = "site-topbar-cta";
       // Relative paths only: an admin-entered href is not somewhere to allow
       // javascript: or an outside host to appear on every page of the site.
       link.href = /^[a-z]+:/i.test(url) || url.startsWith("//") ? "colecao.html" : url;
       link.textContent = label;
-      bar.append(span, link);
-    } else {
-      bar.textContent = text;
+      bar.append(link);
     }
-    siteHeader.prepend(bar);
-    document.body.classList.add("has-promo-banner");
-    // The campaign's own name goes above it, so a promotion announces itself
-    // without the banner having to repeat it. Prepended after, which puts it
-    // first: campaign on top, banner directly beneath.
-    await renderCampaignBar();
-  } catch (err) {
-    // A banner is decoration. It must never be the reason a page fails.
-    console.warn("promo banner:", err);
-  }
-})();
 
-// A running campaign names itself at the very top of the page, above whatever
-// the banner says. The two stack rather than compete: the campaign is what is
-// happening, the banner is what the shop wants to say about it.
-async function renderCampaignBar() {
-  if (!siteHeader) return;
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    const { data, error } = await supabaseClient
-      .from("campaigns")
-      .select("id, name, discount_type, discount_value, end_date")
-      .eq("archived", false)
-      .lte("start_date", today)
-      .gte("end_date", today)
-      .order("start_date", { ascending: false })
-      .limit(1);
-    const c = error ? null : (data || [])[0];
-    if (!c) return;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "site-topbar-close";
+    close.setAttribute("aria-label", "Fechar aviso");
+    close.textContent = "×";
+    close.addEventListener("click", () => {
+      try { sessionStorage.setItem(key, "1"); } catch (err) { /* see above */ }
+      bar.remove();
+      document.body.classList.remove("has-topbar");
+      setTopbarHeight(0);
+      applyScroll();
+    });
+    bar.append(close);
 
-    const off = c.discount_type === "percentage"
-      ? `${Math.round(Number(c.discount_value))}%`
-      : money(Number(c.discount_value));
-    const [y, mo, d] = String(c.end_date || "").split("-").map(Number);
-    const until = y && mo && d ? ` · até ${d} de ${MONTHS_PT[mo - 1]}` : "";
-
-    const link = document.createElement("a");
-    link.className = "campaign-bar";
-    link.href = `colecao.html?campanha=${c.id}`;
-    // textContent throughout: the name is admin-entered and has no business
-    // being able to put markup at the top of every page.
-    const title = document.createElement("strong");
-    title.textContent = c.name;
-    const meta = document.createElement("span");
-    meta.textContent = `${off} de desconto${until}`;
-    link.append(title, meta);
-
-    siteHeader.prepend(link);
-    document.body.classList.add("has-campaign-bar");
+    siteHeader.parentNode.insertBefore(bar, siteHeader);
+    document.body.classList.add("has-topbar");
+    topbarEl = bar;
+    // Measured rather than assumed: the message wraps to two lines on a narrow
+    // screen, and the header has to sit below whatever height that turns out
+    // to be.
+    setTopbarHeight(bar.offsetHeight);
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => { setTopbarHeight(bar.offsetHeight); applyScroll(); }).observe(bar);
+    }
+    applyScroll();
   } catch (err) {
     // A bar is decoration. It must never be the reason a page fails.
-    console.warn("campaign bar:", err);
+    console.warn("top bar:", err);
   }
-}
+})();
 
 // The written fixação/projecção labels are generated in JS, so data-i18n can't
 // reach them — the grids have to rebuild themselves when the language changes.
