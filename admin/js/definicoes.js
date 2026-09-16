@@ -36,6 +36,13 @@ async function loadSettings() {
     if (el) el.value = data?.[f] || "";
   });
   document.getElementById("banner_active").checked = Boolean(data?.banner_active);
+  ["banner_cta_label", "banner_cta_url"].forEach((f) => {
+    const el = document.getElementById(f);
+    if (el) el.value = data?.[f] || "";
+  });
+  bannerCampaignId = data?.banner_campaign_id ?? "";
+  const campSelect = document.getElementById("banner_campaign_id");
+  if (campSelect) campSelect.value = bannerCampaignId || "";
 
   // Free delivery lives on the same single settings row as the banner and the
   // IBAN, so it is loaded here rather than with the zones.
@@ -94,12 +101,51 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
   );
 });
 
+// The campaigns that can be advertised: anything not archived and not already
+// over. A finished campaign in the list would only invite attaching a banner
+// that could never show.
+let bannerCampaignId = "";
+
+async function loadBannerCampaigns() {
+  const select = document.getElementById("banner_campaign_id");
+  if (!select) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabaseClient
+    .from("campaigns")
+    .select("id, name, start_date, end_date")
+    .eq("archived", false)
+    .gte("end_date", today)
+    .order("start_date");
+  (data || []).forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = String(c.id);
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+  if (bannerCampaignId) select.value = String(bannerCampaignId);
+}
+
+// Choosing a campaign fills the button in, so the link always points at the
+// right filtered view without anyone having to know the URL.
+document.getElementById("banner_campaign_id")?.addEventListener("change", (e) => {
+  const id = e.target.value;
+  const label = document.getElementById("banner_cta_label");
+  const url = document.getElementById("banner_cta_url");
+  if (!id) { url.value = ""; return; }
+  url.value = `colecao.html?campanha=${id}`;
+  if (!label.value.trim()) label.value = "Ver promoção";
+});
+
 document.getElementById("bannerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const campaignId = document.getElementById("banner_campaign_id").value;
   await saveSettings(
     {
       banner_text: val("banner_text"),
       banner_active: document.getElementById("banner_active").checked,
+      banner_campaign_id: campaignId ? Number(campaignId) : null,
+      banner_cta_label: val("banner_cta_label") || null,
+      banner_cta_url: val("banner_cta_url") || null,
     },
     "Banner guardado."
   );
@@ -391,7 +437,9 @@ document.getElementById("adminForm").addEventListener("submit", async (e) => {
   loadAdmins();
 });
 
-document.addEventListener("admin:ready", () => {
+document.addEventListener("admin:ready", async () => {
+  // The campaign list has to exist before loadSettings can select one in it.
+  await loadBannerCampaigns();
   loadSettings();
   loadZones();
   loadAdmins();

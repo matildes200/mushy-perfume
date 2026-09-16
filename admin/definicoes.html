@@ -130,6 +130,22 @@
         <div class="form-field span-2 field-check">
           <label for="banner_active"><input type="checkbox" id="banner_active"> Mostrar no site</label>
         </div>
+        <div class="form-field span-2">
+          <label for="banner_campaign_id">Associar a uma campanha</label>
+          <select id="banner_campaign_id">
+            <option value="">Não associar — aviso independente</option>
+          </select>
+          <span class="form-hint">Associado a uma campanha, o banner aparece e desaparece com ela. Sem associação, fica no site até o desligar.</span>
+        </div>
+        <div class="form-field">
+          <label for="banner_cta_label">Texto do botão</label>
+          <input type="text" id="banner_cta_label" placeholder="Ver promoção">
+        </div>
+        <div class="form-field">
+          <label for="banner_cta_url">Link do botão</label>
+          <input type="text" id="banner_cta_url" placeholder="colecao.html?campanha=1">
+          <span class="form-hint">Preenchido sozinho ao escolher uma campanha. Só links dentro do site.</span>
+        </div>
       </div>
       <div class="settings-actions">
         <button type="submit" class="btn-admin" id="saveBannerBtn">Guardar</button>

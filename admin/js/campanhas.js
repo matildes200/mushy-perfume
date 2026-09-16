@@ -66,6 +66,8 @@ function campaignRow(c) {
     <td>${discountLabel(c)}</td>
     <td class="wrap">${formatDateShort(c.start_date)} – ${formatDateShort(c.end_date)}</td>
     <td>${c.affected == null ? "—" : c.affected}</td>
+    <td>${c.order_count || 0}</td>
+    <td>${c.revenue ? money(c.revenue) : "—"}</td>
     <td><span class="${state.cls}">${state.label}</span></td>
     <td>
       <div class="row-actions">
@@ -85,9 +87,9 @@ function formatDateShort(iso) {
 }
 
 async function loadCampaigns() {
-  campaignsBody.innerHTML = skeletonRows(6, 3);
+  campaignsBody.innerHTML = skeletonRows(8, 3);
 
-  const [campRes, prodRes, linkRes] = await Promise.all([
+  const [campRes, prodRes, linkRes, statsRes] = await Promise.all([
     supabaseClient.from("campaigns").select("*").order("start_date", { ascending: false }),
     supabaseClient
       .from("products")
@@ -95,11 +97,15 @@ async function loadCampaigns() {
       .eq("archived", false)
       .order("name"),
     supabaseClient.from("campaign_products").select("campaign_id, product_id"),
+    // Orders and revenue per campaign, counted from the campaign recorded on
+    // each order line rather than on the order, so a basket spanning two
+    // campaigns is credited to both correctly and to neither wholly.
+    supabaseClient.rpc("campaign_stats"),
   ]);
 
   if (campRes.error) {
     showAlert(campaignsAlert, "Não foi possível carregar as campanhas.");
-    campaignsBody.innerHTML = `<tr><td colspan="6" class="admin-empty">Erro ao carregar.</td></tr>`;
+    campaignsBody.innerHTML = `<tr><td colspan="8" class="admin-empty">Erro ao carregar.</td></tr>`;
     return;
   }
 
@@ -110,13 +116,18 @@ async function loadCampaigns() {
     picks.get(l.campaign_id).push(l.product_id);
   });
 
+  const stats = new Map((statsRes.data || []).map((s) => [Number(s.campaign_id), s]));
+
   campaignsCache = (campRes.data || []).map((c) => {
     const picked = picks.get(c.id) || [];
+    const s = stats.get(Number(c.id));
     return {
       ...c,
       picked,
       picked_count: picked.length,
       affected: resolveLocally(c.target_all, c.target_categories || [], picked).length,
+      order_count: s?.order_count ?? 0,
+      revenue: s?.revenue ?? 0,
     };
   });
 
@@ -125,7 +136,7 @@ async function loadCampaigns() {
 
   campaignsBody.innerHTML = live.length
     ? live.map(campaignRow).join("")
-    : `<tr><td colspan="6" class="admin-empty">Nenhuma campanha. Crie uma para aplicar um desconto a vários produtos de uma vez.</td></tr>`;
+    : `<tr><td colspan="8" class="admin-empty">Nenhuma campanha. Crie uma para aplicar um desconto a vários produtos de uma vez.</td></tr>`;
 
   archivedPanel.hidden = archived.length === 0;
   archivedBody.innerHTML = archived
@@ -134,6 +145,8 @@ async function loadCampaigns() {
         <td class="wrap">${escapeHtml(c.name)}</td>
         <td>${discountLabel(c)}</td>
         <td class="wrap">${formatDateShort(c.start_date)} – ${formatDateShort(c.end_date)}</td>
+        <td>${c.order_count || 0}</td>
+        <td>${c.revenue ? money(c.revenue) : "—"}</td>
         <td><div class="row-actions">
           <button class="btn-admin btn-admin-outline" data-restore="${c.id}">Repor</button>
         </div></td>

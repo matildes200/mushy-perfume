@@ -2408,3 +2408,58 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
   .amostra-note p { font-size: 10.5px; }
   .pd-sizes .option-row { font-size: 13px; padding: 10px 12px; }
 }
+
+/* ---------- Campaign on the storefront ---------- */
+/* Under the price, where the saving is. Deliberately quiet: it is a reassurance
+   about how long the price lasts, not a second piece of shouting. */
+.campaign-until {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 4px;
+}
+.pd-price .campaign-until { font-size: 11px; margin-top: 6px; }
+
+/* The banner's button through to the filtered collection. */
+.promo-banner-cta {
+  margin-left: 10px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  .promo-banner-cta:hover { opacity: .75; }
+}
+
+/* Arriving from the banner shows part of the collection, so the page says which
+   part, and offers the way back out. */
+.campaign-banner-note {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 22px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--ink);
+  background: var(--bg-soft);
+  border-radius: 0 8px 8px 0;
+}
+.campaign-banner-note strong {
+  font-family: var(--font-head); font-weight: 500; font-size: 16px; color: var(--text);
+}
+.campaign-banner-note span { font-size: 13px; color: var(--text-muted); }
+.campaign-banner-note a {
+  margin-left: auto; font-size: 12.5px; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .campaign-until { font-size: 9px; letter-spacing: .7px; }
+  .campaign-banner-note { padding: 10px 12px; margin-bottom: 16px; }
+  .campaign-banner-note strong { font-size: 14.5px; }
+  .campaign-banner-note a { margin-left: 0; }
+  .promo-banner-cta { margin-left: 8px; }
+}

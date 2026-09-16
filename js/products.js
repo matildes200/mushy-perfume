@@ -2,9 +2,17 @@ let PRODUCTS = [];
 
 async function loadProducts() {
   try {
-    const { data, error } = await supabaseClient.from("products").select("*").order("id");
-    if (error) throw error;
-    PRODUCTS = data || [];
+    // The campaign rows come from a view that already knows which campaigns are
+    // running today, so the page never has to compare dates itself.
+    const [productsRes, campaignsRes] = await Promise.all([
+      supabaseClient.from("products").select("*").order("id"),
+      supabaseClient.from("active_campaign_products").select("*"),
+    ]);
+    if (productsRes.error) throw productsRes.error;
+    PRODUCTS = productsRes.data || [];
+
+    const byProduct = new Map((campaignsRes.data || []).map((c) => [c.product_id, c]));
+    PRODUCTS.forEach((p) => { p.campaign = byProduct.get(p.id) || null; });
   } catch (err) {
     console.error("Falha ao carregar produtos do Supabase:", err);
   }

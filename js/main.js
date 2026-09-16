@@ -114,12 +114,55 @@ function defaultOption(p) {
   return options.find(optionInStock) || full;
 }
 
-// Effective price after discount_percent (0 when it hasn't been set). The
-// discount belongs to the product, so it applies to the bottle and the amostra
-// alike unless a campaign says otherwise.
-const effectivePrice = (p, option) =>
-  (option === undefined ? defaultOption(p) : option || { price: Number(p.price) || 0 }).price *
-  (1 - (p.discount_percent || 0) / 100);
+// ---------- Which discount applies ----------
+// A campaign OVERRIDES the product's own discount rather than stacking on it.
+// Stacking would mean a 20% campaign quietly becoming 28% on whatever already
+// carried a manual 10%, which is exactly the kind of thing nobody notices until
+// the margin has gone. One rule, so the banner can never disagree with the
+// shelf: while a campaign runs, the campaign is the price.
+//
+// Returns null when nothing is off.
+function activeDiscount(p, option) {
+  const c = p.campaign;
+  const isAmostra = option?.kind === "amostra";
+  // A campaign leaves amostras alone unless it was told not to: an amostra is
+  // already priced to win a full-bottle sale later.
+  if (c && (!isAmostra || c.applies_to_amostras)) {
+    return {
+      source: "campaign",
+      type: c.discount_type,
+      value: Number(c.discount_value) || 0,
+      campaign: c,
+    };
+  }
+  if (p.discount_percent) {
+    return { source: "product", type: "percentage", value: Number(p.discount_percent) || 0 };
+  }
+  return null;
+}
+
+function applyDiscount(base, discount) {
+  if (!discount || !discount.value) return base;
+  return discount.type === "percentage"
+    ? Math.round(base * (1 - discount.value / 100))
+    : Math.max(0, base - discount.value);
+}
+
+// How the saving is written on the badge. A percentage campaign says "-20%"; a
+// fixed one says what it takes off, because "-13%" on one perfume and "-19%" on
+// the next would be the same campaign described two ways.
+function discountBadgeLabel(discount) {
+  if (!discount) return "";
+  return discount.type === "percentage"
+    ? `-${Math.round(discount.value)}%`
+    : `-${money(discount.value)}`;
+}
+
+const effectivePrice = (p, option) => {
+  const opt = option === undefined ? defaultOption(p) : option;
+  const base = opt ? opt.price : Number(p.price) || 0;
+  return applyDiscount(base, activeDiscount(p, opt));
+};
 
 // Sold out only when there is nothing left to buy at all: a perfume with no
 // bottles but some amostras is still for sale.
@@ -131,14 +174,38 @@ const isOutOfStock = (p) => !productOptions(p).some(optionInStock);
 function priceMarkup(p, className, option) {
   const v = option === undefined ? defaultOption(p) : option;
   const base = v ? v.price : Number(p.price) || 0;
-  if (!p.discount_percent) return `<span class="${className}"><span class="price-final">${money(base)}</span></span>`;
+  const discount = activeDiscount(p, v);
+  const final = applyDiscount(base, discount);
+  // A discount that saves nothing is not a discount: a fixed amount of zero, or
+  // a campaign that happens to land on the same number, shouldn't strike the
+  // price through for no reason.
+  if (!discount || final >= base) {
+    return `<span class="${className}"><span class="price-final">${money(base)}</span></span>`;
+  }
   return `<span class="${className} price-discounted">
-    <span class="price-final">${money(effectivePrice(p, v))}</span>
+    <span class="price-final">${money(final)}</span>
     <span class="price-was">
       <span class="price-original">${money(base)}</span>
-      <span class="price-badge">-${p.discount_percent}%</span>
+      <span class="price-badge">${discountBadgeLabel(discount)}</span>
     </span>
   </span>`;
+}
+
+// "Promoção até 30 de Setembro", shown where there is room to read it. Only for
+// a campaign: a manual discount has no end date to promise.
+const MONTHS_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+function campaignEndNote(p) {
+  const c = p.campaign;
+  if (!c?.end_date) return "";
+  // Split rather than parsed as a Date: the column is a plain day, and parsing
+  // it as an instant can shift it to the day before west of UTC.
+  const [y, m, d] = String(c.end_date).split("-").map(Number);
+  if (!y || !m || !d) return "";
+  return `<span class="campaign-until">Promoção até ${d} de ${MONTHS_PT[m - 1]}</span>`;
 }
 
 function stockBadge(p) {
@@ -529,7 +596,8 @@ function backContent(p) {
     <div class="flip-back-meta">
       ${hasAmostra(p) ? "" : size ? `<span class="flip-back-size">${size}</span>` : ""}
       ${priceMarkup(p, "flip-back-price")}
-    </div>`;
+    </div>
+    ${campaignEndNote(p)}`;
 }
 
 // Shared by .product-card / .carousel-card / .featured-card. The card flips:
@@ -652,8 +720,11 @@ function renderProducts() {
   const query = searchInput ? normalizeText(searchInput.value.trim()) : "";
   const items = PRODUCTS.filter((p) => {
     const matchesCategory = activeFilter === "todos" || p.category === activeFilter;
-    return isVisible(p) && matchesCategory && productMatchesSearch(p, query);
+    const matchesCampaign = !campaignParam || p.campaign?.campaign_id === campaignParam;
+    return isVisible(p) && matchesCategory && matchesCampaign && productMatchesSearch(p, query);
   }).sort((a, b) => CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category]);
+
+  renderCampaignHeading(items.length);
   grid.innerHTML = items.length
     ? items.map(productCardTemplate).join("")
     : `<p class="cart-empty" data-i18n="product.notfound">Nenhum perfume encontrado.</p>`;
@@ -662,6 +733,40 @@ function renderProducts() {
   // cards need another translation pass to pick the current language back up.
   window.applyTranslations?.(window.getLang?.());
 }
+
+// Arriving from the banner shows a subset of the collection, so the page has to
+// say so — and offer a way back to everything, or it looks like the shop has
+// shrunk.
+function renderCampaignHeading(count) {
+  const host = document.getElementById("campaignHeading");
+  if (!host) return;
+  if (!campaignParam) { host.hidden = true; host.innerHTML = ""; return; }
+
+  const sample = PRODUCTS.find((p) => p.campaign?.campaign_id === campaignParam);
+  const c = sample?.campaign;
+  if (!c) {
+    // The campaign has ended, or never covered anything.
+    host.innerHTML = `<p class="campaign-banner-note">Esta promoção já terminou.
+      <a href="colecao.html">Ver toda a colecção</a></p>`;
+    host.hidden = false;
+    return;
+  }
+  const off = c.discount_type === "percentage"
+    ? `${Math.round(Number(c.discount_value))}%`
+    : money(Number(c.discount_value));
+  host.innerHTML = `<div class="campaign-banner-note">
+    <strong>${escapeText(c.campaign_name)}</strong>
+    <span>${off} de desconto &middot; ${count} perfume${count === 1 ? "" : "s"}</span>
+    <a href="colecao.html">Ver toda a colecção</a>
+  </div>`;
+  host.hidden = false;
+}
+
+// Campaign names are admin-entered and land inside innerHTML here.
+const escapeText = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (ch) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])
+  );
 
 function renderFeatured() {
   if (!featuredGrid) return;
@@ -983,6 +1088,13 @@ async function applyCoupon() {
   applyCouponBtn.disabled = true;
   const subtotal = cartSubtotal();
   try {
+    // A campaign can refuse to be combined with a cupão. The amostra credit is
+    // the exception: it is money the customer already handed over, not a second
+    // discount being granted, and it is recognisable by being tied to a product.
+    const blocking = cartLines().find(
+      (l) => activeDiscount(l.product, l.variant)?.campaign?.allow_coupons === false
+    );
+
     // An amostra credit is only good against the full bottle of the same
     // perfume, so the server is told which full bottles are actually in the
     // cart. Sent every time: a normal coupon ignores it.
@@ -1005,6 +1117,17 @@ async function applyCoupon() {
       } else {
         showCouponMessage(couponReasonMessage(result.reason_code), "error");
       }
+      return;
+    }
+    // Checked after validation rather than before it, so a code that is expired
+    // or mistyped is reported as such instead of being blamed on the campaign.
+    // An amostra credit passes: validate_coupon only accepts it when the right
+    // bottle is in the cart, so a valid product-scoped code is that credit.
+    if (blocking && !result.product_scoped) {
+      showCouponMessage(
+        window.t?.("coupon.campaign_blocks", { campaign: blocking.product.campaign.campaign_name }),
+        "error"
+      );
       return;
     }
     appliedCoupon = {
@@ -1247,7 +1370,7 @@ function openProductDetail(p) {
   const sizesEl = document.getElementById("pdSizes");
   if (sizesEl) sizesEl.innerHTML = optionPicker(p, false) + (hasAmostra(p) ? amostraNote() : "");
   productDetailOption = defaultOption(p).kind;
-  document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price");
+  document.getElementById("pdPrice").innerHTML = priceMarkup(p, "pd-price") + campaignEndNote(p);
   productDetailOverlay.classList.add("open");
 }
 
@@ -1484,6 +1607,7 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
   let subtotal = 0;
   const items = cartLines().map(({ product: p, variant, qty, unitPrice }) => {
     subtotal += unitPrice * qty;
+    const lineDiscount = activeDiscount(p, variant);
     // The image is snapshotted onto the order line so "os meus pedidos" can
     // still show the bottle after the product is edited or delisted. The size
     // is snapshotted for the same reason: renaming or removing a size later
@@ -1493,6 +1617,11 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
       name: p.name,
       // "variant" is what the credit trigger reads to spot an amostra line.
       variant: variant?.kind || "full",
+      // Recorded per line, not per order: one basket can hold products from
+      // two campaigns and products from none, and the report has to be able to
+      // tell them apart. Null unless a campaign actually set this price.
+      campaign_id: lineDiscount?.source === "campaign" ? lineDiscount.campaign.campaign_id : null,
+      campaign_name: lineDiscount?.source === "campaign" ? lineDiscount.campaign.campaign_name : null,
       size: variant?.short || null,
       volume_ml: variant?.kind === "amostra" ? AMOSTRA_ML : p.volume_ml ?? null,
       price: unitPrice,
@@ -1713,6 +1842,9 @@ const MAX_STAGGER_STEPS = 6; // past this the last item feels like it is lagging
 const collectionParams = new URLSearchParams(window.location.search);
 const searchQueryParam = collectionParams.get("q");
 const categoryParam = collectionParams.get("cat");
+// ?campanha=<id> narrows the collection to exactly what a campaign covers,
+// which is where the banner's button lands.
+const campaignParam = Number(collectionParams.get("campanha")) || null;
 
 if (categoryParam && CATEGORY_SEARCH_TERMS[categoryParam]) {
   activeFilter = categoryParam;
@@ -1801,14 +1933,34 @@ function nudgeHeaderRepaint() {
   try {
     const { data, error } = await supabaseClient.from("site_banner").select("*").maybeSingle();
     if (error || !data?.banner_active) return;
+
+    // Attached to a campaign: the banner comes and goes with it, so a promotion
+    // that has ended cannot keep advertising itself. null means the banner is a
+    // plain announcement and stands on its own.
+    if (data.banner_campaign_active === false) return;
+
     const text = (data.banner_text || "").trim();
     if (!text) return;
 
     const bar = document.createElement("div");
     bar.className = "promo-banner";
-    // textContent, not innerHTML: this string is admin-entered and has no
+    // textContent, not innerHTML: these strings are admin-entered and have no
     // business being able to inject markup into every page of the site.
-    bar.textContent = text;
+    const label = (data.banner_cta_label || "").trim();
+    const url = (data.banner_cta_url || "").trim();
+    if (label && url) {
+      const span = document.createElement("span");
+      span.textContent = text;
+      const link = document.createElement("a");
+      link.className = "promo-banner-cta";
+      // Relative paths only: an admin-entered href is not somewhere to allow
+      // javascript: or an outside host to appear on every page of the site.
+      link.href = /^[a-z]+:/i.test(url) || url.startsWith("//") ? "colecao.html" : url;
+      link.textContent = label;
+      bar.append(span, link);
+    } else {
+      bar.textContent = text;
+    }
     siteHeader.prepend(bar);
     document.body.classList.add("has-promo-banner");
   } catch (err) {
