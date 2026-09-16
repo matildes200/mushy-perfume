@@ -119,6 +119,7 @@ const TRANSLATIONS = {
     "footer.devolucoes": "Devoluções",
     "footer.privacidade": "Política de Privacidade",
     "footer.privacidade.short": "Privacidade",
+    "footer.termos.short": "Termos",
     "footer.termos": "Termos",
 
     "cart.title": "O seu carrinho",
@@ -418,6 +419,7 @@ const TRANSLATIONS = {
     "footer.devolucoes": "Returns",
     "footer.privacidade": "Privacy Policy",
     "footer.privacidade.short": "Privacy",
+    "footer.termos.short": "Terms",
     "footer.termos": "Terms",
 
     "cart.title": "Your cart",

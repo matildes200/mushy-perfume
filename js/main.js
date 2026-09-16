@@ -1995,11 +1995,58 @@ function nudgeHeaderRepaint() {
     }
     siteHeader.prepend(bar);
     document.body.classList.add("has-promo-banner");
+    // The campaign's own name goes above it, so a promotion announces itself
+    // without the banner having to repeat it. Prepended after, which puts it
+    // first: campaign on top, banner directly beneath.
+    await renderCampaignBar();
   } catch (err) {
     // A banner is decoration. It must never be the reason a page fails.
     console.warn("promo banner:", err);
   }
 })();
+
+// A running campaign names itself at the very top of the page, above whatever
+// the banner says. The two stack rather than compete: the campaign is what is
+// happening, the banner is what the shop wants to say about it.
+async function renderCampaignBar() {
+  if (!siteHeader) return;
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabaseClient
+      .from("campaigns")
+      .select("id, name, discount_type, discount_value, end_date")
+      .eq("archived", false)
+      .lte("start_date", today)
+      .gte("end_date", today)
+      .order("start_date", { ascending: false })
+      .limit(1);
+    const c = error ? null : (data || [])[0];
+    if (!c) return;
+
+    const off = c.discount_type === "percentage"
+      ? `${Math.round(Number(c.discount_value))}%`
+      : money(Number(c.discount_value));
+    const [y, mo, d] = String(c.end_date || "").split("-").map(Number);
+    const until = y && mo && d ? ` · até ${d} de ${MONTHS_PT[mo - 1]}` : "";
+
+    const link = document.createElement("a");
+    link.className = "campaign-bar";
+    link.href = `colecao.html?campanha=${c.id}`;
+    // textContent throughout: the name is admin-entered and has no business
+    // being able to put markup at the top of every page.
+    const title = document.createElement("strong");
+    title.textContent = c.name;
+    const meta = document.createElement("span");
+    meta.textContent = `${off} de desconto${until}`;
+    link.append(title, meta);
+
+    siteHeader.prepend(link);
+    document.body.classList.add("has-campaign-bar");
+  } catch (err) {
+    // A bar is decoration. It must never be the reason a page fails.
+    console.warn("campaign bar:", err);
+  }
+}
 
 // The written fixação/projecção labels are generated in JS, so data-i18n can't
 // reach them — the grids have to rebuild themselves when the language changes.

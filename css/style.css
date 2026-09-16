@@ -285,17 +285,22 @@ button { font-family: var(--font-body); }
 .lang-toggle:not(.is-en) .lang-opt[data-lang="pt"],
 .lang-toggle.is-en .lang-opt[data-lang="en"] { opacity: 1; }
 
+/* Inset by the same 2px on BOTH sides of its half, so the knob is centred under
+   the letter it is under. At a fixed 28px it was flush against one edge — which
+   is why it read as sitting off to the right on EN. Its width is half the track
+   less both insets; the travel is that width plus one inset, which lands it
+   exactly under the second letter. */
 .lang-knob {
   position: absolute;
   top: 2px;
   bottom: 2px;
   left: 2px;
-  width: 28px;
+  width: calc(50% - 4px);
   border-radius: 999px;
   background: currentColor;
   transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.5, 1);
 }
-.lang-toggle.is-en .lang-knob { transform: translateX(30px); }
+.lang-toggle.is-en .lang-knob { transform: translateX(calc(100% + 4px)); }
 /* The letter sitting on the knob has to invert, or it disappears into it. */
 .lang-toggle:not(.is-en) .lang-opt[data-lang="pt"],
 .lang-toggle.is-en .lang-opt[data-lang="en"] { color: var(--bg); mix-blend-mode: normal; }
@@ -648,7 +653,7 @@ button { font-family: var(--font-body); }
   width: 270px;
   /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
      tall band of empty plate under the price now the front is one panel. */
-  min-height: 500px;
+  min-height: 452px;
   flex: 0 0 auto;
   cursor: pointer;
   perspective: 1400px;
@@ -664,7 +669,7 @@ button { font-family: var(--font-body); }
   width: 270px;
   /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
      tall band of empty plate under the price now the front is one panel. */
-  min-height: 500px;
+  min-height: 452px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -793,7 +798,9 @@ button { font-family: var(--font-body); }
    a row however much or little a product has to say. */
 .flip-back { justify-content: flex-start; text-align: left; gap: 0; }
 .flip-back-head { flex: 0 0 auto; padding-bottom: 11px; }
-.flip-back-buy { flex: 0 0 auto; padding-top: 11px; }
+/* margin-top:auto takes every remaining pixel, which pins this block to the
+   bottom of the card and keeps the slack in one predictable place. */
+.flip-back-buy { flex: 0 0 auto; margin-top: auto; padding-top: 14px; }
 .flip-back-brand {
   display: block;
   font-size: 9.5px;
@@ -818,14 +825,13 @@ button { font-family: var(--font-body); }
   color: var(--text-muted);
 }
 .flip-back-notes {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 9px;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 12px 0;
+  padding: 13px 0;
 }
 /* Nothing to say about this one: the rules would otherwise sit on top of each
    other as a stray double line. */
@@ -852,15 +858,13 @@ button { font-family: var(--font-body); }
 .flip-back-meta {
   flex: 0 0 auto;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 11px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 13px;
 }
-.flip-back-price-block { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-/* The price block sits on the right, so its end-date line reads right-aligned
-   under it rather than drifting away from the number it belongs to. */
-.flip-back-price-block .campaign-until { text-align: right; }
+.flip-back-price-block { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.flip-back-price-block .campaign-until { text-align: left; margin-top: 2px; }
 .flip-back-size { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
 .flip-back-price { font-size: 15px; font-weight: 500; color: var(--text); }
 .flip-back-price .price-final { font-size: 15px; }
@@ -2160,7 +2164,7 @@ button { font-family: var(--font-body); }
      the start instead puts the first bottle right where the section begins. */
   .carousel { scroll-padding-left: 16px; }
   .carousel-track { gap: 16px; padding: 24px 16px 10px; }
-  .carousel-card, .carousel-end-card { width: 232px; min-height: 408px; scroll-snap-align: start; }
+  .carousel-card, .carousel-end-card { width: 232px; min-height: 400px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
   /* Continuous marquee. The viewport just clips; all motion is one transform
@@ -2548,60 +2552,25 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
 .flip-back .option-mark { width: 11px; height: 11px; }
 .flip-back .flip-back-actions .btn-small { padding-top: 9px; padding-bottom: 9px; }
 
-/* A floor under the grid card. Its height otherwise comes entirely from the
-   photo's aspect ratio, which on a phone left the back face shorter than its
-   own contents — the scent notes were the part that got squeezed out. The
-   front absorbs the extra in its caption plate, whose name and price are
-   already centred, so it reads as a deeper plate rather than a gap. */
-.product-card { min-height: 470px; }
+/* One floor for all three card types. Their height otherwise comes entirely
+   from the photo aspect ratio, which left the back face shorter than its own
+   contents; and only the collection grid had been given a floor, so the same
+   perfume looked like two different designs on two pages. The front absorbs the
+   extra in its caption plate, whose name and price are already centred. */
+.product-card, .featured-card { min-height: 452px; }
+@media (max-width: 900px) {
+  .product-card, .featured-card { min-height: 428px; }
+}
 @media (max-width: 640px) {
-  .product-card { min-height: 412px; }
+  .product-card, .featured-card { min-height: 400px; }
 }
 
 /* ---------- Legal pages: index beside the document ---------- */
-.legal-layout {
-  display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  gap: 48px;
-  align-items: start;
-  max-width: 980px;
-  margin: 0 auto;
-}
+/* One reading column, centred. No index: these are documents to be read
+   through, and a list of shortcuts invites skipping. */
+.legal-layout { max-width: 720px; margin: 0 auto; }
 .legal-doc { min-width: 0; }
 
-.legal-index { position: sticky; top: 104px; }
-.legal-index-title {
-  font-size: 10px;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 14px;
-}
-.legal-index-list { list-style: none; margin: 0; padding: 0; counter-reset: none; }
-.legal-index-list li { margin: 0; }
-.legal-index-list a {
-  display: flex;
-  gap: 9px;
-  padding: 5px 0 5px 12px;
-  border-left: 1px solid var(--border);
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-.legal-index-num { flex: 0 0 auto; font-variant-numeric: tabular-nums; opacity: 0.6; }
-.legal-index-text { min-width: 0; }
-/* The section being read. The rule thickens rather than the text moving, so
-   the list never shifts under the cursor as you scroll. */
-.legal-index-list a.current {
-  color: var(--ink);
-  border-left-color: var(--ink);
-  box-shadow: -1px 0 0 0 var(--ink);
-}
-@media (hover: hover) and (pointer: fine) {
-  .legal-index-list a:hover { color: var(--text); border-left-color: var(--ink); }
-}
 
 /* Sections arrive as they are reached. Applied by script, never by the
    stylesheet alone: if the script fails the document must still be readable. */
@@ -2612,21 +2581,7 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
 }
 
 @media (max-width: 900px) {
-  /* The index becomes a lid on the document rather than a column beside it. */
-  .legal-layout { grid-template-columns: 1fr; gap: 26px; }
-  .legal-index { position: static; }
-  .legal-index-list { display: flex; flex-wrap: wrap; gap: 4px 6px; }
-  .legal-index-list a {
-    border-left: 0;
-    padding: 6px 11px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-size: 11.5px;
-  }
-  .legal-index-list a.current { box-shadow: none; background: var(--bg-soft); border-color: var(--ink); }
-  .legal-index-text { display: none; }
-  .legal-index-num { opacity: 1; }
-  .legal-index-title { margin-bottom: 9px; }
+  .legal-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .policy-block { padding-bottom: 30px; }
@@ -2692,4 +2647,46 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
   .faq-item summary, .footer-col a, .main-nav a { transition: none; }
   .perfume-card-media-wrap:not(.is-loading) .perfume-card-media,
   .faq-item[open] summary ~ * { animation: none; }
+}
+
+/* ---------- Campaign bar ----------
+   The campaign names itself above the banner. The two stack rather than
+   compete: the campaign is what is happening, the banner is what the shop
+   wants to say about it. Darker than the banner so the order reads top-down
+   even at a glance. */
+.campaign-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 10px 16px;
+  background: var(--btn);
+  color: var(--on-hero);
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.25s ease;
+}
+.campaign-bar strong {
+  font-family: var(--font-head);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+.campaign-bar span {
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+@media (hover: hover) and (pointer: fine) {
+  .campaign-bar:hover { background: var(--btn-hover); }
+}
+/* A hairline so two stacked bars do not read as one tall block. */
+.campaign-bar + .promo-banner { border-top: 1px solid rgba(255, 255, 255, 0.14); }
+
+@media (max-width: 640px) {
+  .campaign-bar { padding: 8px 12px; gap: 2px 8px; }
+  .campaign-bar strong { font-size: 13px; }
+  .campaign-bar span { font-size: 9.5px; letter-spacing: 1px; }
 }
