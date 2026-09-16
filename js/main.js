@@ -581,23 +581,32 @@ function backContent(p) {
 
   const size = [p.volume_ml ? `${p.volume_ml} ml` : "", p.concentration].filter(Boolean).join(" · ");
 
+  // Three bands with air between them, rather than six things stacked edge to
+  // edge: who it is, what it smells like, and what it costs. The middle band is
+  // the only one that flexes, so the price and the button always sit in the
+  // same place on every card in a row.
   return `
     <div class="flip-back-head">
       ${p.brand ? `<span class="flip-back-brand">${p.brand}</span>` : ""}
       <h3 class="flip-back-name">${p.name}</h3>
       ${familyLabel(p) ? `<span class="flip-back-family">${familyLabel(p)}</span>` : ""}
     </div>
+
     <div class="flip-back-notes">
-      ${pyramid}
-      ${fallbackNotes ? `<p class="flip-back-fallback">${fallbackNotes}</p>` : ""}
+      ${pyramid || (fallbackNotes ? `<p class="flip-back-fallback">${fallbackNotes}</p>` : "")}
     </div>
-    ${optionPicker(p, true)}
-    ${hasAmostra(p) ? amostraNote() : ""}
-    <div class="flip-back-meta">
-      ${hasAmostra(p) ? "" : size ? `<span class="flip-back-size">${size}</span>` : ""}
-      ${priceMarkup(p, "flip-back-price")}
-    </div>
-    ${campaignEndNote(p)}`;
+
+    <div class="flip-back-buy">
+      ${optionPicker(p, true)}
+      ${hasAmostra(p) ? amostraNote() : ""}
+      <div class="flip-back-meta">
+        ${hasAmostra(p) ? "" : size ? `<span class="flip-back-size">${size}</span>` : ""}
+        <div class="flip-back-price-block">
+          ${priceMarkup(p, "flip-back-price")}
+          ${campaignEndNote(p)}
+        </div>
+      </div>
+    </div>`;
 }
 
 // Shared by .product-card / .carousel-card / .featured-card. The card flips:
@@ -1743,17 +1752,33 @@ newsletterForm?.addEventListener("submit", async (e) => {
 });
 
 // ---------- Header scroll state + hero parallax ----------
-function handleScroll() {
+// Scroll events fire faster than the screen redraws, so writing a transform
+// straight from the handler does the work several times per frame and hands the
+// compositor a moving target. One write per frame, from requestAnimationFrame,
+// is what makes the parallax smooth rather than stepped.
+let scrollTicking = false;
+
+function applyScroll() {
+  scrollTicking = false;
   const y = window.scrollY;
   if (siteHeader) {
     // Pages without a hero (e.g. sobre.html) have no transparent state to fall back to.
     if (heroMedia) siteHeader.classList.toggle("scrolled", y > 40);
     else siteHeader.classList.add("scrolled");
   }
-  if (heroMedia) heroMedia.style.transform = `translateY(${Math.min(y * 0.25, 160)}px)`;
+  // translate3d, not translateY: it keeps the element on the layer the
+  // stylesheet promoted rather than dropping back to a repaint.
+  if (heroMedia) heroMedia.style.transform = `translate3d(0, ${Math.min(y * 0.25, 160)}px, 0)`;
 }
+
+function handleScroll() {
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(applyScroll);
+}
+
 window.addEventListener("scroll", handleScroll, { passive: true });
-handleScroll();
+applyScroll();
 
 // ---------- Scroll-triggered reveal ----------
 // Sections fade in and rise as they enter the viewport, with their contents
@@ -1779,6 +1804,13 @@ const RISE_CHILDREN = [
   ".sobre-stats",
   ".processo-media",
   ".processo-content > *",
+  ".colecao-head > *",
+  ".filter-bar",
+  ".policies-intro > *",
+  ".legal-layout",
+  ".contacto-intro > *",
+  ".contacto-grid > *",
+  ".faq-block",
 ].join(", ");
 
 const STAGGER_MS = 100;

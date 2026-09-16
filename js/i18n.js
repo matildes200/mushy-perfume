@@ -636,8 +636,18 @@ function applyTranslations(lang) {
     if (dict[key] !== undefined) el.setAttribute("placeholder", dict[key]);
   });
   document.documentElement.lang = lang === "en" ? "en" : "pt-PT";
-  // Shows the language currently active, not the one you'd switch to.
-  document.querySelectorAll(".lang-toggle").forEach((btn) => { btn.textContent = lang === "en" ? "EN" : "PT"; });
+  // Both languages stay on screen; the knob slides to whichever is active, so
+  // the control says what you are reading AND what you can switch to.
+  document.querySelectorAll(".lang-toggle").forEach((btn) => {
+    btn.classList.toggle("is-en", lang === "en");
+    btn.setAttribute("aria-checked", lang === "en" ? "true" : "false");
+    btn.setAttribute(
+      "aria-label",
+      lang === "en"
+        ? "Language: English. Switch to Portuguese."
+        : "Idioma: português. Mudar para inglês."
+    );
+  });
 }
 
 function setLang(lang) {

@@ -38,7 +38,11 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h3l2.4 12.2a2 2 0 0 0 2 1.8h9.2a2 2 0 0 0 2-1.6L21.8 5H5.2"/></svg>
         <span class="badge-count" id="cartCount">0</span>
       </button>
-      <button type="button" class="icon-btn lang-toggle" id="langToggle" aria-label="Mudar idioma">PT</button>
+      <button type="button" class="lang-toggle" id="langToggle" role="switch" aria-checked="false" aria-label="Idioma: português. Mudar para inglês.">
+        <span class="lang-knob" aria-hidden="true"></span>
+        <span class="lang-opt" data-lang="pt" aria-hidden="true">PT</span>
+        <span class="lang-opt" data-lang="en" aria-hidden="true">EN</span>
+      </button>
       <div class="more-menu">
         <button class="icon-btn more-btn" id="moreBtn" aria-label="Mais opções" aria-haspopup="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -70,7 +74,7 @@
 </header>
 
 <main class="page-offset">
-  <section class="policies">
+  <section class="policies reveal">
     <div class="container">
       <div class="policies-intro">
         <p class="eyebrow" style="color:var(--text-muted);" data-i18n="politicas.eyebrow">Informações</p>
@@ -129,8 +133,6 @@
       <a href="contacto.html#faq" data-i18n="footer.faq">Perguntas frequentes</a>
       <a href="politicas.html#envio" data-i18n="footer.envio">Envio</a>
       <a href="politicas.html#devolucoes" data-i18n="footer.devolucoes">Devoluções</a>
-      <a href="politica-de-privacidade.html" data-i18n="footer.privacidade">Política de Privacidade</a>
-      <a href="termos-e-condicoes.html" data-i18n="footer.termos">Termos</a>
     </nav>
     <div class="footer-col footer-contact">
       <h4 data-i18n="footer.col.contacto">Fale connosco</h4>
@@ -143,7 +145,6 @@
     <nav class="footer-legal">
       <a href="politica-de-privacidade.html" data-i18n="footer.privacidade.short">Privacidade</a>
       <span aria-hidden="true">|</span>
-      <a href="termos-e-condicoes.html" data-i18n="footer.termos">Termos</a>
     </nav>
   </div>
 </footer>

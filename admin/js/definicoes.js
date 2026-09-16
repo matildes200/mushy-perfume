@@ -105,6 +105,10 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
 // over. A finished campaign in the list would only invite attaching a banner
 // that could never show.
 let bannerCampaignId = "";
+let bannerCampaigns = [];
+// Messages this page generated. Kept so a generated one can be replaced when
+// the campaign changes, while anything typed by hand is left alone.
+const autoBannerTexts = new Set();
 
 async function loadBannerCampaigns() {
   const select = document.getElementById("banner_campaign_id");
@@ -112,11 +116,12 @@ async function loadBannerCampaigns() {
   const today = new Date().toISOString().slice(0, 10);
   const { data } = await supabaseClient
     .from("campaigns")
-    .select("id, name, start_date, end_date")
+    .select("id, name, start_date, end_date, discount_type, discount_value, target_all, target_categories")
     .eq("archived", false)
     .gte("end_date", today)
     .order("start_date");
-  (data || []).forEach((c) => {
+  bannerCampaigns = data || [];
+  bannerCampaigns.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = String(c.id);
     opt.textContent = c.name;
@@ -125,15 +130,54 @@ async function loadBannerCampaigns() {
   if (bannerCampaignId) select.value = String(bannerCampaignId);
 }
 
-// Choosing a campaign fills the button in, so the link always points at the
-// right filtered view without anyone having to know the URL.
+const MONTHS_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+// Split rather than parsed as a Date: the column is a plain day, and reading it
+// as an instant can shift it to the day before west of UTC.
+function longDate(iso) {
+  const [y, m, d] = String(iso || "").split("-").map(Number);
+  return y && m && d ? `${d} de ${MONTHS_PT[m - 1]}` : "";
+}
+
+// The banner message for a campaign, written from what the campaign already
+// says. There is no reason to type the same promotion out twice, and a message
+// typed by hand is one that can end up disagreeing with the prices.
+function campaignBannerText(c) {
+  const off = c.discount_type === "percentage"
+    ? `${Number(c.discount_value)}%`
+    : `${Number(c.discount_value).toLocaleString("pt-PT")} Kz`;
+  const where = c.target_all
+    ? "em toda a colecção"
+    : (c.target_categories || []).length
+    ? `na colecção ${c.target_categories.join(" e ")}`
+    : "em perfumes seleccionados";
+  const until = longDate(c.end_date);
+  return `${off} de desconto ${where}${until ? ` até ${until}` : ""}`;
+}
+
+// Choosing a campaign writes the message, the button and the link, so the
+// banner is one click rather than three fields. Every one of them stays
+// editable afterwards.
 document.getElementById("banner_campaign_id")?.addEventListener("change", (e) => {
   const id = e.target.value;
   const label = document.getElementById("banner_cta_label");
   const url = document.getElementById("banner_cta_url");
+  const text = document.getElementById("banner_text");
   if (!id) { url.value = ""; return; }
+
   url.value = `colecao.html?campanha=${id}`;
   if (!label.value.trim()) label.value = "Ver promoção";
+
+  const c = bannerCampaigns.find((x) => String(x.id) === String(id));
+  // Only fills an empty field, or a message this same helper wrote before:
+  // something typed by hand is never overwritten.
+  if (c && (!text.value.trim() || autoBannerTexts.has(text.value.trim()))) {
+    text.value = campaignBannerText(c);
+    autoBannerTexts.add(text.value);
+  }
 });
 
 document.getElementById("bannerForm").addEventListener("submit", async (e) => {
