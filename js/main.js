@@ -63,7 +63,7 @@ const newsletterNote = document.getElementById("newsletterNote");
 // A non-breaking space before "Kz" keeps the amount and currency together —
 // a plain space is a valid line-break point, and on narrow mobile cards the
 // number and "Kz" could end up wrapping onto separate lines.
-const money = (v) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
+const money = (v) => `${Math.round(Number(v) || 0).toLocaleString("pt-PT", { maximumFractionDigits: 0 })} Kz`;
 
 // ---------- The bottle, and the amostra ----------
 // Each perfume has one bottle, whose size the shop sets per product, and may
@@ -207,7 +207,9 @@ function campaignEndNote(p) {
   // it as an instant can shift it to the day before west of UTC.
   const [y, m, d] = String(c.end_date).split("-").map(Number);
   if (!y || !m || !d) return "";
-  return `<span class="campaign-until">Promoção até ${d} de ${MONTHS_PT[m - 1]}</span>`;
+  // Sentence case and one line: "PROMOÇÃO ATÉ 30 DE SETEMBRO" in capitals wrapped
+  // onto two lines on a card and shouted while doing it.
+  return `<span class="campaign-until">Até ${d} de ${MONTHS_PT[m - 1]}</span>`;
 }
 
 function stockBadge(p) {
@@ -579,35 +581,34 @@ function backContent(p) {
     noteRow("notes.base", "Fundo", p.notes_base);
 
   // Nothing structured on this product yet — show whatever notes text exists.
-  const fallbackNotes = !pyramid && (p.notes || p.short_description || p.description);
+  const notesText = !pyramid && (p.notes || p.short_description || p.description);
+  const notes = pyramid || (notesText ? `<p class="flip-back-notes-text">${notesText}</p>` : "");
 
-  const size = [p.volume_ml ? `${p.volume_ml} ml` : "", p.concentration].filter(Boolean).join(" · ");
-
-  // Three bands with air between them, rather than six things stacked edge to
-  // edge: who it is, what it smells like, and what it costs. The middle band is
-  // the only one that flexes, so the price and the button always sit in the
-  // same place on every card in a row.
+  // Stacked top-down with fixed gaps. Nothing is distributed, nothing is
+  // centred in a band of its own: the only space that moves is the one above
+  // the button, which is pushed to the bottom.
+  //
+  // The brand line is always rendered, empty or not, so the name sits at the
+  // same height on a card with a brand and a card without one. Eleven of the
+  // twelve products have no brand, so without this the backs of two
+  // neighbouring cards never lined up.
   return `
     <div class="flip-back-head">
-      ${p.brand ? `<span class="flip-back-brand">${p.brand}</span>` : ""}
+      <span class="flip-back-brand">${p.brand || ""}</span>
       <h3 class="flip-back-name">${p.name}</h3>
-      ${familyLabel(p) ? `<span class="flip-back-family">${familyLabel(p)}</span>` : ""}
     </div>
 
-    <div class="flip-back-notes">
-      ${pyramid || (fallbackNotes ? `<p class="flip-back-fallback">${fallbackNotes}</p>` : "")}
-    </div>
+    ${notes ? `<div class="flip-back-notes">
+      <span class="flip-back-notes-label" data-i18n="card.notes">Notas</span>
+      ${notes}
+    </div>` : ""}
 
     <div class="flip-back-buy">
       ${optionPicker(p, true)}
       ${hasAmostra(p) ? amostraNote() : ""}
-      <div class="flip-back-meta">
-        ${hasAmostra(p) ? "" : size ? `<span class="flip-back-size">${size}</span>` : ""}
-        <div class="flip-back-price-block">
-          ${priceMarkup(p, "flip-back-price")}
-          ${campaignEndNote(p)}
-        </div>
-      </div>
+      ${hasAmostra(p) || !sizeLine(p) ? "" : `<span class="flip-back-size">${sizeLine(p)}</span>`}
+      ${priceMarkup(p, "flip-back-price")}
+      ${campaignEndNote(p)}
     </div>`;
 }
 
@@ -618,8 +619,6 @@ function backContent(p) {
 function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
   const toneClass = p.image ? "" : ` ${p.tone}`;
   const style = p.image ? ` style="--card-image:url('${cardImageUrl(p.image)}')"` : "";
-  const description = p.short_description || p.notes || "";
-  const family = familyLabel(p);
   // data-img drives the skeleton: the shimmer stays until this URL has loaded.
   const imageUrl = p.image ? cardImageUrl(p.image) : "";
   const imgAttr = imageUrl ? ` data-img="${imageUrl}"` : "";
@@ -643,6 +642,7 @@ function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
           </div>
           <div class="perfume-card-body">
             <h3 class="perfume-card-name">${p.name}</h3>
+            <span class="perfume-card-size">${sizeLine(p)}</span>
             ${priceMarkup(p, "perfume-card-price")}
           </div>
         </div>
@@ -721,6 +721,22 @@ function featuredCardTemplate(p) { return perfumeCardTemplate(p, "featured-card"
 function carouselCardTemplate(p) { return perfumeCardTemplate(p, "carousel-card", "Adicionar", "product.add"); }
 
 const CATEGORY_ORDER = { masculino: 0, feminino: 1, unissex: 2 };
+
+// Either every card shows the concentration or none does. With it filled in on
+// one product out of twelve, showing it produced exactly the raggedness this
+// was meant to avoid: one card reading "100 ML · EAU DE PARFUM" beside eleven
+// reading "100 ML". Fills itself in as the field gets populated.
+const showConcentration = () =>
+  Array.isArray(PRODUCTS) &&
+  PRODUCTS.length > 0 &&
+  PRODUCTS.every((p) => p.active !== false && p.archived !== true ? Boolean(p.concentration) : true);
+
+// "100 ML", or "100 ML · EAU DE PARFUM" when every product can say it.
+function sizeLine(p) {
+  const vol = p.volume_ml ? `${p.volume_ml} ml` : "";
+  if (!vol) return "";
+  return showConcentration() && p.concentration ? `${vol} · ${p.concentration}` : vol;
+}
 
 // Hidden by an admin (active === false) but tolerant of the column not
 // existing yet, so the storefront still works before the migration runs.

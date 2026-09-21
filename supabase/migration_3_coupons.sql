@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Coupons / Promotions
+-- MushyParfum — Coupons / Promotions
 -- Run in the Supabase SQL Editor after migration.sql and migration_2_dashboard.sql.
 -- ============================================================
 

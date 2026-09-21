@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Expanded account page + referral program
+-- MushyParfum — Expanded account page + referral program
 -- Adds a delivery address, a referral code per customer, and an automatic
 -- 10%-off coupon minted for the referrer once their invitee signs up.
 -- ============================================================

@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Express payment method + clearer payment status
+-- MushyParfum — Express payment method + clearer payment status
 -- Adds a second payment method (Express, identified by a phone number)
 -- alongside the existing bank transfer, both still managed from
 -- admin/pagamentos.html. No existing columns are removed or renamed —

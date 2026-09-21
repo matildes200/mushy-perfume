@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Product image uploads
+-- MushyParfum — Product image uploads
 -- Creates a public storage bucket for product photos, admin-only to write.
 -- ============================================================
 

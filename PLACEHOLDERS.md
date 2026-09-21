@@ -16,7 +16,7 @@ incomoda um estranho.
 
 | Onde | Linha | Valor de exemplo |
 |---|---|---|
-| [termos-e-condicoes.html](termos-e-condicoes.html#L83) | 83 | `[EXEMPLO] Mushy Parfum, Lda.` |
+| [termos-e-condicoes.html](termos-e-condicoes.html#L83) | 83 | `[EXEMPLO] MushyParfum, Lda.` |
 | [termos-e-condicoes.html](termos-e-condicoes.html#L83) | 83 | `[EXEMPLO] Rua XXX, n.º XXX, Luanda, Angola` |
 | [termos-e-condicoes.html](termos-e-condicoes.html#L83) | 83 | NIF `[EXEMPLO] XXXXXXXXXX` |
 | [politica-de-privacidade.html](politica-de-privacidade.html#L83) | 83 | os mesmos três valores |

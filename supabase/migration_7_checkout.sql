@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Checkout overhaul (bank transfer + receipt upload)
+-- MushyParfum — Checkout overhaul (bank transfer + receipt upload)
 -- Replaces the WhatsApp handoff with: login-gated checkout, admin-managed
 -- bank transfer details, and a receipt ("comprovativo") upload per order.
 -- ============================================================

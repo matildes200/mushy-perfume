@@ -10,7 +10,7 @@
 //   supabase functions deploy send-order-confirmation
 // Required secret (set once):
 //   supabase secrets set RESEND_API_KEY=your_resend_api_key
-// RESEND_FROM_EMAIL defaults to "Mushy Parfum <pedidos@resend.dev>" (Resend's
+// RESEND_FROM_EMAIL defaults to "MushyParfum <pedidos@resend.dev>" (Resend's
 // shared test domain) unless you set it as a secret too, once you verify
 // your own sending domain with Resend.
 
@@ -19,7 +19,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "Mushy Parfum <pedidos@resend.dev>";
+const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "MushyParfum <pedidos@resend.dev>";
 
 const money = (v: number) => `${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
 
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
 
     const bodyText = `Olá ${name || ""},
 
-O seu pedido #${order.id} na Mushy Parfum foi recebido com sucesso!
+O seu pedido #${order.id} na MushyParfum foi recebido com sucesso!
 
 ${itemsList}
 
@@ -46,7 +46,7 @@ Total: ${money(order.total)}
 
 Assim que confirmarmos o seu comprovativo de pagamento, avançamos com a preparação e envio do seu pedido.
 
-Obrigado por comprar na Mushy Parfum.`;
+Obrigado por comprar na MushyParfum.`;
 
     let emailSent = false;
     if (RESEND_API_KEY && email) {
@@ -56,7 +56,7 @@ Obrigado por comprar na Mushy Parfum.`;
         body: JSON.stringify({
           from: RESEND_FROM_EMAIL,
           to: email,
-          subject: `Pedido #${order.id} confirmado — Mushy Parfum`,
+          subject: `Pedido #${order.id} confirmado — MushyParfum`,
           text: bodyText,
         }),
       });

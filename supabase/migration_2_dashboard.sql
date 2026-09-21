@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Admin dashboard v2 (Products/Orders/Customers/
+-- MushyParfum — Admin dashboard v2 (Products/Orders/Customers/
 -- Inventory/Analytics expansion)
 -- Run after supabase/migration.sql, same place: SQL Editor > New query.
 -- ============================================================

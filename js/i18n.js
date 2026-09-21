@@ -3,7 +3,7 @@
 // paragraph, the Sobre story, all policy text, fragrance notes, reviews,
 // cart/wishlist/checkout, the quiz, the account page and the footer.
 //
-// Deliberately NOT translated: the brand name ("Mushy Parfum") and product
+// Deliberately NOT translated: the brand name ("MushyParfum") and product
 // names/descriptions, which come from the database and stay as the admin
 // entered them. Admin panel pages are Portuguese-only.
 const TRANSLATIONS = {
@@ -14,7 +14,7 @@ const TRANSLATIONS = {
     "nav.conta": "A minha conta",
     "search.placeholder": "Pesquisar por nome, marca ou nota...",
 
-    "hero.eyebrow": "Mushy Parfum",
+    "hero.eyebrow": "MushyParfum",
     "hero.headline": "Uma fragrância<br>que fica.",
     "hero.text": "Fragrâncias para quem não passa despercebida.",
     "hero.cta.primary": "Descobrir fragrâncias",
@@ -122,6 +122,7 @@ const TRANSLATIONS = {
     "footer.termos.short": "Termos",
     "footer.termos": "Termos",
 
+    "card.notes": "Notas",
     "cart.title": "O seu carrinho",
     "cart.empty": "O seu carrinho está vazio.",
     "cart.coupon.toggle": "Tem um cupão de desconto?",
@@ -180,7 +181,7 @@ const TRANSLATIONS = {
     "filter.unissex": "Unissexo",
 
     "sobre.banner.eyebrow": "Quem somos",
-    "sobre.banner.mark": "Mushy Parfum · Angola",
+    "sobre.banner.mark": "MushyParfum · Angola",
     "sobre.banner.line": "Perfumaria fina desde 2024",
     "sobre.banner.eyebrow2": "A nossa história",
     "sobre.banner.quote": "“Bom perfume é aquele que se escolhe com carinho, não apenas o que está na prateleira.”",
@@ -314,7 +315,7 @@ const TRANSLATIONS = {
     "nav.conta": "My account",
     "search.placeholder": "Search by name, brand or note...",
 
-    "hero.eyebrow": "Mushy Parfum",
+    "hero.eyebrow": "MushyParfum",
     "hero.headline": "A fragrance<br>that stays.",
     "hero.text": "Fragrances for those who don't go unnoticed.",
     "hero.cta.primary": "Discover fragrances",
@@ -422,6 +423,7 @@ const TRANSLATIONS = {
     "footer.termos.short": "Terms",
     "footer.termos": "Terms",
 
+    "card.notes": "Notes",
     "cart.title": "Your cart",
     "cart.empty": "Your cart is empty.",
     "cart.coupon.toggle": "Have a discount code?",
@@ -480,7 +482,7 @@ const TRANSLATIONS = {
     "filter.unissex": "Unisex",
 
     "sobre.banner.eyebrow": "Who we are",
-    "sobre.banner.mark": "Mushy Parfum · Angola",
+    "sobre.banner.mark": "MushyParfum · Angola",
     "sobre.banner.line": "Fine perfumery since 2024",
     "sobre.banner.eyebrow2": "Our story",
     "sobre.banner.quote": "“A good perfume is the one chosen with care, not just the one on the shelf.”",

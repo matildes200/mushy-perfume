@@ -651,9 +651,6 @@ button { font-family: var(--font-body); }
   position: relative;
   scroll-snap-align: start;
   width: 270px;
-  /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
-     tall band of empty plate under the price now the front is one panel. */
-  min-height: 452px;
   flex: 0 0 auto;
   cursor: pointer;
   perspective: 1400px;
@@ -667,9 +664,7 @@ button { font-family: var(--font-body); }
 .carousel-end-card {
   scroll-snap-align: start;
   width: 270px;
-  /* Photo (3/4 of 270px) plus the caption plate. It was 510px, which left a
-     tall band of empty plate under the price now the front is one panel. */
-  min-height: 452px;
+  min-height: 100%;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -793,97 +788,6 @@ button { font-family: var(--font-body); }
    top, the olfactory pyramid filling the middle, size and price pinned to the
    bottom above the button. space-between is what stops it pooling into one
    clump with dead space underneath. */
-/* Three bands: identity, scent, and the buying decision. Only the middle one
-   flexes, so the price and the button land at the same height on every card in
-   a row however much or little a product has to say. */
-.flip-back { justify-content: flex-start; text-align: left; gap: 0; }
-.flip-back-head { flex: 0 0 auto; padding-bottom: 11px; }
-/* No margin-top:auto here. Pinning this block to the bottom put every spare
-   pixel into ONE gap, directly between the name and the ml row, which read as
-   though something was missing between them. space-between on the back face
-   spreads the same slack across both gaps instead, so the three bands stay
-   evenly spaced whatever the product has to say. */
-.flip-back-buy { flex: 0 0 auto; padding-top: 12px; }
-.flip-back-brand {
-  display: block;
-  font-size: 9.5px;
-  letter-spacing: 2.2px;
-  text-transform: uppercase;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-.flip-back-name {
-  font-family: var(--font-head);
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 1.25;
-  color: var(--text);
-  margin: 0 0 6px;
-}
-.flip-back-family {
-  display: block;
-  font-size: 9.5px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-/* The band takes the leftover height and centres what is in it. A product
-   with a full pyramid fills it exactly, so the name sits close to it and the
-   ml row close beneath. A product with only one line of description — because
-   its olfactory notes have never been filled in — keeps that line centred in a
-   roomier panel instead of pushing a blank gap between the name and the size.
-   Either way the gaps AROUND the band stay small and equal. */
-.flip-back-notes {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 9px;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 13px 0;
-}
-/* Nothing to say about this one: the rules would otherwise sit on top of each
-   other as a stray double line. */
-.flip-back-notes:empty { border: 0; padding: 0; }
-.flip-note-row { display: flex; gap: 10px; align-items: baseline; }
-.flip-note-label {
-  flex: 0 0 46px;
-  font-size: 8.5px;
-  letter-spacing: 1.3px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.flip-note-value { flex: 1; font-size: 11.5px; line-height: 1.5; color: var(--text); }
-.flip-back-fallback {
-  font-size: 11.5px;
-  line-height: 1.6;
-  color: var(--text-muted);
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.flip-back-meta {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-bottom: 13px;
-}
-.flip-back-price-block { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
-.flip-back-price-block .campaign-until { text-align: left; margin-top: 2px; }
-.flip-back-size { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); }
-.flip-back-price { font-size: 15px; font-weight: 500; color: var(--text); }
-.flip-back-price .price-final { font-size: 15px; }
-.flip-back-actions { flex: 0 0 auto; display: flex; flex-direction: column; align-items: stretch; }
-.flip-back-actions .btn-small { width: 100%; }
-
-/* The badge sits on the front face; when the card turns it would otherwise
-   show through the back mirrored and unreadable. */
 .flip-card.flipped .perfume-badge,
 .flip-card.flipped .stock-badge,
 .flip-card.flipped .wishlist-btn { opacity: 0; visibility: hidden; }
@@ -898,30 +802,35 @@ button { font-family: var(--font-body); }
 /* The front is one panel — photo and caption share a single surface, border
    and radius — rather than a bordered photo with loose text underneath. It
    also matches the back face, so the card reads as one object either way up. */
+/* The front is in normal flow and is what gives the card its height. No
+   padding around the photo: the inset used to put the photo's own border
+   inside the panel's, which read as a double frame. The photo now runs flush
+   to the top and both sides and shares the card's rounded corners. */
 .flip-front {
   display: flex;
   flex-direction: column;
+  /* A grid row stretches every card to match its tallest. Without this, a card
+     with no discount row left a strip of bare card below its plate. The plate
+     takes that height instead, and its contents stay pinned to the top with
+     the same fixed gaps, so nothing is redistributed. */
   height: 100%;
   background: var(--surface);
-  /* Same beige as the caption plate behind the name and price, so the panel
-     edge, the photo edge and the plate all read as one tone. */
   border: 1px solid var(--bg-alt);
   border-radius: 14px;
-  /* Inset on three sides so the photo's own border sits clear of the panel's
-     rather than doubling up against it. The caption plate below reclaims the
-     full width with a negative margin. */
-  padding: 8px 8px 0;
+  overflow: hidden;
   box-shadow: 0 1px 2px rgba(59, 42, 29, 0.04);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* A fixed 4:5 so every photo on the page is the same shape and the same size,
+   whatever the source image happens to be. No border and no radius of its own:
+   it inherits the card's, which is what removes the double frame. */
 .perfume-card-media-wrap {
   position: relative;
-  aspect-ratio: 3 / 4;
-  border: 1px solid var(--bg-alt);
-  border-radius: 8px;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 /* Skeleton: a shimmer in place of the photo until hydrateCardImages() has the
@@ -1035,43 +944,15 @@ button { font-family: var(--font-body); }
 /* The caption sits inside the panel, on its own slightly warmer ground with a
    hairline above it, so the name and price read as a plate under the bottle
    rather than as text dropped on the page. */
+/* The caption plate, flush under the photo. No flex:1 and no negative
+   margins: it used to stretch to fill whatever height the card had, which is
+   what spread the name and price apart. The beige is unchanged. */
 .flip-front .perfume-card-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  flex: 1;
-  gap: 5px;
-  /* Negative side/bottom margins cancel the panel's padding so the plate runs
-     edge to edge under the inset photo. */
-  margin: 8px -8px 0;
-  padding: 12px 12px 14px;
   background: var(--bg-alt);
-  /* No divider line: the photo is inset with its own border, so the strip of
-     surface above the plate already separates them — and a --border rule here
-     would be a darker tone than the plate and the two card edges. */
   border-radius: 0 0 13px 13px;
-}
-/* Clamped to two lines so the price row lands at the same height across a row
-   of cards, but the name is bottom-aligned inside that reserved space — with
-   top alignment a one-line title left an obvious hole above the price. */
-.flip-front .perfume-card-name {
+  flex: 1 1 auto;
   margin: 0;
-  min-height: 2.3em;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  font-family: var(--font-head);
-  font-size: 16px;
-  letter-spacing: 0.2px;
-  line-height: 1.15;
-  color: var(--text);
-  overflow: hidden;
 }
-/* The price is the one piece of hard information here, so it gets the ink
-   colour and its own weight instead of sharing the name's. Tabular figures
-   keep the columns of prices lining up down the grid. */
 .flip-front .perfume-card-price {
   min-height: 0;
   line-height: 1.2;
@@ -2080,7 +1961,6 @@ button { font-family: var(--font-body); }
   .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
   .featured-card .perfume-card-name { font-size: 14.5px; }
   .featured-card .perfume-card-price { font-size: 13px; }
-  .featured-card .flip-back-name { font-size: 15px; }
 
   /* A dense grid so several perfumes are visible at once, instead of one
      giant card filling the whole screen per scroll. */
@@ -2097,29 +1977,18 @@ button { font-family: var(--font-body); }
 
   /* Caption plate, scaled for a two-up grid. */
   .flip-front { border-radius: 16px; padding: 7px 7px 0; }
-  .flip-front .perfume-card-body { margin: 7px -7px 0; padding: 10px 9px 12px; gap: 4px; border-radius: 0 0 15px 15px; }
-  .flip-front .perfume-card-name { font-size: 13.5px; min-height: 2.2em; }
+  .flip-front .perfume-card-body { border-radius: 0 0 15px 15px; }
   .flip-front .perfume-card-price { font-size: 12.5px; }
   .flip-front .price-original { font-size: 10px; }
   .flip-front .price-badge { font-size: 8px; padding: 1px 5px; }
 
   /* Slightly smaller bottles with rounder corners: a shorter panel than the
      3/4 default leaves the card less dominant in a two-up grid. */
-  .perfume-card-media-wrap { aspect-ratio: 4 / 5; border-radius: 10px; }
   /* Fills the panel rather than fitting inside it. "contain" scaled the bottle
      down until it fitted, which left bands of empty surface above and below it
      on any photo whose shape didn't match the 4/5 panel. */
   .perfume-card-media { background-size: cover; background-position: center; }
   .flip-back { border-radius: 16px; padding: 17px 15px; }
-  .flip-back-name { font-size: 15px; }
-  .flip-back-brand { font-size: 8.5px; }
-  .flip-note-label { flex-basis: 40px; font-size: 8px; }
-  .flip-note-value { font-size: 10.5px; }
-  .flip-back-fallback { font-size: 10.5px; -webkit-line-clamp: 4; }
-  .flip-back-notes { padding: 9px 0; margin: 8px 0; gap: 5px; }
-  .flip-back-size { font-size: 9px; }
-  .flip-back-price, .flip-back-price .price-final { font-size: 13px; }
-  .flip-back-meta { margin-bottom: 9px; }
 
   /* Full-bleed photo with the story text overlaid on top, instead of a
      stacked image-then-gap-then-text layout with dead white space between. */
@@ -2175,7 +2044,7 @@ button { font-family: var(--font-body); }
      the start instead puts the first bottle right where the section begins. */
   .carousel { scroll-padding-left: 16px; }
   .carousel-track { gap: 16px; padding: 24px 16px 10px; }
-  .carousel-card, .carousel-end-card { width: 232px; min-height: 400px; scroll-snap-align: start; }
+  .carousel-card, .carousel-end-card { width: 232px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
   /* Continuous marquee. The viewport just clips; all motion is one transform
@@ -2397,10 +2266,6 @@ button { font-family: var(--font-body); }
 }
 .policy-note { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin: 10px 0 0; }
 
-/* The notes area is the flexible middle of the back face, so it can shrink;
-   min-height:0 lets it, and overflow:hidden means a wordy product clips its own
-   text instead of pushing the add-to-cart button off the bottom of the card. */
-.flip-back-notes { min-height: 0; overflow: hidden; }
 
 /* The size next to a cart line's name, so the same perfume twice reads as two
    different bottles rather than a duplicated row. */
@@ -2536,21 +2401,8 @@ pill mobile rules  .cart-item-size { font-size: 9px; margin-left: 5px; }
 .flip-back .option-picker { gap: 5px; margin-bottom: 8px; }
 .flip-back .option-row { padding: 6px 9px; font-size: 11px; gap: 7px; }
 .flip-back .option-mark { width: 11px; height: 11px; }
-.flip-back .flip-back-actions .btn-small { padding-top: 9px; padding-bottom: 9px; }
 
-/* One floor for all three card types. Their height otherwise comes entirely
-   from the photo aspect ratio, which left the back face shorter than its own
-   contents; and only the collection grid had been given a floor, so the same
-   perfume looked like two different designs on two pages. The front absorbs the
-   extra in its caption plate, whose name and price are already centred. */
-.product-card, .featured-card { min-height: 452px; }
-@media (max-width: 900px) {
-  .product-card, .featured-card { min-height: 428px; }
-}
-@media (max-width: 640px) {
-  .product-card, .featured-card { min-height: 400px; }
-}
-
+grid/featured floor
 /* ---------- Legal pages: index beside the document ---------- */
 /* One reading column, centred. No index: these are documents to be read
    through, and a list of shortcuts invites skipping. */
@@ -2712,4 +2564,187 @@ body.has-topbar .page-offset { padding-top: calc(84px + var(--topbar-h)); }
   .site-topbar { padding: 9px 40px; gap: 4px 10px; }
   .site-topbar-text, .site-topbar-cta { font-size: 10.5px; letter-spacing: 1px; }
   .site-topbar-close { right: 6px; width: 26px; height: 26px; font-size: 18px; }
+}
+
+/* =====================================================================
+   PRODUCT CARD
+   Height comes from the content. There is no fixed or minimum height on
+   either face, and nothing anywhere is distributed: every gap is a fixed
+   number. The front is in normal flow and defines the card's height; the
+   back is absolutely positioned over it and adapts.
+
+   Typography is three styles and no more: the serif for the fragrance
+   name, one sans in two sizes for everything else, and small spaced
+   capitals reserved for the brand and the size.
+   ===================================================================== */
+
+/* ---------- Front ---------- */
+.perfume-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 14px 15px 15px;
+  text-align: left;
+}
+.flip-front .perfume-card-name {
+  font-family: var(--font-head);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--text);
+  margin: 0;
+  /* One line, clipped. Two cards whose names wrap differently would be two
+     different heights, which is what put their prices and buttons on
+     different levels. */
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 0;
+}
+.perfume-card-size {
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.perfume-card-size:empty { display: none; }
+.flip-front .perfume-card-price { font-size: 15px; margin-top: 1px; }
+
+/* ---------- Back ---------- */
+.flip-back {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 0;
+  padding: 16px 15px 15px;
+}
+.flip-back-head { flex: 0 0 auto; }
+/* Always rendered, empty or not: eleven of the twelve products have no brand,
+   and without the reserved line the name sat higher on those cards than on
+   their neighbours. */
+.flip-back-brand {
+  display: block;
+  min-height: 12px;
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 12px;
+}
+.flip-back-name {
+  font-family: var(--font-head);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--text);
+  margin: 2px 0 0;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flip-back-notes {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  margin: 12px 0;
+}
+.flip-back-notes-label {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+/* Directly under its label rather than floating in the middle of the card. */
+.flip-back-notes-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.flip-note-row { display: flex; gap: 10px; align-items: baseline; }
+.flip-note-label {
+  flex: 0 0 44px;
+  font-size: 9.5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.flip-note-value { flex: 1; font-size: 12px; line-height: 1.45; color: var(--text); }
+
+.flip-back-buy {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding-top: 0;
+}
+.flip-back-size {
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.flip-back-price { font-size: 15px; }
+.flip-back-price .price-final { font-size: 15px; }
+
+/* The only thing that moves. Whatever slack the card has collects here,
+   between the content and the button, rather than being shared out between
+   every element on the face. */
+.flip-back-actions { flex: 0 0 auto; margin-top: auto; padding-top: 12px; }
+
+/* The one action on the card, so it looks like one. */
+.flip-back-actions .btn-small {
+  width: 100%;
+  background: var(--btn);
+  border-color: var(--btn);
+  color: var(--on-hero);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .flip-back-actions .btn-small:not([disabled]):hover {
+    background: var(--btn-hover);
+    border-color: var(--btn-hover);
+  }
+}
+.flip-back-actions .btn-small[disabled] {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* One short line, sentence case. */
+.campaign-until {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  color: var(--ink);
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .perfume-card-body { padding: 12px 13px 13px; gap: 4px; }
+  .flip-front .perfume-card-name, .flip-back-name { font-size: 14.5px; }
+  .flip-front .perfume-card-price, .flip-back-price,
+  .flip-back-price .price-final { font-size: 13.5px; }
+  .flip-back { padding: 14px 13px 13px; }
+  .flip-back-notes { padding: 9px 0; margin: 10px 0; }
+  .flip-back-notes-text, .flip-note-value { font-size: 11px; }
+  .flip-back-notes-text { -webkit-line-clamp: 2; }
+  .campaign-until { font-size: 9.5px; }
 }

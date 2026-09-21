@@ -1,4 +1,4 @@
-const money = (v) => `${Number(v || 0).toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
+const money = (v) => `${Math.round(Number(v) || 0).toLocaleString("pt-PT", { maximumFractionDigits: 0 })} Kz`;
 
 // The order cycle, in order. There is no payment gateway: a person reads the
 // comprovativo, decides whether the money arrived, and only then releases the

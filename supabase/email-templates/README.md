@@ -1,7 +1,7 @@
 # Modelos de e-mail de autenticação (PT)
 
 Os dois e-mails da recuperação de palavra-passe, em português de Portugal e com
-a identidade da Mushy Parfum:
+a identidade da MushyParfum:
 
 - **Redefinir a sua palavra-passe**, enviado quando alguém pede a recuperação.
   A ligação é válida 60 minutos (`mailer_otp_exp: 3600`) e é de utilização única.

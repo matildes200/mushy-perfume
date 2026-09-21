@@ -1,5 +1,5 @@
 -- ============================================================
--- Mushy Parfum — Admin dashboard schema
+-- MushyParfum — Admin dashboard schema
 --
 -- Run this once in the Supabase dashboard: Project > SQL Editor > New query.
 -- Before running:

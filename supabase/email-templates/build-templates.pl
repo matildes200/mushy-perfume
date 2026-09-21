@@ -19,7 +19,7 @@ HTML
 my $shell_close = <<'HTML';
     </div>
     <div style="padding:20px 32px;border-top:1px solid #EFE1C6;color:#8B7256;font-size:12px;line-height:1.6;">
-      Mushy Parfum &middot; Perfumaria fina<br>
+      MushyParfum &middot; Perfumaria fina<br>
       Recebeu este e-mail porque existe uma conta associada a este endereço.
     </div>
   </div>
@@ -33,7 +33,7 @@ my $button = sub {
 
 my $recovery = $shell_open . <<'HTML' . $button->('Definir nova palavra-passe') . <<'HTML2' . $shell_close;
       <h2 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:22px;margin:0 0 14px;color:#3B2A1D;">Redefinir a sua palavra-passe</h2>
-      <p style="margin:0 0 12px;">Recebemos um pedido para redefinir a palavra-passe da sua conta Mushy Parfum.</p>
+      <p style="margin:0 0 12px;">Recebemos um pedido para redefinir a palavra-passe da sua conta MushyParfum.</p>
       <p style="margin:0 0 12px;">Carregue no botão abaixo para escolher uma nova. A ligação é válida durante 60 minutos e só pode ser utilizada uma vez.</p>
 HTML
       <p style="margin:0;color:#8B7256;font-size:13px;">Se não foi você que fez este pedido, ignore este e-mail. A sua palavra-passe actual continua válida.</p>
@@ -41,7 +41,7 @@ HTML2
 
 my $changed = $shell_open . <<'HTML' . $shell_close;
       <h2 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:22px;margin:0 0 14px;color:#3B2A1D;">A sua palavra-passe foi alterada</h2>
-      <p style="margin:0 0 12px;">A palavra-passe da sua conta Mushy Parfum foi alterada há instantes.</p>
+      <p style="margin:0 0 12px;">A palavra-passe da sua conta MushyParfum foi alterada há instantes.</p>
       <p style="margin:0 0 12px;">Se foi você, não precisa de fazer nada.</p>
       <p style="margin:0;color:#8B7256;font-size:13px;"><strong>Se não foi você</strong>, contacte-nos de imediato para protegermos a sua conta.</p>
 HTML

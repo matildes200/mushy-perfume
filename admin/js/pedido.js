@@ -338,7 +338,7 @@ function notifyClientOfRejection(reason) {
     `Não conseguimos confirmar o comprovativo do seu pedido ${orderCode(order.id)}.\n\n` +
     `Motivo: ${reason}\n\n` +
     `Assim que nos enviar um comprovativo válido, seguimos com a preparação do seu pedido.\n\n` +
-    `Obrigado,\nMushy Parfum`;
+    `Obrigado,\nMushyParfum`;
   window.open(
     `mailto:${encodeURIComponent(order.customer_email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
     "_blank"
@@ -409,7 +409,7 @@ document.getElementById("printNoteBtn").addEventListener("click", () => {
       .block { margin-top: 22px; }
       .block strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7a6a58; margin-bottom: 4px; }
     </style></head><body>
-    <h1>Mushy Parfum &mdash; Guia de entrega</h1>
+    <h1>MushyParfum &mdash; Guia de entrega</h1>
     <p class="muted">${orderCode(order.id)} &middot; ${formatDate(order.created_at)}</p>
     <div class="block"><strong>Cliente</strong>${escapeHtml(order.customer_name || "—")}<br>
       ${escapeHtml(order.customer_phone || "")}<br>${escapeHtml(address || "")}</div>
