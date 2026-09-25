@@ -635,6 +635,21 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 /* Native date pickers carry an intrinsic width; this stops it winning. */
 .filter-field input[type="date"] { -webkit-appearance: none; appearance: none; }
 
+/* ---------- The filter bar's type, at the size this sheet always intended ----
+   This sheet asks for 13.5px on the filter controls and never got it: the
+   storefront's "font-size: 16px !important" (the iOS focus-zoom fix, loaded
+   first but unbeatable without !important of its own) won every time. At 16px
+   the estado select clipped "Todos os estados" and the search field cut its
+   own placeholder off by 56px, which is what the bar looked like.
+
+   That zoom only happens when a touch keyboard opens, so the smaller size is
+   given only to pointer-driven windows wide enough that no phone or tablet
+   keyboard is involved. Below this, the 16px rule still stands untouched. */
+@media (min-width: 900px) and (pointer: fine) {
+  .filter-field input,
+  .filter-field select { font-size: 13.5px !important; }
+}
+
 .form-field { min-width: 0; }
 .form-field input,
 .form-field select,
@@ -662,8 +677,17 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
 /* De + Até behave as one control. Grouping them means the pair shares a row at
    every width instead of each date claiming a full row on a phone. */
-.filter-range { display: flex; gap: 10px; min-width: 0; flex: 1 1 300px; }
+/* The two dates need only "dd/mm/yyyy" and a picker button, so they stop
+   growing (flex-grow 0) and hand the leftover width of the row to the search
+   field, which holds by far the longest content. Declared here rather than
+   beside the other filter rules above: a later rule of equal weight wins, and
+   this is the last word on .filter-range in the sheet. */
+.filter-range { display: flex; gap: 10px; min-width: 0; flex: 0 1 288px; }
 .filter-range .filter-field { flex: 1 1 0; min-width: 0; }
+/* A small basis and a large grow: the search field asks for very little when
+   the row is tight, and takes everything left over when it is not. That keeps
+   the whole bar on one line down to a 1180px window. */
+.filter-field.filter-grow { flex: 4 1 170px; }
 
 /* Definições panels: title, one line of context, fields, then the save button
    on its own footer row — the same rhythm in every panel. */

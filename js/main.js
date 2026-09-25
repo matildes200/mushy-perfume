@@ -852,7 +852,6 @@ function initBestsellersDrift() {
   let copyWidth = 0;
   let last = null;
   let pausedUntil = 0;
-  let hovering = false;
   let carry = 0;           // sub-pixel remainder; scrollLeft is an integer
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -868,14 +867,18 @@ function initBestsellersDrift() {
 
   const hold = () => { pausedUntil = performance.now() + RESUME_MS; };
 
-  // Anything the reader does wins, and keeps winning for a few seconds after
-  // they stop.
+  // Anything the reader DOES wins, and keeps winning for a few seconds after
+  // they stop. Merely resting the pointer on the strip is not doing anything,
+  // so it no longer counts: hovering used to stop the drift dead, which read as
+  // the carousel breaking whenever the mouse happened to be over it.
+  //
+  // There is no "scroll" listener here on purpose. The drift writes scrollLeft
+  // itself, so every frame fires a scroll event, and treating that as a reader
+  // action would have the strip pause itself for ever. A wheel or a drag is
+  // caught by the three events below before the scroll it causes.
   ["pointerdown", "touchstart", "wheel"].forEach((evt) =>
     carousel.addEventListener(evt, hold, { passive: true })
   );
-  carousel.addEventListener("scroll", () => { if (hovering) hold(); }, { passive: true });
-  carousel.addEventListener("pointerenter", () => { hovering = true; });
-  carousel.addEventListener("pointerleave", () => { hovering = false; });
   // The arrows are a deliberate action too, so they get the same quiet period.
   carouselPrev?.addEventListener("click", hold);
   carouselNext?.addEventListener("click", hold);
@@ -893,7 +896,7 @@ function initBestsellersDrift() {
     const dt = last === null ? 0 : (now - last) / 1000;
     last = now;
 
-    if (reduced.matches || hovering || now < pausedUntil || document.hidden) return;
+    if (reduced.matches || now < pausedUntil || document.hidden) return;
 
     carry += SPEED * dt;
     const step = Math.floor(carry);
