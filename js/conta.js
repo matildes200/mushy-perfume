@@ -61,8 +61,35 @@ async function tryRedeemPendingReferral() {
 }
 
 // Order status maps onto a "status.<value>" translation key so the order
-// history follows the selected language too.
-const orderStatusLabel = (status) => window.t?.(`status.${status}`) || status;
+// history follows the selected language too. t() hands back the key itself
+// when there is no entry, so "|| status" alone never fired and an unknown
+// state printed "status.entregue" in the customer's order history. Checking
+// for the key coming straight back is what actually catches that.
+function orderStatusLabel(status) {
+  if (!status) return "—";
+  const key = `status.${status}`;
+  const label = window.t?.(key);
+  if (label && label !== key) return label;
+  // Last resort: make the raw value readable rather than showing a key.
+  return String(status).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
+
+// The same seven states the dashboard uses, so a customer reading "Enviado"
+// here and the shop reading "Enviado" there are looking at one vocabulary.
+const ORDER_STATUS_CLASS = {
+  aguarda_pagamento: "os-waiting",
+  comprovativo_recebido: "os-review",
+  pagamento_confirmado: "os-paid",
+  em_preparacao: "os-packing",
+  enviado: "os-shipped",
+  entregue: "os-done",
+  cancelado: "os-cancelled",
+};
+
+// The reference the customer quotes when they write to us. It is the same code
+// the order carries in the dashboard, so both sides of a WhatsApp conversation
+// are naming the same thing.
+const accountOrderCode = (id) => `#MP${String(id).replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 
 async function renderAccountOrders(customerId) {
   const el = document.getElementById("accountOrders");
@@ -89,20 +116,40 @@ async function renderAccountOrders(customerId) {
           const thumb = image
             ? `<img src="${image}" alt="${it.name}" loading="lazy">`
             : `<span class="account-order-thumb-empty" aria-hidden="true"></span>`;
+          // Three fixed columns — thumbnail, name, amount — so every price in
+          // the order lands on the same right edge instead of trailing the
+          // name it belongs to.
           return `<li class="account-order-item">
             <span class="account-order-thumb">${thumb}</span>
-            <span class="account-order-item-name">${it.name}${it.size ? ` · ${it.size}` : ""}<small>${it.qty} × ${money(it.price)}</small></span>
+            <span class="account-order-item-name">
+              ${it.name}
+              <small>${it.size ? `${it.size} · ` : ""}${it.qty} × ${money(it.price)}</small>
+            </span>
+            <span class="account-order-item-price">${money((it.qty || 1) * (it.price || 0))}</span>
           </li>`;
+
         })
         .join("");
-      return `<div class="account-order">
-        <div class="account-order-row">
-          <span>${date}</span>
-          <span><strong>${money(o.total)}</strong><br><span class="order-status">${orderStatusLabel(o.status)}</span></span>
-        </div>
+      const address = [o.customer_address, o.customer_city].filter(Boolean).join(", ");
+      // A header, a list and a footer, rather than one flat run of rows. The
+      // total and the status used to be stacked inside a single <span> with a
+      // <br> between them, which left them sharing no edge with each other and
+      // the date floating at the vertical centre of the pair.
+      return `<article class="account-order">
+        <header class="account-order-head">
+          <span class="account-order-ref">
+            ${accountOrderCode(o.id)}
+            <small>${date}</small>
+          </span>
+          <span class="account-order-meta">
+            <span class="order-status ${ORDER_STATUS_CLASS[o.status] || ""}">${orderStatusLabel(o.status)}</span>
+            <strong>${money(o.total)}</strong>
+          </span>
+        </header>
         <ul class="account-order-items">${lines}</ul>
-        ${o.customer_address ? `<p class="account-order-address">${o.customer_address}${o.customer_city ? `, ${o.customer_city}` : ""}</p>` : ""}
-      </div>`;
+        ${address ? `<p class="account-order-address">${address}</p>` : ""}
+      </article>`;
+
     })
     .join("");
 }
@@ -131,10 +178,15 @@ function renderAccountRecommendations() {
   el.innerHTML = picks
     .map(
       (p) => `<a class="account-rec-card" href="colecao.html">
-        ${p.image ? `<img src="${p.image}" alt="${p.name}">` : ""}
-        <strong>${p.name}</strong>
-        <span>${money(effectivePrice(p))}</span>
+        <span class="account-rec-media">${
+          p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ""
+        }</span>
+        <span class="account-rec-body">
+          <strong>${p.name}</strong>
+          <span>${money(effectivePrice(p))}</span>
+        </span>
       </a>`
+
     )
     .join("");
 }

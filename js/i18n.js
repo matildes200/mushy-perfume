@@ -300,13 +300,17 @@ const TRANSLATIONS = {
     "checkout.err.receipt": "Envie o comprovativo da transferência.",
     "checkout.err.submit": "Não foi possível enviar o seu pedido. Tente novamente.",
 
-    "status.pending": "Pendente",
-    "status.confirmed": "Confirmado",
-    "status.processing": "Em preparação",
-    "status.shipped": "Enviado",
-    "status.delivered": "Entregue",
-    "status.cancelled": "Cancelado",
-    "status.refunded": "Reembolsado",
+    /* The seven states an order really has. These keys used to read
+       "status.pending", "status.confirmed" and so on — a vocabulary nothing in
+       the database ever used — so the order history printed the key itself,
+       "status.entregue", instead of a label. */
+    "status.aguarda_pagamento": "Aguarda pagamento",
+    "status.comprovativo_recebido": "Comprovativo recebido",
+    "status.pagamento_confirmado": "Pagamento confirmado",
+    "status.em_preparacao": "Em preparação",
+    "status.enviado": "Enviado",
+    "status.entregue": "Entregue",
+    "status.cancelado": "Cancelado",
   },
   en: {
     "nav.colecoes": "Collections",
@@ -601,13 +605,13 @@ const TRANSLATIONS = {
     "checkout.err.receipt": "Please upload your transfer receipt.",
     "checkout.err.submit": "We couldn't submit your order. Please try again.",
 
-    "status.pending": "Pending",
-    "status.confirmed": "Confirmed",
-    "status.processing": "In preparation",
-    "status.shipped": "Shipped",
-    "status.delivered": "Delivered",
-    "status.cancelled": "Cancelled",
-    "status.refunded": "Refunded",
+    "status.aguarda_pagamento": "Awaiting payment",
+    "status.comprovativo_recebido": "Proof of payment received",
+    "status.pagamento_confirmado": "Payment confirmed",
+    "status.em_preparacao": "In preparation",
+    "status.enviado": "Shipped",
+    "status.entregue": "Delivered",
+    "status.cancelado": "Cancelled",
   },
 };
 
