@@ -81,6 +81,12 @@ body.admin-body {
 .admin-back-link svg { flex-shrink: 0; width: 15px; height: 15px; }
 
 .admin-main { flex: 1; min-width: 0; padding: 36px 44px 60px; }
+/* A laptop cannot afford 88px of side gutter. Returning it to the content is
+   worth roughly one table column at 1280px. */
+@media (max-width: 1400px) {
+  .admin-main { padding: 30px 24px 52px; }
+  .admin-sidebar { width: 200px; padding: 26px 14px; }
+}
 .admin-topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
 .admin-topbar h1 { font-weight: 400; font-size: 26px; }
 .admin-topbar p { color: var(--text-muted); font-size: 13.5px; margin-top: 6px; }
@@ -200,9 +206,23 @@ body.admin-body {
   .message-card-head { gap: 6px; }
   .message-date { white-space: normal; }
 }
-table.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.admin-table th, .admin-table td { text-align: left; padding: 14px 24px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.admin-table th { font-size: 10.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+/* Sized for a laptop, not a large monitor. At 14px/24px padding and 13.5px
+   type the orders table needed 1040px and a 1366px laptop gives its content
+   column 1024px, so the panel scrolled sideways; at 1280px it was 102px over.
+   Worse, the two wrapping columns were squeezed to about 137px each and a
+   customer's full name broke over three lines, which took the row from 47px
+   to 159px. Trimming the horizontal padding is what buys the room back:
+   24px each side across seven columns is 336px of the table spent on nothing. */
+table.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th, .admin-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.admin-table th { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+/* Controls inside a row are row-sized: at the full button and pill sizes they
+   set the height of every line in the table. */
+.admin-table .btn-admin { padding: 7px 13px; font-size: 11.5px; }
+.admin-table .pill { padding: 3px 9px; font-size: 10.5px; }
+/* A tag under the name rather than beside it. Inline, it competed with the
+   customer's name for the same column and pushed both onto extra lines. */
+.admin-table td.wrap .pill { display: flex; width: fit-content; margin-top: 5px; }
 .admin-table tr:last-child td { border-bottom: none; }
 .admin-table tr:hover td { background: var(--bg-alt); }
 .admin-table td.wrap { white-space: normal; }

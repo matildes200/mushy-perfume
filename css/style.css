@@ -203,8 +203,16 @@ button { font-family: var(--font-body); }
 
 .main-nav { display: flex; gap: 34px; }
 /* Search/account only fold into the nav dropdown on mobile (see the
-   860px media query) — on desktop they stay as icons in .header-actions. */
-.mobile-nav-action, .main-nav-divider { display: none; }
+   860px media query) — on desktop they stay as icons in .header-actions.
+   Written at two classes deep on purpose. ".mobile-nav-action" alone is
+   (0,1,0) and the ".main-nav a" rule just below is (0,1,1), so the plain
+   version lost and the account link reappeared in the desktop header, reading
+   COLECÇÕES · SOBRE · CONTACTO · A MINHA CONTA with the account icon also in
+   the corner. The search control next to it is a <button>, which ".main-nav a"
+   never matched, which is why only one of the pair leaked. */
+.main-nav a.mobile-nav-action,
+.main-nav button.mobile-nav-action,
+.main-nav-divider { display: none; }
 /* The icons used to sit on the text baseline, which puts the whole 17px glyph
    ABOVE the baseline while the capitals only reach 8px above it — so every
    icon floated high. Flex centring fixes that, but centring against the full
@@ -1291,7 +1299,7 @@ button { font-family: var(--font-body); }
   --ct-line: var(--border);
   --ct-label: var(--text-muted);
   --ct-accent: var(--ink);
-  padding: 64px 0 72px;
+  padding: 52px 0 58px;
   background: var(--bg-alt);
   border-top: 1px solid var(--border);
   color: var(--text);
@@ -2129,7 +2137,11 @@ button { font-family: var(--font-body); }
      uppercase, low-contrast text — easy to mistake for an empty bar. The
      !important matches the color specificity fix below: .site-header.scrolled
      .main-nav a has higher specificity and would otherwise win and mute it. */
-  .main-nav a, .main-nav button.mobile-nav-action {
+  /* Both halves of the pair come back here, at the same two-class weight as
+     the rule that hides them, so this later block wins. The phone has no
+     account icon in the header — .more-menu is hidden below — so this entry
+     is the only way to the account page and must not be lost. */
+  .main-nav a, .main-nav a.mobile-nav-action, .main-nav button.mobile-nav-action {
     display: flex;
     align-items: center;
     gap: 12px;

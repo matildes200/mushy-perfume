@@ -874,10 +874,21 @@ function initBestsellersDrift() {
   //
   // There is no "scroll" listener here on purpose. The drift writes scrollLeft
   // itself, so every frame fires a scroll event, and treating that as a reader
-  // action would have the strip pause itself for ever. A wheel or a drag is
-  // caught by the three events below before the scroll it causes.
-  ["pointerdown", "touchstart", "wheel"].forEach((evt) =>
+  // action would have the strip pause itself for ever. A drag or a sideways
+  // wheel is caught below, before the scroll it causes.
+  ["pointerdown", "touchstart"].forEach((evt) =>
     carousel.addEventListener(evt, hold, { passive: true })
+  );
+  // A wheel over the strip is usually the reader scrolling the PAGE, not
+  // asking this carousel for anything: the cursor is simply somewhere on the
+  // way down. Holding on that froze the strip for three seconds every time
+  // someone scrolled past it, and re-armed on every wheel tick, which is what
+  // "it stops whenever the mouse is over it" actually was. Only a sideways
+  // wheel is aimed at this row, so only a sideways wheel hands control over.
+  carousel.addEventListener(
+    "wheel",
+    (e) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) hold(); },
+    { passive: true }
   );
   // The arrows are a deliberate action too, so they get the same quiet period.
   carouselPrev?.addEventListener("click", hold);
