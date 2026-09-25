@@ -1590,7 +1590,7 @@ function runSearch() {
   }
 
   const params = category ? `cat=${category}` : `q=${encodeURIComponent(typed)}`;
-  document.body.classList.remove("page-loaded");
+  document.body.classList.add("page-leaving");
   setTimeout(() => { window.location.href = `colecao.html?${params}`; }, 170);
 }
 
@@ -1840,7 +1840,6 @@ const RISE_CHILDREN = [
   ".colecao-head > *",
   ".filter-bar",
   ".policies-intro > *",
-  ".legal-layout",
   ".contacto-intro > *",
   ".contacto-grid > *",
   ".faq-block",
@@ -1873,21 +1872,36 @@ const MAX_STAGGER_STEPS = 6; // past this the last item feels like it is lagging
     });
   });
 
+  const show = (section) => {
+    section.classList.add("in-view");
+    io.unobserve(section);
+  };
+
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("in-view");
-        // Unobserved once shown: the brief asks for this to happen once, not
-        // to re-trigger on every pass over the section.
-        io.unobserve(entry.target);
+        if (entry.isIntersecting) show(entry.target);
       });
     },
-    // A little of the section has to be on screen before it starts, but not so
-    // much that a tall section never qualifies.
-    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    // threshold: 0, NOT a fraction. A threshold is a proportion of the TARGET's
+    // own area, so on a section taller than about eight screens the fraction on
+    // screen can never reach it and the observer never fires at all. That is
+    // what left Termos e Condições blank: a 5508px section in a 606px viewport
+    // tops out at 11% visible against a 12% threshold. Any intersection now
+    // counts, whatever the section's height.
+    { threshold: 0, rootMargin: "0px 0px -40px 0px" }
   );
   sections.forEach((s) => io.observe(s));
+
+  // Nothing stays hidden. If the observer has not fired for a section within a
+  // couple of seconds — because it never qualified, because the callback threw,
+  // or for any reason at all — the section is shown anyway. Text must never
+  // depend on an animation succeeding in order to be readable.
+  setTimeout(() => {
+    sections.forEach((s) => {
+      if (!s.classList.contains("in-view")) show(s);
+    });
+  }, 2000);
 })();
 
 // ---------- Idle autoplay for the reviews strip (mobile) ----------
@@ -1933,8 +1947,10 @@ document.addEventListener("products:ready", () => {
   updateWishlistUI();
 });
 
-// ---------- Fade page in on load, fade out before navigating to another page ----------
-requestAnimationFrame(() => document.body.classList.add("page-loaded"));
+// ---------- Fade out before navigating to another page ----------
+// The fade IN is pure CSS now (see the page-in keyframes): it must not depend
+// on this script running, or a script failure leaves a blank site. This class
+// only ever fades a page OUT, so it can never hide content that is staying.
 
 document.body.addEventListener("click", (e) => {
   const link = e.target.closest("a[href]");
@@ -1952,20 +1968,20 @@ document.body.addEventListener("click", (e) => {
   if (target.pathname === window.location.pathname && target.hash) return;
 
   e.preventDefault();
-  document.body.classList.remove("page-loaded");
+  document.body.classList.add("page-leaving");
   setTimeout(() => { window.location.href = href; }, 170);
 });
 
 // Safety net for any other route to a stuck fade-out: a hash change means the
 // document survived, so the page must be visible.
-window.addEventListener("hashchange", () => document.body.classList.add("page-loaded"));
+window.addEventListener("hashchange", () => document.body.classList.remove("page-leaving"));
 
 // Using the browser's Back button restores the page exactly as the tab left
 // it (from bfcache) rather than reloading it — including the opacity:0 state
 // set right above just before navigating away. Without this, going back
 // lands on a page that's technically there but invisible: a blank screen.
 window.addEventListener("pageshow", (e) => {
-  if (e.persisted) document.body.classList.add("page-loaded");
+  if (e.persisted) document.body.classList.remove("page-leaving");
 });
 
 // Belt and braces for the same iOS Safari bug the .scrolled rule above avoids:

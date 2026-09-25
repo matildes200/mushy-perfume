@@ -110,10 +110,18 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  opacity: 0;
+  /* The page fades in through its own keyframes, never from a base opacity of
+     zero waiting for a class. It used to be `opacity: 0` here with JavaScript
+     adding .page-loaded — which meant a script that failed to load left the
+     whole site blank. An animation either runs, or it does not exist and the
+     content is simply visible. */
+  animation: page-in 0.22s ease both;
   transition: opacity 0.18s ease;
 }
-body.page-loaded { opacity: 1; }
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+/* Still used for the fade-out on navigation, which is safe: it only ever
+   removes opacity from a page that is already on screen. */
+body.page-leaving { opacity: 0; }
 
 .container {
   max-width: 1180px;
@@ -428,12 +436,14 @@ button { font-family: var(--font-body); }
 }
 
 .hero-inner { position: relative; z-index: 1; max-width: 560px; padding-top: 80px; color: var(--on-hero); }
-.hero-inner > * { opacity: 0; transform: translateY(16px); animation: hero-rise 0.85s cubic-bezier(0.2, 0.6, 0.2, 1) forwards; }
+/* The hidden state lives in the keyframe, not on the element, so a browser that
+   does not run the animation shows the headline rather than nothing. */
+.hero-inner > * { animation: hero-rise 0.85s cubic-bezier(0.2, 0.6, 0.2, 1) both; }
 .hero-inner .eyebrow { animation-delay: 0.1s; }
 .hero-inner h1 { animation-delay: 0.25s; }
 .hero-inner .hero-text { animation-delay: 0.4s; }
 .hero-inner .hero-ctas { animation-delay: 0.55s; }
-@keyframes hero-rise { to { opacity: 1; transform: translateY(0); } }
+@keyframes hero-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 .eyebrow {
   color: inherit;
@@ -491,15 +501,13 @@ button { font-family: var(--font-body); }
 /* Same curve as the home hero, but with its own keyframes: hero-rise ends at
    opacity 1, and .eyebrow is deliberately muted to 0.7 — borrowing it would
    have quietly brightened the eyebrow past its intended weight. */
-@keyframes sobre-rise { to { opacity: 1; transform: translateY(0); } }
-@keyframes sobre-rise-muted { to { opacity: 0.7; transform: translateY(0); } }
+@keyframes sobre-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sobre-rise-muted { from { opacity: 0; transform: translateY(18px); } to { opacity: 0.7; transform: translateY(0); } }
 
 .sobre-banner-overlay-inner .sobre-banner-mark,
 .sobre-banner-overlay-inner .eyebrow,
 .sobre-banner-overlay-inner h2 {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: sobre-rise 0.9s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  animation: sobre-rise 0.9s cubic-bezier(0.2, 0.6, 0.2, 1) both;
 }
 .sobre-banner-overlay-inner .sobre-banner-mark { animation-delay: 0.15s; }
 .sobre-banner-overlay-inner .eyebrow {
@@ -2423,13 +2431,9 @@ grid/featured floor
 .legal-doc { min-width: 0; }
 
 
-/* Sections arrive as they are reached. Applied by script, never by the
-   stylesheet alone: if the script fails the document must still be readable. */
-.policy-block.legal-hidden { opacity: 0; transform: translateY(14px); }
-.policy-block {
-  transition: opacity 0.6s cubic-bezier(0.2, 0.6, 0.2, 1),
-              transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
-}
+/* No animation on the legal pages at all. These are documents people scroll
+   through to find a clause, motion adds nothing, and motion is the only thing
+   that can make them unreadable. */
 
 @media (max-width: 900px) {
   .legal-layout { grid-template-columns: 1fr; }
@@ -2438,9 +2442,6 @@ grid/featured floor
   .policy-block { padding-bottom: 30px; }
   .policy-block + .policy-block { padding-top: 30px; }
   .policy-block h3 { font-size: 19px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .policy-block { transition: none; }
 }
 
 /* ---------- Motion, everywhere rather than on the home page only ----------
