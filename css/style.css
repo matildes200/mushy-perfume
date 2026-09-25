@@ -877,11 +877,17 @@ button { font-family: var(--font-body); }
   background: url("../img/hero-mobile-bg.png") center 30% / cover no-repeat;
   overflow: hidden;
 }
+/* The scrim exists for the text, not for the mood. At the old weights the
+   heading measured 4.23:1 against the brightest part of the photo — the gold
+   label on the bottle, which sits directly behind the last word — where 4.5:1
+   is the readable floor. The rest of the band measured 13.6:1 on average, so
+   it was one bright object ruining one spot rather than the overlay being too
+   light everywhere. Heavier through the middle, where the text is. */
 .colecao-banner::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(38, 26, 15, 0.36) 0%, rgba(38, 26, 15, 0.54) 55%, rgba(38, 26, 15, 0.76) 100%);
+  background: linear-gradient(180deg, rgba(38, 26, 15, 0.5) 0%, rgba(38, 26, 15, 0.68) 55%, rgba(38, 26, 15, 0.82) 100%);
 }
 .colecao-banner .section-head { position: relative; z-index: 1; margin-bottom: 0; }
 .colecao-banner .section-head h2 { color: var(--on-hero); }
@@ -2977,9 +2983,22 @@ grid/featured floor
   .site-topbar-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
 }
 
-/* Pages whose content clears the fixed header have to clear the bar as well,
-   or the first heading hides underneath it. */
-body.has-topbar .page-offset { padding-top: calc(84px + var(--topbar-h)); }
+/* There is deliberately NO ".has-topbar .page-offset" rule here.
+   There used to be — "padding-top: calc(84px + var(--topbar-h))" — written for
+   a page whose header is fixed. No such page uses .page-offset: index.html has
+   the fixed header and no .page-offset, and all eight inner pages carry
+   .site-header-static, which is sticky and therefore occupies its own space.
+   The bar is position:relative and occupies its own space too. So the rule
+   reserved room twice over for two things that were already there, and because
+   "body.has-topbar .page-offset" (0,2,1) outranks
+   ".site-header-static ~ .page-offset" (0,2,0) it also beat the rule that
+   zeroes the offset on exactly those pages. Result: 137px of empty band under
+   the header on every inner page, but only while the bar was showing, which is
+   why dismissing it appeared to fix the page.
+
+   A future page with a fixed header needs the plain 84px from .page-offset and
+   nothing more, because the bar is in flow and pushes that page down by its own
+   height already. */
 
 @media (max-width: 640px) {
   .site-topbar { padding: 9px 40px; gap: 4px 10px; }
