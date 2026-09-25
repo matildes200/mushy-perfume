@@ -642,7 +642,6 @@ function perfumeCardTemplate(p, wrapClass, addLabel, addLabelKey) {
           </div>
           <div class="perfume-card-body">
             <h3 class="perfume-card-name">${p.name}</h3>
-            <span class="perfume-card-size">${sizeLine(p)}</span>
             ${priceMarkup(p, "perfume-card-price")}
           </div>
         </div>

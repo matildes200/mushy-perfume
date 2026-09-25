@@ -809,28 +809,31 @@ button { font-family: var(--font-body); }
 .flip-front {
   display: flex;
   flex-direction: column;
-  /* A grid row stretches every card to match its tallest. Without this, a card
-     with no discount row left a strip of bare card below its plate. The plate
-     takes that height instead, and its contents stay pinned to the top with
-     the same fixed gaps, so nothing is redistributed. */
   height: 100%;
   background: var(--surface);
+  /* Same beige as the caption plate behind the name and price, so the panel
+     edge, the photo edge and the plate all read as one tone. */
   border: 1px solid var(--bg-alt);
   border-radius: 14px;
-  overflow: hidden;
+  /* Inset on three sides so the photo sits in a cream frame rather than
+     bleeding to the card edge. The caption plate below reclaims the full
+     width with a negative margin. */
+  padding: 8px 8px 0;
   box-shadow: 0 1px 2px rgba(59, 42, 29, 0.04);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* A fixed 4:5 so every photo on the page is the same shape and the same size,
-   whatever the source image happens to be. No border and no radius of its own:
-   it inherits the card's, which is what removes the double frame. */
 .perfume-card-media-wrap {
   position: relative;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--bg-alt);
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  flex: 0 0 auto;
+  /* A grid row stretches every card to the tallest in it. Any slack goes into
+     the photo, where a few pixels of extra crop are invisible, rather than
+     under the text where it would read as a gap. */
+  flex: 1 1 auto;
 }
 
 /* Skeleton: a shimmer in place of the photo until hydrateCardImages() has the
@@ -944,14 +947,24 @@ button { font-family: var(--font-body); }
 /* The caption sits inside the panel, on its own slightly warmer ground with a
    hairline above it, so the name and price read as a plate under the bottle
    rather than as text dropped on the page. */
-/* The caption plate, flush under the photo. No flex:1 and no negative
-   margins: it used to stretch to fill whatever height the card had, which is
-   what spread the name and price apart. The beige is unchanged. */
+/* The caption plate, running edge to edge under the inset photo. It no longer
+   grows: flex:1 with its contents centred is what pushed the name and the
+   price apart, and that was the one real fault in this design. It is now
+   exactly as tall as the three lines in it, with even padding, so the card
+   ends just below the discount. */
 .flip-front .perfume-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 0 0 auto;
+  gap: 4px;
+  /* Negative side/bottom margins cancel the panel's padding so the plate runs
+     edge to edge under the inset photo. */
+  margin: 8px -8px 0;
+  padding: 12px 12px 13px;
   background: var(--bg-alt);
   border-radius: 0 0 13px 13px;
-  flex: 1 1 auto;
-  margin: 0;
 }
 .flip-front .perfume-card-price {
   min-height: 0;
@@ -1977,7 +1990,7 @@ button { font-family: var(--font-body); }
 
   /* Caption plate, scaled for a two-up grid. */
   .flip-front { border-radius: 16px; padding: 7px 7px 0; }
-  .flip-front .perfume-card-body { border-radius: 0 0 15px 15px; }
+  .flip-front .perfume-card-body { margin: 7px -7px 0; padding: 10px 9px 11px; gap: 3px; border-radius: 0 0 15px 15px; }
   .flip-front .perfume-card-price { font-size: 12.5px; }
   .flip-front .price-original { font-size: 10px; }
   .flip-front .price-badge { font-size: 8px; padding: 1px 5px; }
@@ -2579,39 +2592,25 @@ body.has-topbar .page-offset { padding-top: calc(84px + var(--topbar-h)); }
    ===================================================================== */
 
 /* ---------- Front ---------- */
-.perfume-card-body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-  padding: 14px 15px 15px;
-  text-align: left;
-}
+/* No min-height reserving a second line: that reservation, plus the plate
+   growing, is what left the hole between the name and the price. One line,
+   clipped, so two cards whose names differ in length are still the same
+   height. */
 .flip-front .perfume-card-name {
   font-family: var(--font-head);
   font-weight: 400;
   font-size: 16px;
-  line-height: 1.25;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
   color: var(--text);
   margin: 0;
-  /* One line, clipped. Two cards whose names wrap differently would be two
-     different heights, which is what put their prices and buttons on
-     different levels. */
+  min-height: 0;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 0;
 }
-.perfume-card-size {
-  font-size: 9.5px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  line-height: 1;
-}
-.perfume-card-size:empty { display: none; }
-.flip-front .perfume-card-price { font-size: 15px; margin-top: 1px; }
+.flip-front .perfume-card-price { font-size: 15px; margin: 0; }
 
 /* ---------- Back ---------- */
 .flip-back {
@@ -2738,7 +2737,6 @@ body.has-topbar .page-offset { padding-top: calc(84px + var(--topbar-h)); }
 }
 
 @media (max-width: 640px) {
-  .perfume-card-body { padding: 12px 13px 13px; gap: 4px; }
   .flip-front .perfume-card-name, .flip-back-name { font-size: 14.5px; }
   .flip-front .perfume-card-price, .flip-back-price,
   .flip-back-price .price-final { font-size: 13.5px; }
