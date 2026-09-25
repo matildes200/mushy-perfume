@@ -2431,9 +2431,87 @@ grid/featured floor
 .legal-doc { min-width: 0; }
 
 
-/* No animation on the legal pages at all. These are documents people scroll
-   through to find a clause, motion adds nothing, and motion is the only thing
-   that can make them unreadable. */
+/* ---------- Motion on the legal pages ----------
+   These pages were blank once, so the mechanism matters more than the effect.
+
+   Two rules make it impossible to repeat. First, everything lives inside
+   @supports (animation-timeline: view()): a browser without scroll-driven
+   animations gets no animation declaration at all, so there is nothing to hide
+   the text and nothing that has to un-hide it. Second — and this is the part
+   that a fade would have got wrong — NO ANIMATION TOUCHES THE OPACITY OF ANY
+   TEXT. A scroll-driven animation is a function of scroll position, so an
+   element already half on screen when the page loads sits half-way through its
+   animation: a fade put the opening clause at 0.43 opacity before the reader
+   had scrolled at all. The text here only ever moves a few pixels, which is
+   invisible in a partial state and unreadable in none of them.
+
+   No JavaScript is involved at any point. */
+/* Hidden by default. It only becomes visible inside the @supports block
+   below, because a full-width rule sitting permanently across the page with
+   nothing driving it would read as a mistake. Declared FIRST: a later rule of
+   equal weight wins, and putting this after the block made the bar
+   permanently invisible. */
+.legal-progress { display: none; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* Transform only. A part-applied 14px offset reads as nothing; a
+       part-applied fade reads as broken. */
+    .policy-block {
+      animation: legal-block-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    @keyframes legal-block-rise {
+      from { transform: translateY(14px); }
+      to   { transform: none; }
+    }
+
+    /* The accent that does the visible work. It is a decoration with no text
+       in it, so it can fade and grow freely. */
+    .policy-block { position: relative; }
+    .policy-block::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: 38px;
+      width: 2px;
+      height: 26px;
+      background: var(--ink);
+      opacity: 0;
+      transform-origin: 50% 0;
+      animation: legal-accent linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 60%;
+    }
+    @keyframes legal-accent {
+      from { opacity: 0; transform: scaleY(0); }
+      to   { opacity: 1; transform: scaleY(1); }
+    }
+    /* No room for it beside the column on a narrow screen. */
+    @media (max-width: 820px) { .policy-block::before { display: none; } }
+
+    /* How far through the document you are. No text in it either. */
+    .legal-progress {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      height: 2px;
+      margin: 0 0 -2px;
+      background: var(--ink);
+      transform-origin: 0 50%;
+      animation: legal-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes legal-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  }
+}
+
+/* The in-page jumps from the footer land gently rather than teleporting. */
+.policies { scroll-behavior: smooth; }
+
 
 @media (max-width: 900px) {
   .legal-layout { grid-template-columns: 1fr; }
