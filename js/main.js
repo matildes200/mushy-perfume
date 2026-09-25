@@ -811,6 +811,100 @@ function renderCarousel() {
   hydrateCardImages(carouselTrack);
 }
 
+
+// ---------- Best Sellers: a slow drift you can always overrule ----------
+//
+// Driven by scrollLeft on the existing scroll container rather than by a
+// transform on the track. That matters: the container keeps its native
+// dragging, swiping, momentum and the two arrow buttons, and the drift is just
+// something that also nudges the same number. A transform-based marquee would
+// have taken all of that away and had to reimplement it.
+//
+// The loop is seamless because the card set is duplicated once: when the
+// scroll passes the width of one copy, it jumps back by exactly that width and
+// lands on an identical pixel.
+function initBestsellersDrift() {
+  if (!carousel || !carouselTrack) return;
+  if (carousel.dataset.driftReady === "1") return;
+  // Desktop only. The phone layout of this strip is being left exactly as it
+  // is, snapping included.
+  if (!window.matchMedia("(min-width: 641px)").matches) return;
+
+  const cards = Array.from(carouselTrack.children);
+  // The "ver todos" card is the end of the list, not part of the loop.
+  const loopable = cards.filter((el) => el.classList.contains("carousel-card"));
+  if (loopable.length < 3) return;
+
+  carousel.dataset.driftReady = "1";
+
+  loopable.forEach((card) => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.dataset.clone = "true";
+    // Inserted before the end card so the repeat reads as more of the same
+    // list rather than as something after the call to action.
+    carouselTrack.insertBefore(clone, carouselTrack.querySelector(".carousel-end-card"));
+  });
+
+  const SPEED = 14;        // px per second. Slow enough to read a name.
+  const RESUME_MS = 3000;  // quiet time after a touch before it drifts again
+
+  let copyWidth = 0;
+  let last = null;
+  let pausedUntil = 0;
+  let hovering = false;
+  let carry = 0;           // sub-pixel remainder; scrollLeft is an integer
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const measure = () => {
+    // One copy is every original loopable card plus its gap.
+    const gap = parseFloat(getComputedStyle(carouselTrack).gap || 0);
+    copyWidth = loopable.reduce((sum, el) => sum + el.getBoundingClientRect().width + gap, 0);
+  };
+  measure();
+  window.addEventListener("resize", measure);
+  window.addEventListener("load", measure);
+
+  const hold = () => { pausedUntil = performance.now() + RESUME_MS; };
+
+  // Anything the reader does wins, and keeps winning for a few seconds after
+  // they stop.
+  ["pointerdown", "touchstart", "wheel"].forEach((evt) =>
+    carousel.addEventListener(evt, hold, { passive: true })
+  );
+  carousel.addEventListener("scroll", () => { if (hovering) hold(); }, { passive: true });
+  carousel.addEventListener("pointerenter", () => { hovering = true; });
+  carousel.addEventListener("pointerleave", () => { hovering = false; });
+  // The arrows are a deliberate action too, so they get the same quiet period.
+  carouselPrev?.addEventListener("click", hold);
+  carouselNext?.addEventListener("click", hold);
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!copyWidth) { measure(); last = now; return; }
+
+    // Wrapping runs even while paused, so a reader who drags past the end of
+    // one copy still finds the strip endless. Forward only: a native scroll
+    // container clamps at zero, so a backward wrap here fired the instant the
+    // page loaded at scrollLeft 0 and threw the strip a whole copy along.
+    if (carousel.scrollLeft >= copyWidth) carousel.scrollLeft -= copyWidth;
+
+    const dt = last === null ? 0 : (now - last) / 1000;
+    last = now;
+
+    if (reduced.matches || hovering || now < pausedUntil || document.hidden) return;
+
+    carry += SPEED * dt;
+    const step = Math.floor(carry);
+    if (step >= 1) {
+      carry -= step;
+      carousel.scrollLeft += step;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
 // ---------- Reviews carousel ----------
 // One continuous marquee that you can also drag.
 //
@@ -860,10 +954,10 @@ function renderCarousel() {
   let lastDx = 0;
   let wheelTimer = null;
 
-  // The marquee only exists in the mobile layout. On wider screens the reviews
-  // are a static two-column grid with the clones hidden, so the track must not
-  // be transformed at all — driving it there would slide the grid off-screen.
-  const marqueeMedia = window.matchMedia("(max-width: 640px)");
+  // The reviews are one continuous row at every width now, so the marquee runs
+  // everywhere. It used to be mobile-only because the desktop layout was a
+  // static two-column grid that a transform would have slid off-screen.
+  const marqueeMedia = window.matchMedia("(min-width: 0px)");
   const isMarquee = () => marqueeMedia.matches;
 
   const measure = () => { copyWidth = track.scrollWidth / 2; };
@@ -1943,6 +2037,7 @@ document.addEventListener("products:ready", () => {
   renderProducts();
   renderFeatured();
   renderCarousel();
+  initBestsellersDrift();
   updateCartUI();
   updateWishlistUI();
 });

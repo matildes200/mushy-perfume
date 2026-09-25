@@ -205,12 +205,31 @@ button { font-family: var(--font-body); }
 /* Search/account only fold into the nav dropdown on mobile (see the
    860px media query) — on desktop they stay as icons in .header-actions. */
 .mobile-nav-action, .main-nav-divider { display: none; }
+/* The icons used to sit on the text baseline, which puts the whole 17px glyph
+   ABOVE the baseline while the capitals only reach 8px above it — so every
+   icon floated high. Flex centring fixes that, but centring against the full
+   line box would then drop them slightly low, because a line box is taller
+   than the capitals inside it. line-height:1 collapses the box onto the type,
+   so the icon's middle lands on the middle of the capitals: optically centred,
+   not just mathematically. */
 .main-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
   font-size: 11.5px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: rgba(251, 243, 228, 0.85);
   transition: color 0.2s;
+}
+/* One size for all three, and never squashed by a long label. The letter-
+   spacing on the label adds a trailing space after the last letter, so the
+   icon gap is set here rather than relying on the text's own edge. */
+.main-nav a > svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
 }
 .main-nav a:hover { color: var(--on-hero); opacity: 0.6; }
 
@@ -321,15 +340,26 @@ button { font-family: var(--font-body); }
 .more-menu { position: relative; display: flex; align-items: center; }
 .more-btn { display: none; }
 .more-menu-panel { display: flex; align-items: center; gap: 4px; }
+/* No filled circle. Every other control in this header is a light outline
+   glyph on nothing, and this one was a heavy grey disc that matched none of
+   them. Same box, same colour, same hover as .icon-btn now. */
 .more-menu-item {
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  background: none;
+  border: none;
+  border-radius: 0;
   color: var(--on-hero);
+  cursor: pointer;
   transition: opacity 0.2s;
+}
+.more-menu-item svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.6;
 }
 .more-menu-item:hover { opacity: 0.6; }
 .more-menu-item span { display: none; }
@@ -466,7 +496,11 @@ button { font-family: var(--font-body); }
 
 /* ---------- Featured / "Nossa Seleção" ---------- */
 .featured { padding: 110px 0 100px; }
-.featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+/* Four across on desktop, three on a tablet, two on a phone. */
+.featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+@media (max-width: 1100px) {
+  .featured-grid { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+}
 
 /* ---------- Brand story ---------- */
 .historia { padding: 120px 0; }
@@ -653,8 +687,33 @@ button { font-family: var(--font-body); }
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+/* Mandatory snapping and a one-pixel-per-frame drift fight each other: the
+   snap engine keeps pulling the strip back to the nearest card and the motion
+   stutters. Snapping stays on the phone, where there is no drift and a swipe
+   should land on a card. */
+@media (min-width: 641px) {
+  .carousel { scroll-snap-type: none; }
+  .carousel-card, .carousel-end-card { scroll-snap-align: none; }
+}
 .carousel::-webkit-scrollbar { display: none; }
-.carousel-track { display: flex; gap: 26px; padding: 44px 24px 12px; width: max-content; margin: 0 auto; }
+/* No `margin: 0 auto`. Auto margins on a max-content track inside a
+   scroll container centre it, and anything that overflows to the LEFT of
+   the scroll origin can never be reached — which is why the first card was
+   sliced in half at the edge of the screen. The left padding now matches
+   the page gutter, so the first card starts exactly where the section
+   heading above it starts. */
+.carousel-track {
+  display: flex;
+  gap: 26px;
+  width: max-content;
+  margin: 0;
+  padding: 44px 24px 12px;
+  /* 100%, not 100vw: the percentage resolves against the carousel's own
+     width, which excludes the scrollbar. 100vw includes it, and the card
+     landed 11px off the container edge because of exactly that. */
+  padding-left: max(24px, calc((100% - 1180px) / 2 + 24px));
+  padding-right: max(24px, calc((100% - 1180px) / 2 + 24px));
+}
 .carousel-card {
   position: relative;
   scroll-snap-align: start;
@@ -1066,11 +1125,48 @@ button { font-family: var(--font-body); }
 
 /* ---------- Reviews ---------- */
 .reviews { padding: 100px 0; background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-/* Desktop keeps a static two-column grid; the duplicate cards the marquee
-   needs on mobile are hidden here so they don't double the grid. */
-.reviews-track { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--border); }
-.review-card[data-clone] { display: none; }
-.review-card { background: var(--surface); border: none; border-radius: var(--radius); padding: 40px; text-align: center; }
+/* One continuous row at every width. It used to be a 2x2 grid whose 2px gaps
+   let the border colour show through, which read as the rules of a table.
+   The comments are separated by space now, and by nothing else. */
+.reviews-grid {
+  overflow: hidden;
+  background: none;
+  padding: 4px 0 6px;
+  /* pan-y leaves vertical swipes to the page while this strip takes the
+     horizontal ones, so dragging a comment never blocks page scrolling. */
+  touch-action: pan-y;
+  cursor: grab;
+}
+.reviews-grid.is-dragging { cursor: grabbing; }
+.reviews-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  gap: 0;
+  background: none;
+  /* stretch, so every card is as tall as the longest comment in the set and
+     nothing is cut off mid-sentence. */
+  align-items: stretch;
+  /* The drift lives in js/main.js, not in a CSS animation: a finger and the
+     clock have to write to the same position, and an animation gives the
+     finger nothing to move. */
+  will-change: transform;
+}
+.review-card[data-clone] { display: block; }
+/* margin-right rather than a flex gap: the track is exactly two identical
+   halves only if every card occupies the same width INCLUDING its spacing.
+   With `gap`, N cards have N-1 gaps and the wrap would drift each loop. */
+.review-card {
+  flex: 0 0 360px;
+  margin-right: 22px;
+  background: var(--surface);
+  /* No border. The comments are told apart by the space between them and by
+     the card ground, not by a rule round each one. */
+  border: none;
+  border-radius: 14px;
+  padding: 34px 30px;
+  text-align: center;
+}
 .stars { color: #d4a437; letter-spacing: 3px; margin-bottom: 16px; font-size: 14px; }
 .review-card p { font-style: italic; color: var(--text); margin-bottom: 18px; font-size: 15px; line-height: 1.75; }
 .review-card span { color: var(--text-muted); font-size: 12px; letter-spacing: 0.8px; text-transform: uppercase; }
@@ -2068,36 +2164,9 @@ button { font-family: var(--font-body); }
   .carousel-card, .carousel-end-card { width: 232px; scroll-snap-align: start; }
   .carousel-controls { justify-content: center; }
 
-  /* Continuous marquee. The viewport just clips; all motion is one transform
-     on .reviews-track, so every card moves identically — see js/main.js.
-     There is no scrolling container and no scroll-snap here on purpose: both
-     were what made cards move at different rates in earlier versions. */
-  .reviews-grid {
-    overflow: hidden;
-    background: none;
-    padding: 4px 0 6px;
-    /* pan-y leaves vertical swipes to the page while this strip takes the
-       horizontal ones, so dragging a comment never blocks page scrolling. */
-    touch-action: pan-y;
-    cursor: grab;
-  }
-  .reviews-grid.is-dragging { cursor: grabbing; }
-  .reviews-track {
-    display: flex;
-    flex-wrap: nowrap;
-    width: max-content;
-    gap: 0;
-    background: none;
-    /* The drift lives in js/main.js, not in a CSS animation: a finger and the
-       clock have to write to the same position, and an animation gives the
-       finger nothing to move. */
-    will-change: transform;
-  }
-  /* margin-right rather than a flex gap: the track is exactly two identical
-     halves only if every card occupies the same width INCLUDING its spacing.
-     With `gap`, N cards have N-1 gaps and -50% would drift a little each loop. */
-  .review-card { flex: 0 0 82vw; margin-right: 14px; border-radius: 12px; }
-  .review-card[data-clone] { display: block; }
+  /* The strip is identical at every width now; only the card width changes.
+     The padding is the phone's original 40px, left exactly as it was. */
+  .review-card { flex: 0 0 82vw; margin-right: 14px; border-radius: 12px; padding: 40px; }
 
   /* The keyframes are gone: the drift is driven frame by frame in js/main.js
      so a drag can write to the same position. Reduced motion is honoured
