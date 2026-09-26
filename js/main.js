@@ -839,169 +839,51 @@ function renderCarousel() {
 }
 
 
-// ---------- Best Sellers: a slow drift you can always overrule ----------
+// ---------- One marquee, two strips ----------
+// Experiências reais and Mais Vendidos scroll identically because they are the
+// same code. Best Sellers used to drive the native scrollLeft of a scroll
+// container instead, which kept the browser's dragging for free but paid for
+// it in motion: scrollLeft is an integer, so at a readable speed the strip
+// advanced in whole-pixel jumps — one every seventy milliseconds — while the
+// reviews slid smoothly on a sub-pixel transform. Side by side, one looked
+// broken.
 //
-// Driven by scrollLeft on the existing scroll container rather than by a
-// transform on the track. That matters: the container keeps its native
-// dragging, swiping, momentum and the two arrow buttons, and the drift is just
-// something that also nudges the same number. A transform-based marquee would
-// have taken all of that away and had to reimplement it.
+// Linear on purpose: an ease curve on a never-ending loop visibly speeds up and
+// slows down each cycle, which is the acceleration this was built to remove.
 //
-// The loop is seamless because the card set is duplicated once: when the
-// scroll passes the width of one copy, it jumps back by exactly that width and
-// lands on an identical pixel.
-// Lives outside the function so that the handlers below, which are bound once
-// to a container that survives every re-render, still reach whichever run of
-// the loop is current.
-let driftPausedUntil = 0;
-let driftRaf = null;
-const DRIFT_RESUME_MS = 3000;  // quiet time after a touch before it drifts again
-const driftHold = () => { driftPausedUntil = performance.now() + DRIFT_RESUME_MS; };
+// The loop is seamless because the whole set is duplicated once and the
+// position wraps by exactly one copy's width, landing on an identical pixel.
+// The position lives in JS rather than in a CSS animation so that a finger and
+// the clock write to the same number; as an animation there was nothing to
+// drag, and touching it only paused a transform.
+function initMarquee(opts) {
+  const { viewport, track, cardSelector } = opts;
+  if (!viewport || !track) return null;
 
-function initBestsellersDrift() {
-  if (!carousel || !carouselTrack) return;
-  // Desktop only. The phone layout of this strip is being left exactly as it
-  // is, snapping included.
-  if (!window.matchMedia("(min-width: 641px)").matches) return;
-
-  // Switching language rebuilds the whole track — the option labels and the
-  // amostra note on the back of each card are written in JS, so they can only
-  // change language by being written again. That throws away the duplicated
-  // set this loop wraps on, and leaves the previous frame callback measuring
-  // nodes that are no longer in the document: copyWidth goes to zero and the
-  // strip stops dead. So the loop is cancelled and rebuilt rather than
-  // guarded against ever running twice.
-  if (driftRaf !== null) { cancelAnimationFrame(driftRaf); driftRaf = null; }
-  carouselTrack.querySelectorAll(".carousel-card[data-clone]").forEach((el) => el.remove());
-
-  const cards = Array.from(carouselTrack.children);
-  // The "ver todos" card is the end of the list, not part of the loop.
-  const loopable = cards.filter((el) => el.classList.contains("carousel-card") && !el.dataset.clone);
-  if (loopable.length < 3) return;
-
-
-
-  loopable.forEach((card) => {
-    const clone = card.cloneNode(true);
-    clone.setAttribute("aria-hidden", "true");
-    clone.dataset.clone = "true";
-    // Inserted before the end card so the repeat reads as more of the same
-    // list rather than as something after the call to action.
-    carouselTrack.insertBefore(clone, carouselTrack.querySelector(".carousel-end-card"));
-  });
-
-  const SPEED = 14;        // px per second. Slow enough to read a name.
-
-  let copyWidth = 0;
-  let last = null;
-  let carry = 0;           // sub-pixel remainder; scrollLeft is an integer
-
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-  const measure = () => {
-    // One copy is every original loopable card plus its gap.
-    const gap = parseFloat(getComputedStyle(carouselTrack).gap || 0);
-    copyWidth = loopable.reduce((sum, el) => sum + el.getBoundingClientRect().width + gap, 0);
-  };
-  measure();
-  window.addEventListener("resize", measure);
-  window.addEventListener("load", measure);
-
-
-  // Anything the reader DOES wins, and keeps winning for a few seconds after
-  // they stop. Merely resting the pointer on the strip is not doing anything,
-  // so it no longer counts: hovering used to stop the drift dead, which read as
-  // the carousel breaking whenever the mouse happened to be over it.
-  //
-  // There is no "scroll" listener here on purpose. The drift writes scrollLeft
-  // itself, so every frame fires a scroll event, and treating that as a reader
-  // action would have the strip pause itself for ever. A drag or a sideways
-  // wheel is caught below, before the scroll it causes.
-  // Bound once. The scroll container itself survives a re-render, so binding
-  // again on every language switch would stack another full set of listeners
-  // on it.
-  if (carousel.dataset.driftBound !== "1") {
-    carousel.dataset.driftBound = "1";
-    ["pointerdown", "touchstart"].forEach((evt) =>
-      carousel.addEventListener(evt, driftHold, { passive: true })
-    );
-    // A wheel over the strip is usually the reader scrolling the PAGE, not
-    // asking this carousel for anything: the cursor is simply somewhere on the
-    // way down. Holding on that froze the strip for three seconds every time
-    // someone scrolled past it, and re-armed on every wheel tick, which is what
-    // "it stops whenever the mouse is over it" actually was. Only a sideways
-    // wheel is aimed at this row, so only a sideways wheel hands control over.
-    carousel.addEventListener(
-      "wheel",
-      (e) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) driftHold(); },
-      { passive: true }
-    );
-    // The arrows are a deliberate action too, so they get the same quiet period.
-    carouselPrev?.addEventListener("click", driftHold);
-    carouselNext?.addEventListener("click", driftHold);
-  }
-
-
-  function frame(now) {
-    driftRaf = requestAnimationFrame(frame);
-    if (!copyWidth) { measure(); last = now; return; }
-
-    // Wrapping runs even while paused, so a reader who drags past the end of
-    // one copy still finds the strip endless. Forward only: a native scroll
-    // container clamps at zero, so a backward wrap here fired the instant the
-    // page loaded at scrollLeft 0 and threw the strip a whole copy along.
-    if (carousel.scrollLeft >= copyWidth) carousel.scrollLeft -= copyWidth;
-
-    const dt = last === null ? 0 : (now - last) / 1000;
-    last = now;
-
-    if (reduced.matches || now < driftPausedUntil || document.hidden) return;
-
-    carry += SPEED * dt;
-    const step = Math.floor(carry);
-    if (step >= 1) {
-      carry -= step;
-      carousel.scrollLeft += step;
-    }
-  }
-  driftRaf = requestAnimationFrame(frame);
-}
-
-// ---------- Reviews carousel ----------
-// One continuous marquee that you can also drag.
-//
-// The drift is unchanged: constant linear speed, every card moving the same
-// pixels at the same instant, looping seamlessly because the card set is
-// duplicated once and the position wraps by exactly one copy's width. What is
-// new is that the position lives in JS rather than in a CSS animation, so a
-// finger and the clock write to the same number. As a CSS animation there was
-// nothing to drag — touching it only paused a transform.
-//
-// Linear on purpose: an ease curve on a never-ending loop visibly speeds up
-// and slows down each cycle, which is the acceleration this was built to
-// remove in the first place.
-(() => {
-  const track = document.getElementById("reviewsTrack");
-  const viewport = document.getElementById("reviewsGrid");
-  if (!track || !viewport) return;
-
-  // The clones are what make the wrap invisible: at exactly one copy's width
-  // the second set sits where the first began. Decorative repeats, so they are
-  // hidden from assistive tech.
-  Array.from(track.children).forEach((card) => {
-    const clone = card.cloneNode(true);
-    clone.setAttribute("aria-hidden", "true");
-    clone.dataset.clone = "true";
-    track.appendChild(clone);
-  });
-
-  const CYCLE_MS = 44000;   // time for one full copy to pass, as before
+  const CYCLE_MS = opts.cycleMs || 44000;   // time for one full copy to pass
   const RESUME_MS = 2500;   // quiet time after a drag before drifting again
   const DRAG_THRESHOLD = 6; // px of horizontal travel before we claim the gesture
   const SETTLE_MS = 420;    // glide onto the nearest card after letting go
   // Past this much travel the gesture counts as "next one please" rather than
   // a nudge, so a short flick still advances a whole card.
   const FLICK_RATIO = 0.15;
+
+  // Rebuilding from scratch, not adding to what is there. Switching language
+  // re-renders the product strip, and a second set of clones on top of the
+  // first would break the one-copy wrap this depends on.
+  track.querySelectorAll("[data-clone]").forEach((el) => el.remove());
+  const originals = Array.from(track.children);
+  if (originals.length < 2) return null;
+
+  // The clones are what make the wrap invisible: at exactly one copy's width
+  // the second set sits where the first began. Decorative repeats, so they are
+  // hidden from assistive tech.
+  originals.forEach((card) => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.dataset.clone = "true";
+    track.appendChild(clone);
+  });
 
   let offset = 0;       // current translate, in px (negative moves left)
   let copyWidth = 0;    // width of one copy of the set
@@ -1015,19 +897,14 @@ function initBestsellersDrift() {
   let startOffset = 0;
   let lastDx = 0;
   let wheelTimer = null;
-
-  // The reviews are one continuous row at every width now, so the marquee runs
-  // everywhere. It used to be mobile-only because the desktop layout was a
-  // static two-column grid that a transform would have slid off-screen.
-  const marqueeMedia = window.matchMedia("(min-width: 0px)");
-  const isMarquee = () => marqueeMedia.matches;
+  let raf = null;
+  let stopped = false;
 
   const measure = () => { copyWidth = track.scrollWidth / 2; };
   measure();
-  window.addEventListener("resize", measure);
-  marqueeMedia.addEventListener?.("change", measure);
   // Card widths are in vw and the fonts load late, so re-measure once things
   // have settled rather than trusting the first layout.
+  window.addEventListener("resize", measure);
   window.addEventListener("load", measure);
 
   // Wrapping by exactly one copy in either direction keeps the strip endless
@@ -1042,15 +919,18 @@ function initBestsellersDrift() {
     track.style.transform = `translate3d(${offset}px, 0, 0)`;
   }
 
-  // One card plus its margin. The cards are laid out with margin-right rather
-  // than a flex gap precisely so every card occupies the same step.
+  // One card plus whatever separates it from the next. The reviews space their
+  // cards with margin-right and the product strip with a flex gap, so both are
+  // asked for rather than one being assumed.
   function cardStep() {
-    const card = track.querySelector(".review-card");
+    const card = track.querySelector(cardSelector);
     if (!card) return 0;
-    return card.getBoundingClientRect().width + parseFloat(getComputedStyle(card).marginRight || 0);
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const margin = parseFloat(getComputedStyle(card).marginRight) || 0;
+    return card.getBoundingClientRect().width + gap + margin;
   }
 
-  // Glides to a card boundary after a drag, so letting go lands on a review
+  // Glides to a card boundary after a drag, so letting go lands on a card
   // instead of halfway between two. Deliberately not normalised mid-flight:
   // wrapping the offset during the animation would jump the strip a full copy
   // in the middle of the glide. It is wrapped once at the end instead.
@@ -1070,7 +950,7 @@ function initBestsellersDrift() {
 
     const step = (now) => {
       // A new drag takes over immediately rather than fighting the glide.
-      if (dragging) { settling = false; return; }
+      if (dragging || stopped) { settling = false; return; }
       const p = Math.min((now - t0) / SETTLE_MS, 1);
       offset = start + distance * easeOutCubic(p);
       paint();
@@ -1106,36 +986,27 @@ function initBestsellersDrift() {
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 
   function frame(now) {
+    if (stopped) return;
+    raf = requestAnimationFrame(frame);
     if (lastFrame === null) lastFrame = now;
     const dt = now - lastFrame;
     lastFrame = now;
+    if (!copyWidth) { measure(); return; }
 
-    if (!isMarquee()) {
-      // Leave the desktop grid exactly where CSS put it.
-      if (offset !== 0) {
-        offset = 0;
-        track.style.transform = "";
-      }
-      requestAnimationFrame(frame);
-      return;
-    }
-
-    const drifting = !dragging && !settling && now >= resumeAt && !reduceMotion?.matches;
-    if (drifting && copyWidth) {
+    const drifting = !dragging && !settling && now >= resumeAt && !reduceMotion?.matches && !document.hidden;
+    if (drifting) {
       offset -= (copyWidth / CYCLE_MS) * dt;
       normalise();
       paint();
     }
-    requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  raf = requestAnimationFrame(frame);
 
   // --- dragging ---
   // pointerdown only records where the finger landed. The gesture is not
   // claimed until it has travelled further horizontally than vertically, so a
   // vertical swipe still scrolls the page instead of being swallowed here.
   viewport.addEventListener("pointerdown", (e) => {
-    if (!isMarquee()) return;
     dragging = true;
     claimed = false;
     startX = e.clientX;
@@ -1182,7 +1053,7 @@ function initBestsellersDrift() {
     claimed = false;
 
     if (wasClaimed) {
-      // Land on a review rather than stopping halfway between two.
+      // Land on a card rather than stopping halfway between two.
       settleToNearestCard(lastDx);
     } else {
       resumeAt = performance.now() + RESUME_MS;
@@ -1197,10 +1068,12 @@ function initBestsellersDrift() {
   viewport.addEventListener("dragstart", (e) => e.preventDefault());
 
   // Trackpad and wheel nudges move it too, and pause the drift the same way.
+  // Only a sideways wheel: a vertical one is the reader scrolling the page with
+  // the cursor happening to be over the strip, and treating that as a gesture
+  // froze it every time someone scrolled past.
   viewport.addEventListener(
     "wheel",
     (e) => {
-      if (!isMarquee()) return;
       const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : 0;
       if (!dx) return;
       settling = false;
@@ -1216,7 +1089,55 @@ function initBestsellersDrift() {
     },
     { passive: false }
   );
-})();
+
+  return {
+    // One card in the given direction: -1 forward through the list, +1 back.
+    step(direction) {
+      const s = cardStep();
+      if (!s) return;
+      settling = false;
+      settleTo(Math.round(offset / s) * s + direction * s);
+    },
+    measure,
+    stop() {
+      stopped = true;
+      if (raf !== null) cancelAnimationFrame(raf);
+      raf = null;
+    },
+  };
+}
+
+// The reviews strip. Its cards are all in the markup, so it starts on load.
+const reviewsMarquee = initMarquee({
+  viewport: document.getElementById("reviewsGrid"),
+  track: document.getElementById("reviewsTrack"),
+  cardSelector: ".review-card",
+});
+
+// The Best Sellers strip. Its cards arrive from the database, so this is built
+// once they are rendered and rebuilt whenever they are re-rendered — see the
+// products:ready and lang:changed handlers below.
+let bestsellersMarquee = null;
+function initBestsellersDrift() {
+  if (!carousel || !carouselTrack) return;
+  // Rebuilt rather than guarded: a language switch replaces the whole track, so
+  // the previous run would be left measuring nodes that are no longer in the
+  // document — copyWidth goes to zero and the strip stops dead.
+  bestsellersMarquee?.stop();
+  bestsellersMarquee = initMarquee({
+    viewport: carousel,
+    track: carouselTrack,
+    cardSelector: ".carousel-card",
+  });
+  // Bound once. The container itself survives every re-render, so binding again
+  // on each language switch would stack another pair of handlers on it.
+  if (bestsellersMarquee && carousel.dataset.arrowsBound !== "1") {
+    carousel.dataset.arrowsBound = "1";
+    carouselPrev?.addEventListener("click", () => bestsellersMarquee?.step(1));
+    carouselNext?.addEventListener("click", () => bestsellersMarquee?.step(-1));
+  }
+}
+
 
 // ---------- Coupons ----------
 // Only the code/type/value/min_order_value returned by validate_coupon are cached
@@ -1902,8 +1823,9 @@ searchClose?.addEventListener("click", () => {
   renderProducts();
 });
 
-carouselPrev?.addEventListener("click", () => carousel.scrollBy({ left: -300, behavior: "smooth" }));
-carouselNext?.addEventListener("click", () => carousel.scrollBy({ left: 300, behavior: "smooth" }));
+// The arrows are wired to the marquee in initBestsellersDrift, not here. They
+// used to call carousel.scrollBy, which did nothing once the strip stopped
+// being a scroll container and started being a transformed track.
 
 newsletterForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
