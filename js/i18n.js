@@ -123,6 +123,15 @@ const TRANSLATIONS = {
     "footer.termos": "Termos",
 
     "card.notes": "Notas",
+    /* Built in JS on the back of the card, so data-i18n never reaches them and
+       they are looked up through tx() in js/main.js instead. */
+    "card.option.full": "Frasco completo · {ml} ml",
+    "card.option.full.nosize": "Frasco completo",
+    "card.option.amostra": "Amostra · {ml} ml",
+    "card.option.amostra.short": "Amostra {ml} ml",
+    "card.campaign.until": "Até {when}",
+    "card.amostra.title": "Experimente antes de decidir",
+    "card.amostra.text": "A amostra de {ml}ml permite conhecer a fragrância na sua pele, ao longo do dia. Se depois quiser o frasco completo, descontamos o valor da amostra na sua compra.",
     "cart.title": "O seu carrinho",
     "cart.empty": "O seu carrinho está vazio.",
     "cart.coupon.toggle": "Tem um cupão de desconto?",
@@ -284,6 +293,11 @@ const TRANSLATIONS = {
     "auth.created.account": "Conta criada! Verifique o seu e-mail para confirmar o registo antes de iniciar sessão.",
     "auth.created.checkout": "Conta criada! Verifique o seu e-mail para confirmar o registo e depois clique novamente em finalizar.",
 
+    /* Shown at the field itself, not only in the banner at the top of the
+       form, which on a phone is usually scrolled out of sight by the time you
+       reach the button. */
+    "checkout.err.required": "Campo obrigatório",
+    "checkout.err.missing": "Faltam dados obrigatórios. Veja os campos assinalados abaixo.",
     "checkout.err.namephone": "Preencha o seu nome e contacto.",
     "checkout.err.address": "Indique a morada de entrega e a cidade.",
     "checkout.err.zone": "Seleccione a zona de entrega.",
@@ -428,6 +442,13 @@ const TRANSLATIONS = {
     "footer.termos": "Terms",
 
     "card.notes": "Notes",
+    "card.option.full": "Full bottle · {ml} ml",
+    "card.option.full.nosize": "Full bottle",
+    "card.option.amostra": "Sample · {ml} ml",
+    "card.option.amostra.short": "Sample {ml} ml",
+    "card.campaign.until": "Until {when}",
+    "card.amostra.title": "Try it before you decide",
+    "card.amostra.text": "A {ml}ml sample lets you get to know the fragrance on your own skin, over the course of a day. If you then want the full bottle, we take the price of the sample off your purchase.",
     "cart.title": "Your cart",
     "cart.empty": "Your cart is empty.",
     "cart.coupon.toggle": "Have a discount code?",
@@ -589,6 +610,8 @@ const TRANSLATIONS = {
     "auth.created.account": "Account created! Check your email to confirm your registration before signing in.",
     "auth.created.checkout": "Account created! Check your email to confirm, then tap checkout again.",
 
+    "checkout.err.required": "Required field",
+    "checkout.err.missing": "Something required is missing. Check the fields marked below.",
     "checkout.err.namephone": "Please fill in your name and contact number.",
     "checkout.err.address": "Please give your delivery address and city.",
     "checkout.err.zone": "Please select a delivery zone.",
@@ -664,6 +687,18 @@ function setLang(lang) {
   // Lists built in JS (order history, referral codes) hold text that
   // data-i18n can't reach, so they need to re-render themselves.
   document.dispatchEvent(new CustomEvent("lang:changed", { detail: { lang } }));
+  // Second pass, deliberately. Those listeners rebuild whole sections — the
+  // product grids among them — and the fresh markup carries its Portuguese
+  // fallback inside every data-i18n element, because that is what the template
+  // literal writes. The pass above ran before any of it existed. Dispatch is
+  // synchronous, so by this line the rebuilding is done and there is new markup
+  // waiting to be translated.
+  //
+  // This is why the backs of the cards stayed in Portuguese: switching to
+  // English translated them and then immediately replaced them with Portuguese
+  // ones. Any renderer that finishes after an await still has to translate its
+  // own output; the ones in js/conta.js already do.
+  applyTranslations(lang);
 }
 
 // This script loads at the end of <body>, after all markup — DOMContentLoaded

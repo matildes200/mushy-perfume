@@ -266,14 +266,27 @@
       </div>
 
       <div id="checkoutPaymentAlert"></div>
-      <form id="checkoutPaymentForm">
+      <form id="checkoutPaymentForm" novalidate>
         <input type="hidden" id="ckPaymentMethod" value="Transferência Bancária">
+        <!-- Each input sits in its own .ck-field so a validation message has
+             somewhere to go. Loose in the grid, a message would take the next
+             cell and push every following field out of place. -->
         <div class="checkout-details">
-          <input type="text" id="ckName" class="checkout-input" placeholder="O seu nome" data-i18n-placeholder="checkout.name.placeholder" required>
-          <input type="tel" id="ckPhone" class="checkout-input" placeholder="O seu contacto" data-i18n-placeholder="checkout.phone.placeholder" required>
-          <input type="text" id="ckAddress" class="checkout-input checkout-input-wide" placeholder="Morada de entrega (rua e número)" data-i18n-placeholder="checkout.address.placeholder" required>
-          <input type="text" id="ckCity" class="checkout-input" placeholder="Cidade" data-i18n-placeholder="checkout.city.placeholder" required>
-          <input type="text" id="ckDistrict" class="checkout-input" placeholder="Bairro / Município" data-i18n-placeholder="checkout.district.placeholder">
+          <div class="ck-field">
+            <input type="text" id="ckName" class="checkout-input" placeholder="O seu nome" data-i18n-placeholder="checkout.name.placeholder" required>
+          </div>
+          <div class="ck-field">
+            <input type="tel" id="ckPhone" class="checkout-input" placeholder="O seu contacto" data-i18n-placeholder="checkout.phone.placeholder" required>
+          </div>
+          <div class="ck-field checkout-input-wide">
+            <input type="text" id="ckAddress" class="checkout-input" placeholder="Morada de entrega (rua e número)" data-i18n-placeholder="checkout.address.placeholder" required>
+          </div>
+          <div class="ck-field">
+            <input type="text" id="ckCity" class="checkout-input" placeholder="Cidade" data-i18n-placeholder="checkout.city.placeholder" required>
+          </div>
+          <div class="ck-field">
+            <input type="text" id="ckDistrict" class="checkout-input" placeholder="Bairro / Município" data-i18n-placeholder="checkout.district.placeholder">
+          </div>
         </div>
         <div class="checkout-zone">
           <label for="ckZone" data-i18n="checkout.zone.label">Zona de entrega</label>
@@ -290,12 +303,12 @@
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           <span id="ckReceiptLabel" data-i18n="checkout.receipt.label">Enviar comprovativo (imagem ou PDF), obrigatório</span>
         </label>
-        <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;" required>
+        <input type="file" id="ckReceipt" accept="image/*,.pdf" style="display:none;">
         <label class="legal-accept">
           <input type="checkbox" id="ckAcceptTerms" required>
           <span>Li e aceito os <a href="termos-e-condicoes.html" target="_blank" rel="noopener">Termos e Condições</a> e a <a href="politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
         </label>
-        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" disabled data-i18n="checkout.submit">Confirmar pedido</button>
+        <button type="submit" class="btn btn-primary btn-block" id="ckSubmitBtn" data-i18n="checkout.submit">Confirmar pedido</button>
       </form>
     </div>
 

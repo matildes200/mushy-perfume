@@ -228,15 +228,113 @@ document.getElementById("checkoutRegisterForm")?.addEventListener("submit", asyn
 });
 
 // ---------- Payment step ----------
-// The submit button starts disabled (see the HTML) and only becomes
-// clickable once a receipt is actually attached — the mandatory-upload
-// rule is enforced by the control itself, not just a submit-time check.
+// The submit button is NOT disabled until a receipt is attached, as it used to
+// be. A disabled button does nothing when pressed and says nothing about why,
+// so a customer who had not noticed the upload was mandatory pressed
+// "Confirmar pedido" and the shop appeared to be broken. Every requirement is
+// checked on submit instead, and each missing one is named where it sits.
 document.getElementById("ckReceipt")?.addEventListener("change", (e) => {
   const file = e.target.files?.[0];
   const label = document.getElementById("ckReceiptLabel");
   if (label) label.textContent = file ? file.name : window.t?.("checkout.receipt.label");
-  const submitBtn = document.getElementById("ckSubmitBtn");
-  if (submitBtn) submitBtn.disabled = !file;
+  if (file) clearFieldError(document.getElementById("ckReceipt"));
+});
+
+// ---------- Required fields, marked where they are ----------
+// One banner at the top of a long form is easy to miss, and on a phone it is
+// usually scrolled out of sight by the time you reach the button. Each missing
+// item gets its own line under the control it belongs to.
+
+const requiredText = () => window.t?.("checkout.err.required") || "Campo obrigatório";
+
+// Where a field's message belongs. The four address inputs sit inside their own
+// .ck-field wrapper; the checkbox hangs off its label, because the label is
+// what the reader sees.
+function messageAnchor(el) {
+  if (!el) return null;
+  if (el.id === "ckAcceptTerms") return el.closest(".legal-accept") || el;
+  if (el.id === "ckReceipt") return document.querySelector(".receipt-upload") || el;
+  return el;
+}
+
+// The control the reader can actually see. The receipt input is display:none
+// behind its upload label, and the terms checkbox is a 16px box whose meaning
+// lives in the sentence beside it, so in both cases the marking belongs on the
+// label rather than on the input itself.
+function visualTarget(el) {
+  if (!el) return null;
+  if (el.id === "ckReceipt") return document.querySelector(".receipt-upload") || el;
+  if (el.id === "ckAcceptTerms") return el.closest(".legal-accept") || el;
+  return el;
+}
+
+function markFieldError(el, text) {
+  if (!el) return;
+  visualTarget(el).classList.add("field-error");
+  const anchor = messageAnchor(el);
+  const id = `msg-${el.id}`;
+  let msg = document.getElementById(id);
+  if (!msg) {
+    msg = document.createElement("span");
+    msg.id = id;
+    msg.className = "field-msg";
+    anchor.insertAdjacentElement("afterend", msg);
+  }
+  msg.textContent = text;
+  const host = el.closest(".ck-field, .checkout-zone");
+  if (host) host.classList.add("has-error");
+}
+
+function clearFieldError(el) {
+  if (!el) return;
+  visualTarget(el).classList.remove("field-error");
+  document.getElementById(`msg-${el.id}`)?.remove();
+  const host = el.closest(".ck-field, .checkout-zone");
+  if (host) host.classList.remove("has-error");
+}
+
+// Everything the order cannot be placed without, in the order it appears on
+// screen, so the first one reported is also the first one the reader meets.
+function requiredCheckoutFields() {
+  return [
+    { el: document.getElementById("ckName"), filled: (el) => el.value.trim() },
+    { el: document.getElementById("ckPhone"), filled: (el) => el.value.trim() },
+    { el: document.getElementById("ckAddress"), filled: (el) => el.value.trim() },
+    { el: document.getElementById("ckCity"), filled: (el) => el.value.trim() },
+    // Only required when there are zones to choose from: with the table empty
+    // or failed to load, taking the order without a delivery line beats
+    // refusing it.
+    { el: document.getElementById("ckZone"), filled: (el) => !deliveryZones.length || el.value },
+    { el: document.getElementById("ckReceipt"), filled: (el) => el.files?.[0], text: () => window.t?.("checkout.err.receipt") || "Anexe o comprovativo de pagamento." },
+    { el: document.getElementById("ckAcceptTerms"), filled: (el) => el.checked, text: () => window.t?.("legal.accept.required") || "Tem de aceitar os Termos e a Política de Privacidade." },
+  ].filter((f) => f.el);
+}
+
+// Returns the first offending field, or null when everything is there.
+function validateCheckoutFields() {
+  let first = null;
+  requiredCheckoutFields().forEach((f) => {
+    if (f.filled(f.el)) {
+      clearFieldError(f.el);
+    } else {
+      markFieldError(f.el, f.text ? f.text() : requiredText());
+      if (!first) first = f.el;
+    }
+  });
+  return first;
+}
+
+// A mark disappears the moment the reader fixes what it was complaining about,
+// rather than sitting there until the next submit.
+["ckName", "ckPhone", "ckAddress", "ckCity", "ckZone", "ckAcceptTerms"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  ["input", "change"].forEach((evt) =>
+    el.addEventListener(evt, () => {
+      const f = requiredCheckoutFields().find((x) => x.el === el);
+      if (f && f.filled(el)) clearFieldError(el);
+    })
+  );
 });
 
 function showCheckoutPaymentAlert(message, type = "error") {
@@ -256,30 +354,26 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
   const district = document.getElementById("ckDistrict").value.trim();
   const paymentMethod = document.getElementById("ckPaymentMethod").value;
   const file = document.getElementById("ckReceipt").files?.[0];
-  if (!name || !phone) {
-    showCheckoutPaymentAlert(window.t?.("checkout.err.namephone"));
+
+  // Every requirement is checked at once and each failure is marked at its own
+  // field, rather than reporting them one at a time from the top of the form.
+  // The reader sees everything that is missing in one go, and the first of them
+  // is scrolled to, because on a phone the banner alone is usually above the
+  // fold they are looking at.
+  const firstMissing = validateCheckoutFields();
+  if (firstMissing) {
+    showCheckoutPaymentAlert(window.t?.("checkout.err.missing"));
+    visualTarget(firstMissing)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (firstMissing.type !== "file") firstMissing.focus({ preventScroll: true });
     return;
   }
-  if (!street || !city) {
-    showCheckoutPaymentAlert(window.t?.("checkout.err.address"));
-    return;
-  }
-  // A zone is required: it decides the delivery fee, and the fee is part of
-  // the total the customer is about to transfer. Conditional on there being
-  // zones to choose from — if the table is empty or failed to load, blocking
-  // the order would be worse than taking it without a delivery line.
+  // A zone decides the delivery fee, and the fee is part of the total the
+  // customer is about to transfer, so the select having a value is not enough
+  // — it has to have resolved to a zone.
   if (deliveryZones.length && !selectedZone) {
+    markFieldError(document.getElementById("ckZone"), window.t?.("checkout.err.zone"));
     showCheckoutPaymentAlert(window.t?.("checkout.err.zone"));
-    return;
-  }
-  // Acceptance is checked here as well as by the markup's required attribute,
-  // which is trivially bypassed.
-  if (!document.getElementById("ckAcceptTerms")?.checked) {
-    showCheckoutPaymentAlert(window.t?.("legal.accept.required"));
-    return;
-  }
-  if (!file) {
-    showCheckoutPaymentAlert(window.t?.("checkout.err.receipt"));
+    document.getElementById("ckZone")?.scrollIntoView({ block: "center", behavior: "smooth" });
     return;
   }
 
@@ -326,7 +420,10 @@ document.getElementById("checkoutDoneBtn")?.addEventListener("click", () => {
   resetPaymentMethodTabs();
   const label = document.getElementById("ckReceiptLabel");
   if (label) label.textContent = window.t?.("checkout.receipt.label");
-  document.getElementById("ckSubmitBtn").disabled = true;
+  // The form is blank again, so any marks left from the last attempt go with
+  // it. The button stays enabled: it is the thing that reports what is missing.
+  requiredCheckoutFields().forEach((f) => clearFieldError(f.el));
+  showCheckoutPaymentAlert("");
 });
 
 // ---------- B3: zonas de entrega ----------

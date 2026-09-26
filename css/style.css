@@ -1762,7 +1762,30 @@ button { font-family: var(--font-body); }
   width: 100%;
 }
 .checkout-input:focus { outline: none; border-color: var(--ink); }
-.checkout-input.field-error { border-color: #8a3b2b; }
+/* ---------- What is missing, said where it is missing ----------
+   The banner at the top of the form is still there, but on a phone it has
+   usually scrolled out of sight by the time the reader reaches the button, so
+   each requirement also says so at its own control. */
+.ck-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.checkout-input.field-error,
+.ck-field.has-error .checkout-input,
+.checkout-zone.has-error .checkout-input { border-color: #8a3b2b; }
+.field-msg {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  color: #8a3b2b;
+}
+/* The receipt and the terms checkbox are not in the grid, so their messages
+   need the spacing the wrapper would otherwise have given them. */
+#msg-ckReceipt { margin: -4px 0 8px; }
+#msg-ckAcceptTerms { margin: -6px 0 10px; }
+/* The upload control is a label, and a label with nothing in it reads as
+   optional. Marked the same way as a field. */
+.receipt-upload.field-error { border-color: #8a3b2b; color: #8a3b2b; }
+.legal-accept.field-error span { color: #8a3b2b; }
 
 .coupon-toggle {
   display: block;

@@ -77,14 +77,29 @@ const money = (v) => `${Math.round(Number(v) || 0).toLocaleString("pt-PT", { max
 // whatever products.js may already have set, so the two cannot race.
 var AMOSTRA_ML = window.AMOSTRA_ML || 5;
 
+// Translator for text that is built here in JS rather than marked up with
+// data-i18n, which applyTranslations can never reach. js/i18n.js loads after
+// this file, so t() may not exist on the very first render — the Portuguese
+// literal stands in until then, and the grids redraw on lang:changed anyway.
+// t() hands back the key itself when there is no entry, so that is checked for
+// rather than trusted to be falsy.
+function tx(key, fallback, vars) {
+  const s = window.t ? window.t(key, vars) : null;
+  if (s && s !== key) return s;
+  let out = fallback;
+  if (vars) Object.entries(vars).forEach(([k, v]) => { out = out.split(`{${k}}`).join(v); });
+  return out;
+}
+
 function productOptions(p) {
   const options = [
     {
       kind: "full",
       // A bottle whose size has never been set says so, rather than showing
       // a dash the customer has to interpret.
-      label: p.volume_ml ? `Frasco completo · ${p.volume_ml} ml` : "Frasco completo",
-      short: p.volume_ml ? `${p.volume_ml} ml` : "Frasco completo",
+      label: p.volume_ml ? tx("card.option.full", "Frasco completo · {ml} ml", { ml: p.volume_ml })
+                         : tx("card.option.full.nosize", "Frasco completo"),
+      short: p.volume_ml ? `${p.volume_ml} ml` : tx("card.option.full.nosize", "Frasco completo"),
       price: Number(p.price) || 0,
       stock: Number(p.stock ?? 0),
     },
@@ -93,8 +108,8 @@ function productOptions(p) {
   if (p.amostra_enabled && p.amostra_price !== null && p.amostra_price !== undefined) {
     options.push({
       kind: "amostra",
-      label: `Amostra · ${AMOSTRA_ML} ml`,
-      short: `Amostra ${AMOSTRA_ML} ml`,
+      label: tx("card.option.amostra", "Amostra · {ml} ml", { ml: AMOSTRA_ML }),
+      short: tx("card.option.amostra.short", "Amostra {ml} ml", { ml: AMOSTRA_ML }),
       price: Number(p.amostra_price) || 0,
       stock: Number(p.amostra_stock ?? 0),
     });
@@ -207,9 +222,18 @@ function campaignEndNote(p) {
   // it as an instant can shift it to the day before west of UTC.
   const [y, m, d] = String(c.end_date).split("-").map(Number);
   if (!y || !m || !d) return "";
+  // new Date(y, m-1, d) is local midnight, so no timezone can walk it back a
+  // day the way Date.parse on the bare string could. Formatting from that
+  // gives the month in whichever language is on, instead of a hardcoded
+  // Portuguese table.
+  const lang = window.getLang ? window.getLang() : "pt";
+  const when = new Date(y, m - 1, d).toLocaleDateString(lang === "en" ? "en-GB" : "pt-PT", {
+    day: "numeric",
+    month: "long",
+  });
   // Sentence case and one line: "PROMOÇÃO ATÉ 30 DE SETEMBRO" in capitals wrapped
   // onto two lines on a card and shouted while doing it.
-  return `<span class="campaign-until">Até ${d} de ${MONTHS_PT[m - 1]}</span>`;
+  return `<span class="campaign-until">${tx("card.campaign.until", "Até {when}", { when })}</span>`;
 }
 
 function stockBadge(p) {
@@ -247,7 +271,7 @@ function optionPicker(p, compact) {
         aria-pressed="${on ? "true" : "false"}">
         <span class="option-mark" aria-hidden="true"></span>
         <span class="option-label">${compact ? o.short : o.label}</span>
-        <span class="option-price">${out ? "Esgotado" : money(effectivePrice(p, o))}</span>
+        <span class="option-price">${out ? tx("product.soldout", "Esgotado") : money(effectivePrice(p, o))}</span>
       </button>`;
     })
     .join("");
@@ -258,9 +282,12 @@ function optionPicker(p, compact) {
 // they have to work out the point of.
 function amostraNote() {
   return `<div class="amostra-note" data-amostra-note hidden>
-    <strong>Experimente antes de decidir</strong>
-    <p>A amostra de ${AMOSTRA_ML}ml permite conhecer a fragrância na sua pele, ao longo do dia.
-       Se depois quiser o frasco completo, descontamos o valor da amostra na sua compra.</p>
+    <strong>${tx("card.amostra.title", "Experimente antes de decidir")}</strong>
+    <p>${tx(
+      "card.amostra.text",
+      "A amostra de {ml}ml permite conhecer a fragrância na sua pele, ao longo do dia. Se depois quiser o frasco completo, descontamos o valor da amostra na sua compra.",
+      { ml: AMOSTRA_ML }
+    )}</p>
   </div>`;
 }
 
@@ -823,19 +850,36 @@ function renderCarousel() {
 // The loop is seamless because the card set is duplicated once: when the
 // scroll passes the width of one copy, it jumps back by exactly that width and
 // lands on an identical pixel.
+// Lives outside the function so that the handlers below, which are bound once
+// to a container that survives every re-render, still reach whichever run of
+// the loop is current.
+let driftPausedUntil = 0;
+let driftRaf = null;
+const DRIFT_RESUME_MS = 3000;  // quiet time after a touch before it drifts again
+const driftHold = () => { driftPausedUntil = performance.now() + DRIFT_RESUME_MS; };
+
 function initBestsellersDrift() {
   if (!carousel || !carouselTrack) return;
-  if (carousel.dataset.driftReady === "1") return;
   // Desktop only. The phone layout of this strip is being left exactly as it
   // is, snapping included.
   if (!window.matchMedia("(min-width: 641px)").matches) return;
 
+  // Switching language rebuilds the whole track — the option labels and the
+  // amostra note on the back of each card are written in JS, so they can only
+  // change language by being written again. That throws away the duplicated
+  // set this loop wraps on, and leaves the previous frame callback measuring
+  // nodes that are no longer in the document: copyWidth goes to zero and the
+  // strip stops dead. So the loop is cancelled and rebuilt rather than
+  // guarded against ever running twice.
+  if (driftRaf !== null) { cancelAnimationFrame(driftRaf); driftRaf = null; }
+  carouselTrack.querySelectorAll(".carousel-card[data-clone]").forEach((el) => el.remove());
+
   const cards = Array.from(carouselTrack.children);
   // The "ver todos" card is the end of the list, not part of the loop.
-  const loopable = cards.filter((el) => el.classList.contains("carousel-card"));
+  const loopable = cards.filter((el) => el.classList.contains("carousel-card") && !el.dataset.clone);
   if (loopable.length < 3) return;
 
-  carousel.dataset.driftReady = "1";
+
 
   loopable.forEach((card) => {
     const clone = card.cloneNode(true);
@@ -847,11 +891,9 @@ function initBestsellersDrift() {
   });
 
   const SPEED = 14;        // px per second. Slow enough to read a name.
-  const RESUME_MS = 3000;  // quiet time after a touch before it drifts again
 
   let copyWidth = 0;
   let last = null;
-  let pausedUntil = 0;
   let carry = 0;           // sub-pixel remainder; scrollLeft is an integer
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -865,7 +907,6 @@ function initBestsellersDrift() {
   window.addEventListener("resize", measure);
   window.addEventListener("load", measure);
 
-  const hold = () => { pausedUntil = performance.now() + RESUME_MS; };
 
   // Anything the reader DOES wins, and keeps winning for a few seconds after
   // they stop. Merely resting the pointer on the strip is not doing anything,
@@ -876,26 +917,33 @@ function initBestsellersDrift() {
   // itself, so every frame fires a scroll event, and treating that as a reader
   // action would have the strip pause itself for ever. A drag or a sideways
   // wheel is caught below, before the scroll it causes.
-  ["pointerdown", "touchstart"].forEach((evt) =>
-    carousel.addEventListener(evt, hold, { passive: true })
-  );
-  // A wheel over the strip is usually the reader scrolling the PAGE, not
-  // asking this carousel for anything: the cursor is simply somewhere on the
-  // way down. Holding on that froze the strip for three seconds every time
-  // someone scrolled past it, and re-armed on every wheel tick, which is what
-  // "it stops whenever the mouse is over it" actually was. Only a sideways
-  // wheel is aimed at this row, so only a sideways wheel hands control over.
-  carousel.addEventListener(
-    "wheel",
-    (e) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) hold(); },
-    { passive: true }
-  );
-  // The arrows are a deliberate action too, so they get the same quiet period.
-  carouselPrev?.addEventListener("click", hold);
-  carouselNext?.addEventListener("click", hold);
+  // Bound once. The scroll container itself survives a re-render, so binding
+  // again on every language switch would stack another full set of listeners
+  // on it.
+  if (carousel.dataset.driftBound !== "1") {
+    carousel.dataset.driftBound = "1";
+    ["pointerdown", "touchstart"].forEach((evt) =>
+      carousel.addEventListener(evt, driftHold, { passive: true })
+    );
+    // A wheel over the strip is usually the reader scrolling the PAGE, not
+    // asking this carousel for anything: the cursor is simply somewhere on the
+    // way down. Holding on that froze the strip for three seconds every time
+    // someone scrolled past it, and re-armed on every wheel tick, which is what
+    // "it stops whenever the mouse is over it" actually was. Only a sideways
+    // wheel is aimed at this row, so only a sideways wheel hands control over.
+    carousel.addEventListener(
+      "wheel",
+      (e) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) driftHold(); },
+      { passive: true }
+    );
+    // The arrows are a deliberate action too, so they get the same quiet period.
+    carouselPrev?.addEventListener("click", driftHold);
+    carouselNext?.addEventListener("click", driftHold);
+  }
+
 
   function frame(now) {
-    requestAnimationFrame(frame);
+    driftRaf = requestAnimationFrame(frame);
     if (!copyWidth) { measure(); last = now; return; }
 
     // Wrapping runs even while paused, so a reader who drags past the end of
@@ -907,7 +955,7 @@ function initBestsellersDrift() {
     const dt = last === null ? 0 : (now - last) / 1000;
     last = now;
 
-    if (reduced.matches || now < pausedUntil || document.hidden) return;
+    if (reduced.matches || now < driftPausedUntil || document.hidden) return;
 
     carry += SPEED * dt;
     const step = Math.floor(carry);
@@ -916,7 +964,7 @@ function initBestsellersDrift() {
       carousel.scrollLeft += step;
     }
   }
-  requestAnimationFrame(frame);
+  driftRaf = requestAnimationFrame(frame);
 }
 
 // ---------- Reviews carousel ----------
@@ -2197,11 +2245,17 @@ function nudgeHeaderRepaint() {
   }
 })();
 
-// The written fixação/projecção labels are generated in JS, so data-i18n can't
-// reach them — the grids have to rebuild themselves when the language changes.
+// The size picker's labels, the amostra note and the campaign end date are
+// written in JS, so data-i18n cannot reach them — the grids have to rebuild
+// themselves when the language changes. js/i18n.js runs applyTranslations once
+// more straight after this event for everything that IS marked up, because
+// these rebuilds put the Portuguese fallbacks back on the page.
 document.addEventListener("lang:changed", () => {
   if (typeof PRODUCTS === "undefined" || !PRODUCTS.length) return;
   renderProducts();
   renderFeatured();
   renderCarousel();
+  // renderCarousel just replaced the track, duplicated cards and all, so the
+  // drift has to be rebuilt against the new nodes or it stops.
+  initBestsellersDrift();
 });
