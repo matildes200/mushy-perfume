@@ -182,13 +182,13 @@
             <input type="checkbox" id="amostra_enabled"> Vender amostra deste perfume
           </label>
         </div>
-        <div class="form-field">
-          <label for="amostra_price">Preço da amostra (Kz)</label>
-          <input type="number" id="amostra_price" min="0" step="1" placeholder="3500">
-        </div>
-        <div class="form-field">
-          <label for="amostra_stock">Amostras em stock</label>
-          <input type="number" id="amostra_stock" min="0" step="1" value="0">
+        <!-- Neither of these is typed any more. The price is a tenth of the
+             bottle's, so it follows the price above on its own, and the sample
+             is decanted from the bottle, so it is available whenever the
+             bottle is. -->
+        <div class="form-field span-2">
+          <label>Preço da amostra</label>
+          <p class="field-derived" id="amostraPriceDerived">10% do preço do frasco</p>
         </div>
       </div>
 

@@ -17,7 +17,7 @@ const textFields = [
 const numberFields = ["price", "discount_percent", "volume_ml", "stock", "low_stock_threshold"];
 // The amostra price may legitimately be unset. Blank saves as NULL rather than
 // 0, which would mean "free" rather than "not priced yet".
-const nullableNumberFields = ["amostra_price"];
+const nullableNumberFields = [];
 const checkboxFields = ["active", "featured", "bestseller", "new_arrival", "amostra_enabled"];
 
 function resolveAdminImageSrc(path) {
@@ -32,20 +32,24 @@ function showAlert(el, message, type = "error") {
 const NUMBER_DEFAULTS = { discount_percent: 0, stock: 0, low_stock_threshold: 5 };
 
 // ------------------------------------------------------------- amostra ---
-// The amostra price and stock are plain columns on the product now, so the only
-// thing worth scripting is keeping the form honest: a disabled amostra has no
-// price or stock to set.
+// There is nothing left to type. The sample costs a tenth of the bottle, so
+// the form shows that figure rather than asking for it, and it recalculates as
+// the price is typed. Availability follows the bottle's own stock, so the
+// separate count is gone too. The only decision left is whether this perfume
+// is sold as a sample at all, which is the checkbox.
 
 function syncAmostraFields() {
+  const out = document.getElementById("amostraPriceDerived");
+  if (!out) return;
+  const price = Number(document.getElementById("price")?.value) || 0;
   const on = document.getElementById("amostra_enabled")?.checked;
-  ["amostra_price", "amostra_stock"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.disabled = !on;
-    if (!on) el.value = id === "amostra_stock" ? "0" : "";
-  });
+  if (!on) { out.textContent = "Não é vendida amostra deste perfume."; return; }
+  out.textContent = price
+    ? `${money(Math.round(price * 0.1))} · 10% do preço do frasco`
+    : "10% do preço do frasco";
 }
 document.getElementById("amostra_enabled")?.addEventListener("change", syncAmostraFields);
+document.getElementById("price")?.addEventListener("input", syncAmostraFields);
 
 // The volume shown in the form's explanation comes from settings, so the form
 // never states a size the storefront does not sell.
@@ -250,16 +254,10 @@ productForm.addEventListener("submit", async (e) => {
     const raw = document.getElementById(f)?.value.trim();
     payload[f] = raw === "" || raw === undefined ? null : Number(raw);
   });
-  payload.amostra_stock = Number(document.getElementById("amostra_stock")?.value) || 0;
   payload.images = document.getElementById("images").value.split("\n").map((s) => s.trim()).filter(Boolean);
 
-  // The database refuses an enabled amostra with no price; catching it here
-  // turns a raw constraint error into something the form can explain.
-  if (payload.amostra_enabled && payload.amostra_price === null) {
-    showAlert(productFormAlert, "Indique o preço da amostra, ou desactive a amostra deste perfume.");
-    saveBtn.disabled = false;
-    return;
-  }
+  // The constraint this guarded against is gone: the sample has no stored
+  // price to be missing, because it is a tenth of the bottle's.
 
   // A promotional price entered directly always wins over a manually typed discount %.
   const price = Number(document.getElementById("price").value) || 0;

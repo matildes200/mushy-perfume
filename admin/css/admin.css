@@ -993,3 +993,15 @@ html:not(.admin-authed) body.admin-body::before {
   font-size: 13px;
   letter-spacing: 0.4px;
 }
+
+/* A value the form works out rather than asks for. Reads as information, not
+   as a control someone forgot to fill in. */
+.field-derived {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+  color: var(--text-muted);
+}

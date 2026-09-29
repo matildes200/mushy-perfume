@@ -481,6 +481,15 @@ button { font-family: var(--font-body); }
 .hero-inner h1 { animation-delay: 0.25s; }
 .hero-inner .hero-text { animation-delay: 0.4s; }
 .hero-inner .hero-ctas { animation-delay: 0.55s; }
+/* The word MUSHYPARFUM sat above "Uma fragrância que fica." on a page whose
+   header already says MushyParfum a few centimetres higher — on a wide screen
+   the two are in view together and the eyebrow is just the name twice. The
+   phone header is narrower and the hero fills the screen on its own, so there
+   it still earns its place and stays. Hidden, not removed from the markup:
+   the line belongs to the page, it is this one layout that does not need it. */
+@media (min-width: 861px) {
+  .hero-inner .eyebrow { display: none; }
+}
 @keyframes hero-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 .eyebrow {

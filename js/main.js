@@ -77,6 +77,11 @@ const money = (v) => `${Math.round(Number(v) || 0).toLocaleString("pt-PT", { max
 // whatever products.js may already have set, so the two cannot race.
 var AMOSTRA_ML = window.AMOSTRA_ML || 5;
 
+// A sample costs a tenth of the bottle. Kept as a rate rather than a stored
+// number per product: change a perfume's price and its sample follows.
+const AMOSTRA_PRICE_RATE = 0.1;
+const amostraPrice = (p) => Math.round((Number(p?.price) || 0) * AMOSTRA_PRICE_RATE);
+
 // Translator for text that is built here in JS rather than marked up with
 // data-i18n, which applyTranslations can never reach. js/i18n.js loads after
 // this file, so t() may not exist on the very first render — the Portuguese
@@ -104,14 +109,25 @@ function productOptions(p) {
       stock: Number(p.stock ?? 0),
     },
   ];
-  // An amostra with no price would be given away, so it is not offered.
-  if (p.amostra_enabled && p.amostra_price !== null && p.amostra_price !== undefined) {
+  // Every perfume is offered as a sample unless it has been taken off sample
+  // deliberately. It used to depend on a flag that defaulted to false and a
+  // price typed in per product, and since nobody had switched it on for any of
+  // them the picker never appeared on a single card.
+  //
+  // The price is not stored anywhere: it is a tenth of the bottle's, worked
+  // out here, so it cannot drift away from the price it is a fraction of.
+  //
+  // Availability follows the BOTTLE's stock, not a separate count. A 5 ml
+  // sample is decanted from a bottle that is on the shelf; if the bottle has
+  // sold out there is nothing to decant from.
+  const amostra = amostraPrice(p);
+  if (p.amostra_enabled !== false && amostra > 0) {
     options.push({
       kind: "amostra",
       label: tx("card.option.amostra", "Amostra · {ml} ml", { ml: AMOSTRA_ML }),
       short: tx("card.option.amostra.short", "Amostra {ml} ml", { ml: AMOSTRA_ML }),
-      price: Number(p.amostra_price) || 0,
-      stock: Number(p.amostra_stock ?? 0),
+      price: amostra,
+      stock: Number(p.stock ?? 0),
     });
   }
   return options;
