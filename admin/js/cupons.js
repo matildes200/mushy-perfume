@@ -47,8 +47,8 @@ function openModal(coupon) {
   document.getElementById("code").value = coupon?.code || "";
   document.getElementById("discount_type").value = coupon?.discount_type || "percentage";
   document.getElementById("discount_value").value = coupon?.discount_value ?? "";
-  document.getElementById("start_date").value = coupon?.start_date || "";
-  document.getElementById("end_date").value = coupon?.end_date || "";
+  setDateField("start_date", coupon?.start_date || "");
+  setDateField("end_date", coupon?.end_date || "");
   document.getElementById("min_order_value").value = coupon?.min_order_value ?? 0;
   document.getElementById("max_uses").value = coupon?.max_uses ?? "";
   document.getElementById("active").checked = coupon ? Boolean(coupon.active) : true;
@@ -150,8 +150,8 @@ couponForm.addEventListener("submit", async (e) => {
     code: document.getElementById("code").value.trim().toUpperCase(),
     discount_type: document.getElementById("discount_type").value,
     discount_value: Number(document.getElementById("discount_value").value) || 0,
-    start_date: document.getElementById("start_date").value || null,
-    end_date: document.getElementById("end_date").value || null,
+    start_date: dateFieldISO("start_date") || null,
+    end_date: dateFieldISO("end_date") || null,
     min_order_value: Number(document.getElementById("min_order_value").value) || 0,
     max_uses: document.getElementById("max_uses").value ? Number(document.getElementById("max_uses").value) : null,
     active: document.getElementById("active").checked,

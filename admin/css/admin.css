@@ -702,7 +702,7 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
    field, which holds by far the longest content. Declared here rather than
    beside the other filter rules above: a later rule of equal weight wins, and
    this is the last word on .filter-range in the sheet. */
-.filter-range { display: flex; gap: 10px; min-width: 0; flex: 0 1 288px; }
+.filter-range { display: flex; gap: 10px; min-width: 0; flex: 0 1 306px; }
 .filter-range .filter-field { flex: 1 1 0; min-width: 0; }
 /* A small basis and a large grow: the search field asks for very little when
    the row is tight, and takes everything left over when it is not. That keeps
@@ -918,4 +918,78 @@ table.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 @media (max-width: 640px) {
   .topbar-preview-text, .topbar-preview-cta { font-size: 10.5px; letter-spacing: 1px; }
   .topbar-preview-bar { padding: 9px 36px; }
+}
+
+/* ---------- Dates you can type ----------
+   The text field is the real control: dd/mm/aaaa straight from the keyboard,
+   which a native date input never allowed. The calendar sits inside it as a
+   second way in — the <input type="date"> is laid over the icon at zero
+   opacity, so a tap on the icon IS a tap on the picker, which works on every
+   browser without needing showPicker(). */
+.date-field { position: relative; display: block; min-width: 0; }
+.date-field input[data-date-field] { width: 100%; padding-right: 30px; }
+.date-field input[data-date-field].is-invalid { border-color: #8a3b2b; }
+.date-field-pick {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  overflow: hidden;
+}
+.date-field-pick:hover { color: var(--ink); background: var(--bg-alt); }
+.date-field-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+/* Safari hides its own indicator unless asked; without this the overlay has
+   nothing to click through to. */
+.date-field-native::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ---------- Nothing on screen until is_admin() says yes ----------
+   The dashboard used to be visible from the moment the HTML arrived. There
+   was an "admin-authed" class on <html>, but no stylesheet referenced it, so
+   it hid nothing: a signed-in customer, or anyone who typed /admin/, saw the
+   whole shell — navigation, headings, settings forms — while the redirect was
+   still being decided. RLS kept every table empty, so no data was exposed,
+   but the panel itself should not be on screen either.
+
+   Scoped to .admin-body, which login.html deliberately does not carry: the
+   login page has to be visible to someone who is not yet anyone.
+
+   visibility, not display: the layout is still built underneath, so there is
+   nothing to reflow when it appears. */
+html:not(.admin-authed) body.admin-body > * { visibility: hidden; }
+html:not(.admin-authed) body.admin-body::before {
+  content: "A verificar acesso…";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.4px;
 }

@@ -16,10 +16,10 @@
   // through two sequential round trips before requesting a single row — the
   // main reason the dashboard felt slow on a mobile connection.
   //
-  // Safe to overlap because this check was never the security boundary: RLS
-  // enforces is_admin() on every table independently, so a non-admin's queries
-  // return nothing regardless of what happens here. This only decides how fast
-  // they get bounced to the login page.
+  // Overlapping is still safe for the DATA: RLS enforces is_admin() on every
+  // table independently, so a non-admin's queries return nothing whatever
+  // happens here. What it no longer overlaps with is showing the page — see
+  // below.
   const adminCheck = supabaseClient.rpc("is_admin").then(({ data: isAdmin, error }) => {
     if (error || !isAdmin) {
       supabaseClient.auth.signOut().finally(() => {
@@ -27,11 +27,18 @@
       });
       return false;
     }
+    // Only now is the dashboard shown. This class used to be added on the line
+    // above, the moment a session existed, and nothing in any stylesheet
+    // referenced it — so the panel was never hidden from anyone at all. A
+    // signed-in customer, or anyone who simply typed the URL, saw the whole
+    // shell: navigation, headings, the settings forms, the shape of the
+    // business. RLS kept the tables empty, so it was never a data leak, but
+    // "empty" is not the same as "not there". Hiding it until is_admin() has
+    // said yes costs one round trip and is the difference between those two.
+    document.documentElement.classList.add("admin-authed");
     return true;
   });
   window.adminAuthorised = adminCheck;
-
-  document.documentElement.classList.add("admin-authed");
   const emailEl = document.querySelector("[data-admin-email]");
   if (emailEl) emailEl.textContent = session.user.email;
 

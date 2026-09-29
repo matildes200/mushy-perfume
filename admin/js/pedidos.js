@@ -31,8 +31,8 @@ document.getElementById("filterStatus").insertAdjacentHTML(
 function currentFilters() {
   return {
     status: document.getElementById("filterStatus").value,
-    from: document.getElementById("filterFrom").value,
-    to: document.getElementById("filterTo").value,
+    from: dateFieldISO("filterFrom"),
+    to: dateFieldISO("filterTo"),
     search: document.getElementById("filterSearch").value.trim(),
   };
 }
@@ -118,8 +118,8 @@ document.getElementById("filterSearch").addEventListener("keydown", (e) => {
 document.getElementById("filterStatus").addEventListener("change", () => { page = 0; loadOrders(); });
 document.getElementById("clearFiltersBtn").addEventListener("click", () => {
   document.getElementById("filterStatus").value = "";
-  document.getElementById("filterFrom").value = "";
-  document.getElementById("filterTo").value = "";
+  setDateField("filterFrom", "");
+  setDateField("filterTo", "");
   document.getElementById("filterSearch").value = "";
   page = 0;
   loadOrders();

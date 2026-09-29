@@ -149,11 +149,23 @@
       <div class="form-grid">
         <div class="form-field">
           <label for="campaign_start">Início</label>
-          <input type="date" id="campaign_start" required>
+          <div class="date-field">
+            <input type="text" id="campaign_start" data-date-field inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10" required>
+            <label class="date-field-pick" title="Escolher no calendário">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+              <input type="date" class="date-field-native" tabindex="-1" aria-label="Escolher no calendário">
+            </label>
+          </div>
         </div>
         <div class="form-field">
           <label for="campaign_end">Fim</label>
-          <input type="date" id="campaign_end" required>
+          <div class="date-field">
+            <input type="text" id="campaign_end" data-date-field inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10" required>
+            <label class="date-field-pick" title="Escolher no calendário">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+              <input type="date" class="date-field-native" tabindex="-1" aria-label="Escolher no calendário">
+            </label>
+          </div>
         </div>
       </div>
 

@@ -171,8 +171,8 @@ function openCampaignModal(c) {
   document.getElementById("campaign_name").value = c?.name || "";
   document.getElementById("campaign_discount_type").value = c?.discount_type || "percentage";
   document.getElementById("campaign_discount_value").value = c?.discount_value ?? "";
-  document.getElementById("campaign_start").value = c?.start_date || today();
-  document.getElementById("campaign_end").value = c?.end_date || "";
+  setDateField("campaign_start", c?.start_date || today());
+  setDateField("campaign_end", c?.end_date || "");
   document.getElementById("target_all").checked = Boolean(c?.target_all);
   document.getElementById("applies_to_amostras").checked = Boolean(c?.applies_to_amostras);
   document.getElementById("allow_coupons").checked = Boolean(c?.allow_coupons);
@@ -327,8 +327,8 @@ document.getElementById("campaignForm")?.addEventListener("submit", async (e) =>
     name: document.getElementById("campaign_name").value.trim(),
     discount_type: document.getElementById("campaign_discount_type").value,
     discount_value: Number(document.getElementById("campaign_discount_value").value),
-    start_date: document.getElementById("campaign_start").value,
-    end_date: document.getElementById("campaign_end").value,
+    start_date: dateFieldISO("campaign_start"),
+    end_date: dateFieldISO("campaign_end"),
     target_all: all,
     target_categories: all ? [] : categories,
     applies_to_amostras: document.getElementById("applies_to_amostras").checked,

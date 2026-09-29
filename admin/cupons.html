@@ -101,11 +101,23 @@
         </div>
         <div class="form-field">
           <label for="start_date">Início da validade</label>
-          <input type="date" id="start_date">
+          <div class="date-field">
+            <input type="text" id="start_date" data-date-field inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10">
+            <label class="date-field-pick" title="Escolher no calendário">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+              <input type="date" class="date-field-native" tabindex="-1" aria-label="Escolher no calendário">
+            </label>
+          </div>
         </div>
         <div class="form-field">
           <label for="end_date">Fim da validade</label>
-          <input type="date" id="end_date">
+          <div class="date-field">
+            <input type="text" id="end_date" data-date-field inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10">
+            <label class="date-field-pick" title="Escolher no calendário">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+              <input type="date" class="date-field-native" tabindex="-1" aria-label="Escolher no calendário">
+            </label>
+          </div>
         </div>
         <div class="form-field">
           <label for="min_order_value">Pedido mínimo (Kz)</label>
