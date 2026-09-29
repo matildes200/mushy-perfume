@@ -309,6 +309,112 @@ function amostraNote() {
 
 // Repricing in place rather than re-rendering: rebuilding the grid would drop
 // the .flipped class and turn every open card back to its front face.
+
+// ---------- Choosing a size, on a phone ----------
+// On a phone the choice cannot live on the back of the card. The card's height
+// comes from the front, the back clips whatever does not fit, and the amostra
+// explanation is 132px tall — selecting the sample pushed the Adicionar button
+// clean out of the card and the clipping swallowed it, so the one thing you
+// had just decided to buy became the one thing you could not buy.
+//
+// So on a phone the back carries no picker at all. Adicionar opens this sheet
+// instead: the two sizes, the explanation, and a button that actually adds it.
+// A sheet can be as tall as it needs to be and can scroll, which a face of a
+// fixed-height card can never do.
+//
+// Desktop is untouched: there the picker stays on the card, where it fits.
+// 860, not 640. Between those two widths the card is no taller but the note
+// is, so the button did not merely hang over the edge there — it was pushed
+// 48px past it and clipped away completely. 860 is also where this site
+// already stops being a desktop: it is where the nav becomes a hamburger.
+const optionSheetMedia = () => window.matchMedia("(max-width: 860px)").matches;
+let optionSheetProduct = null;
+
+function ensureOptionSheet() {
+  let sheet = document.getElementById("optionSheet");
+  if (sheet) return sheet;
+
+  const overlay = document.createElement("div");
+  overlay.className = "option-sheet-overlay";
+  overlay.id = "optionSheetOverlay";
+
+  sheet = document.createElement("div");
+  sheet.className = "option-sheet";
+  sheet.id = "optionSheet";
+  sheet.setAttribute("role", "dialog");
+  sheet.setAttribute("aria-modal", "true");
+  sheet.hidden = true;
+  overlay.hidden = true;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheet);
+
+  overlay.addEventListener("click", closeOptionSheet);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !sheet.hidden) closeOptionSheet();
+  });
+  return sheet;
+}
+
+function openOptionSheet(product) {
+  const sheet = ensureOptionSheet();
+  const overlay = document.getElementById("optionSheetOverlay");
+  optionSheetProduct = product;
+  const chosen = defaultOption(product);
+
+  sheet.innerHTML = `
+    <div class="option-sheet-grip" aria-hidden="true"></div>
+    <div class="option-sheet-head">
+      <h3 class="option-sheet-name">${product.name}</h3>
+      <button type="button" class="option-sheet-close" data-option-sheet-close aria-label="Fechar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="option-sheet-body">
+      ${optionPicker(product, true)}
+      ${hasAmostra(product) ? amostraNote() : ""}
+    </div>
+    <div class="option-sheet-foot">
+      ${priceMarkup(product, "option-sheet-price", chosen)}
+      ${addButton(product, tx("product.buy", "Comprar"), "product.buy")}
+    </div>`;
+
+  // The note belongs to the sample, so it starts in whatever state the
+  // opening choice implies rather than always closed.
+  const note = sheet.querySelector("[data-amostra-note]");
+  if (note) note.hidden = chosen.kind !== "amostra";
+
+  sheet.hidden = false;
+  overlay.hidden = false;
+  // Two frames: the element has to be in the document and laid out before the
+  // class that animates it in means anything.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    sheet.classList.add("open");
+    overlay.classList.add("open");
+  }));
+  document.body.classList.add("sheet-open");
+  window.applyTranslations?.(window.getLang?.());
+  sheet.querySelector(".option-sheet-close")?.focus();
+}
+
+function closeOptionSheet() {
+  const sheet = document.getElementById("optionSheet");
+  const overlay = document.getElementById("optionSheetOverlay");
+  if (!sheet || sheet.hidden) return;
+  sheet.classList.remove("open");
+  overlay?.classList.remove("open");
+  document.body.classList.remove("sheet-open");
+  optionSheetProduct = null;
+  // Hidden only once it has finished sliding away, or it would vanish rather
+  // than leave.
+  setTimeout(() => {
+    if (!sheet.classList.contains("open")) {
+      sheet.hidden = true;
+      if (overlay) overlay.hidden = true;
+    }
+  }, 260);
+}
+
 function selectCardOption(btn) {
   const productId = Number(btn.dataset.product);
   const kind = btn.dataset.optionPick;
@@ -324,9 +430,20 @@ function selectCardOption(btn) {
   });
 
   // The explanation belongs to the amostra, so it comes and goes with it.
-  const scope = btn.closest(".flip-back") || btn.closest(".pd-info") || document;
+  const scope = btn.closest(".option-sheet") || btn.closest(".flip-back") || btn.closest(".pd-info") || document;
   const note = scope.querySelector("[data-amostra-note]");
   if (note) note.hidden = kind !== "amostra";
+
+  // The sheet is appended to <body>, so it is neither inside a card nor inside
+  // the detail modal and needs its own branch, checked first.
+  const sheet = btn.closest(".option-sheet");
+  if (sheet) {
+    const priceEl = sheet.querySelector(".option-sheet-price");
+    if (priceEl) priceEl.outerHTML = priceMarkup(product, "option-sheet-price", option);
+    const sheetAdd = sheet.querySelector("[data-add]");
+    if (sheetAdd) sheetAdd.dataset.option = kind;
+    return;
+  }
 
   // The same picker is used on the back of a card and inside the detail modal,
   // which has no .flip-card around it — hence the two branches.
@@ -1552,9 +1669,22 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  const sheetClose = e.target.closest("[data-option-sheet-close]");
+  if (sheetClose) return closeOptionSheet();
+
   const addBtn = e.target.closest("[data-add]");
   if (addBtn) {
-    return addToCart(Number(addBtn.dataset.add), addBtn.dataset.option || undefined);
+    const id = Number(addBtn.dataset.add);
+    const product = PRODUCTS.find((x) => x.id === id);
+    // Only from the back of a card, and only on a phone, and only when there
+    // is actually a choice to make. The detail modal already shows its picker
+    // full size, and the sheet's own button must add rather than reopen it.
+    if (product && hasAmostra(product) && optionSheetMedia() && addBtn.closest(".flip-back")) {
+      return openOptionSheet(product);
+    }
+    addToCart(id, addBtn.dataset.option || undefined);
+    if (addBtn.closest(".option-sheet")) closeOptionSheet();
+    return;
   }
 
   const wishBtn = e.target.closest("[data-wishlist]");
