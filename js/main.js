@@ -1787,8 +1787,16 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
     .single();
   if (error) throw error;
 
+  // The order is in the database from the line above. Nothing after it is
+  // allowed to turn that into a failure message, because the customer would
+  // then place it again: counting a coupon is worth less than a duplicate
+  // order, so a failure here is recorded and swallowed.
   if (usedCoupon) {
-    await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
+    try {
+      await supabaseClient.rpc("redeem_coupon", { p_code: usedCoupon });
+    } catch (err) {
+      console.error("Pedido criado, mas o cupão não foi contabilizado:", usedCoupon, err);
+    }
     removeCoupon();
   }
   return order;

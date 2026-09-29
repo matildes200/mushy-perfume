@@ -337,6 +337,13 @@ function validateCheckoutFields() {
   );
 });
 
+// The alert is written with innerHTML, and the text below comes from an error
+// object, so it is escaped first. Local because escapeHtml lives in the admin
+// bundle, which the storefront never loads — calling it here would have thrown
+// inside the catch that exists to report the problem.
+const escapeAlert = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 function showCheckoutPaymentAlert(message, type = "error") {
   const el = document.getElementById("checkoutPaymentAlert");
   if (el) el.innerHTML = message ? `<div class="admin-alert admin-alert-${type}">${message}</div>` : "";
@@ -405,8 +412,17 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     await notifyOrderConfirmation(order, session.user.email, name, phone);
     showCheckoutStep(checkoutStepDone);
   } catch (err) {
+    // The reason goes on screen, not only into a console nobody has open.
+    // This failed silently for weeks behind "tente novamente": every order a
+    // customer placed was rejected by a row-level security policy, and the
+    // only way to find that out was to read the database.
     console.error("Falha ao finalizar pedido:", err);
-    showCheckoutPaymentAlert(window.t?.("checkout.err.submit"));
+    const reason = err?.message || err?.error_description || err?.error || "";
+    showCheckoutPaymentAlert(
+      reason
+        ? `${window.t?.("checkout.err.submit")} <span class="checkout-err-detail">${escapeAlert(reason)}</span>`
+        : window.t?.("checkout.err.submit")
+    );
     btn.disabled = false;
   }
 });
