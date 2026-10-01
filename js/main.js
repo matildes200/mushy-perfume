@@ -1287,6 +1287,84 @@ function cartSubtotal() {
   return cartLines().reduce((sum, line) => sum + line.unitPrice * line.qty, 0);
 }
 
+
+// ---------- The amostra credit, applied by itself ----------
+// A customer who bought a sample and later buys the bottle should not have to
+// remember a code. The credit was being minted correctly all along and then
+// left sitting in the database: the only route to the customer was the shop
+// reading it off the order and sending it by WhatsApp, while the product page
+// promised the money would come off on its own.
+//
+// It is NOT folded into appliedCoupon. A coupon is a discount the shop grants;
+// this is money the customer already handed over for this exact perfume. They
+// are shown on separate lines, can both be present, and are redeemed
+// separately. The code still works typed into the coupon box, for anyone who
+// bought without an account.
+let amostraCredits = [];
+let amostraCreditStacks = true;   // overridden from Definições
+
+async function loadAmostraCreditSetting() {
+  const { data } = await supabaseClient
+    .from("site_delivery_settings")
+    .select("amostra_credit_stacks_with_campaign")
+    .maybeSingle();
+  if (data && data.amostra_credit_stacks_with_campaign !== null && data.amostra_credit_stacks_with_campaign !== undefined) {
+    amostraCreditStacks = Boolean(data.amostra_credit_stacks_with_campaign);
+  }
+}
+
+// Only a signed-in customer has credits: they are tied to the account that
+// bought the sample. RLS already restricts this to the caller's own rows, so
+// the filter here is about intent, not security.
+async function loadAmostraCredits() {
+  amostraCredits = [];
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabaseClient
+    .from("coupons")
+    .select("code, discount_value, product_id, end_date, times_used, max_uses, active")
+    .eq("owner_customer_id", session.user.id)
+    .eq("applies_to", "full_bottle")
+    .eq("active", true);
+  if (error || !data) return;
+  amostraCredits = data.filter(
+    (c) =>
+      c.product_id &&
+      Number(c.discount_value) > 0 &&
+      Number(c.times_used || 0) < Number(c.max_uses || 1) &&
+      (!c.end_date || c.end_date >= today)
+  );
+}
+
+// A credit applies when the full bottle of its own perfume is in the cart.
+// One credit per perfume, however many bottles of it are there — it is one
+// sample's money back, not a per-bottle discount.
+function applicableAmostraCredits() {
+  if (!amostraCredits.length) return [];
+  const seen = new Set();
+  const out = [];
+  cartLines().forEach((line) => {
+    if (line.variant?.kind === "amostra") return;
+    const credit = amostraCredits.find((c) => Number(c.product_id) === Number(line.product.id));
+    if (!credit || seen.has(credit.code)) return;
+    // A campaign that refuses to be combined with a code can refuse this too,
+    // if the shop has said so in Definições.
+    if (!amostraCreditStacks && activeDiscount(line.product, line.variant)?.campaign?.allow_coupons === false) return;
+    seen.add(credit.code);
+    out.push({ ...credit, productName: line.product.name });
+  });
+  return out;
+}
+
+// Never more than what is left to pay: a credit larger than the bottle it is
+// against must not turn into change.
+function amostraCreditAmount(subtotal, couponDiscount = 0) {
+  const room = Math.max(0, subtotal - couponDiscount);
+  const raw = applicableAmostraCredits().reduce((sum, c) => sum + Number(c.discount_value || 0), 0);
+  return Math.min(raw, room);
+}
+
 function couponDiscountAmount(subtotal) {
   if (!appliedCoupon || subtotal < appliedCoupon.min_order_value) return 0;
   if (appliedCoupon.discount_type === "percentage") return subtotal * (appliedCoupon.discount_value / 100);
@@ -1448,21 +1526,37 @@ function updateCartUI() {
     .join("");
 
   const discount = couponDiscountAmount(subtotal);
-  const total = Math.max(0, subtotal - discount);
+  const credit = amostraCreditAmount(subtotal, discount);
+  const total = Math.max(0, subtotal - discount - credit);
   if (cartSubtotalEl) cartSubtotalEl.textContent = money(subtotal);
+
+  // Shown whenever it applies, which also means the subtotal line has to come
+  // out of hiding: a total with something taken off it needs the figure it
+  // was taken off.
+  const creditRow = document.getElementById("amostraCreditRow");
+  if (creditRow) {
+    creditRow.style.display = credit > 0 ? "flex" : "none";
+    const amountEl = document.getElementById("cartAmostraCredit");
+    if (amountEl) amountEl.textContent = `-${money(credit)}`;
+  }
 
   if (couponDiscountRow) {
     if (appliedCoupon && discount > 0) {
-      if (cartSubtotalRow) cartSubtotalRow.style.display = "flex";
       couponDiscountRow.style.display = "flex";
       if (appliedCouponCodeEl) appliedCouponCodeEl.textContent = appliedCoupon.code;
       if (cartDiscountEl) cartDiscountEl.textContent = `-${money(discount)}`;
     } else {
-      if (cartSubtotalRow) cartSubtotalRow.style.display = "none";
       couponDiscountRow.style.display = "none";
       if (appliedCoupon) showCouponMessage(window.t?.("coupon.addmore", { amount: money(appliedCoupon.min_order_value - subtotal), code: appliedCoupon.code }), "error");
     }
   }
+
+  // The subtotal is decided here and nowhere else. It used to be set inside
+  // the coupon branch, so the credit would show it and the coupon branch
+  // would immediately hide it again — a total with something taken off it and
+  // no figure above showing what it was taken off. It appears whenever
+  // anything is being subtracted, whichever of the two it is.
+  if (cartSubtotalRow) cartSubtotalRow.style.display = discount > 0 || credit > 0 ? "flex" : "none";
 
   cartTotalEl.textContent = money(total);
 }
@@ -1843,12 +1937,27 @@ wishlistOverlay?.addEventListener("click", closeWishlist);
 let currentCustomer = null;
 
 async function initCustomerSession() {
+  // The stacking rule is shop policy and applies to everyone, signed in or
+  // not, so it is read before the session check rather than after it.
+  await loadAmostraCreditSetting();
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return;
   const { data } = await supabaseClient.from("customers").select("*").eq("id", session.user.id).maybeSingle();
   currentCustomer = data;
+  // Credits belong to the account, so they arrive with it. The cart is redrawn
+  // afterwards because it may already be on screen showing a total that does
+  // not yet know about them.
+  await loadAmostraCredits();
+  updateCartUI();
 }
 initCustomerSession();
+
+// Signing in or out during the visit changes whose credits these are.
+supabaseClient.auth.onAuthStateChange(async (event) => {
+  if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
+  await loadAmostraCredits();
+  updateCartUI();
+});
 
 // Called from js/checkout.js once the receipt has been uploaded to Storage;
 // receiptPath is the object's path within the private "receipts" bucket.
@@ -1879,11 +1988,15 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
     };
   });
   const discount = couponDiscountAmount(subtotal);
+  // Captured before the insert: once the order exists the cart is cleared and
+  // there is nothing left to work out which credits were in play.
+  const creditsUsed = applicableAmostraCredits();
+  const credit = amostraCreditAmount(subtotal, discount);
   // The delivery fee is part of what the customer agreed to pay, so it
   // belongs in the order total: otherwise the amount to transfer and the
   // recorded order value disagree.
   const deliveryFee = Number(delivery?.fee || 0);
-  const total = Math.max(0, subtotal - discount) + deliveryFee;
+  const total = Math.max(0, subtotal - discount - credit) + deliveryFee;
   const usedCoupon = discount > 0 ? appliedCoupon.code : null;
 
   const { data: order, error } = await supabaseClient
@@ -1911,6 +2024,8 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
       customer_email: currentCustomer?.email || null,
       discount,
       coupon_code: usedCoupon,
+      amostra_credit: credit,
+      amostra_credit_codes: creditsUsed.map((c) => c.code),
       receipt_url: receiptPath,
     })
     .select()
@@ -1929,6 +2044,19 @@ async function logOrder(name, phone, receiptPath, paymentMethod, address, city, 
     }
     removeCoupon();
   }
+
+  // Same rule as above: the order is already placed, so a credit that fails to
+  // be marked as spent is recorded here and chased by hand, never shown to the
+  // customer as a failed order.
+  for (const c of creditsUsed) {
+    try {
+      await supabaseClient.rpc("redeem_coupon", { p_code: c.code });
+    } catch (err) {
+      console.error("Pedido criado, mas o crédito não foi marcado como usado:", c.code, err);
+    }
+  }
+  if (creditsUsed.length) await loadAmostraCredits();
+
   return order;
 }
 

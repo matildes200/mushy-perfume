@@ -198,6 +198,12 @@
           <div id="accountFavorites"><p class="cart-empty" data-i18n="wishlist.empty">Ainda não adicionou favoritos.</p></div>
         </div>
 
+        <div class="account-block" id="creditsBlock" hidden>
+          <h3 data-i18n="account.credits.title">Os seus créditos de amostra</h3>
+          <p class="account-note" style="margin:-6px 0 14px;" data-i18n="account.credits.desc">Aplicam-se sozinhos quando puser o frasco completo desse perfume no carrinho.</p>
+          <div id="accountCredits"></div>
+        </div>
+
         <div class="account-block">
           <h3 data-i18n="account.recs.title">Recomendado para si</h3>
           <div class="account-recs" id="accountRecs"></div>
@@ -288,6 +294,12 @@
     <div class="cart-total coupon-discount-row" id="couponDiscountRow" style="display:none;">
       <span><span data-i18n="cart.discount">Desconto</span> <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · <span data-i18n="cart.coupon.remove">remover</span>)</button></span>
       <strong id="cartDiscount">0 Kz</strong>
+    </div>
+    <!-- Its own line, not folded into the discount: a coupon is a discount the
+         shop grants, this is money already paid for this perfume. -->
+    <div class="cart-total amostra-credit-row" id="amostraCreditRow" style="display:none;">
+      <span data-i18n="cart.amostra.credit">Crédito da amostra</span>
+      <strong id="cartAmostraCredit">0 Kz</strong>
     </div>
     <p class="cart-delivery-hint" id="cartDeliveryHint" hidden></p>
     <div class="cart-total cart-total-final">

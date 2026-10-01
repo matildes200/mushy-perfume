@@ -72,6 +72,15 @@ function renderItems() {
   const rows = [
     ["Subtotal", money(subtotal)],
     order.coupon_code ? ["Cupão aplicado", escapeHtml(order.coupon_code)] : null,
+    // What this order SPENT, as opposed to what it generated — the panel
+    // below is the credit this order created, which is a different thing.
+    Number(order.amostra_credit) > 0
+      ? ["Crédito de amostra usado",
+         `− ${money(order.amostra_credit)}` +
+           ((order.amostra_credit_codes || []).length
+             ? ` <span class="muted">(${(order.amostra_credit_codes || []).map(escapeHtml).join(", ")})</span>`
+             : "")]
+      : null,
     discount ? ["Desconto", `− ${money(discount)}`] : null,
     // An on-request zone is charged nothing at checkout on purpose, so the row
     // has to say so rather than quietly showing a delivery cost of zero.

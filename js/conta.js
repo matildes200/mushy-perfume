@@ -191,7 +191,55 @@ function renderAccountRecommendations() {
     .join("");
 }
 
+// The customer's unspent amostra credits: which perfume, how much, until when.
+// They are applied automatically at the cart, so this is a statement of what
+// they have rather than something to copy — but the code is shown anyway, for
+// anyone who wants to use it somewhere else or quote it to us.
+async function renderAccountCredits(profile) {
+  const block = document.getElementById("creditsBlock");
+  const el = document.getElementById("accountCredits");
+  if (!block || !el || !profile?.id) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabaseClient
+    .from("coupons")
+    .select("code, discount_value, product_id, end_date, times_used, max_uses, active")
+    .eq("owner_customer_id", profile.id)
+    .eq("applies_to", "full_bottle")
+    .order("end_date", { ascending: true });
+
+  const live = (data || []).filter(
+    (c) => c.active && Number(c.times_used || 0) < Number(c.max_uses || 1) && (!c.end_date || c.end_date >= today)
+  );
+  if (!live.length) { block.hidden = true; return; }
+  block.hidden = false;
+
+  el.innerHTML = live
+    .map((c) => {
+      const p = PRODUCTS.find((x) => Number(x.id) === Number(c.product_id));
+      const until = c.end_date
+        ? new Date(`${c.end_date}T00:00:00`).toLocaleDateString(
+            (window.getLang?.() === "en" ? "en-GB" : "pt-PT"),
+            { day: "numeric", month: "long", year: "numeric" }
+          )
+        : null;
+      return `<div class="credit-card">
+        <div class="credit-card-main">
+          <strong>${p ? p.name : window.t?.("account.credits.unknown") || "Perfume"}</strong>
+          <small>${until ? `${window.t?.("account.credits.until") || "Válido até"} ${until}` : ""}</small>
+        </div>
+        <div class="credit-card-side">
+          <span class="credit-card-value">${money(c.discount_value)}</span>
+          <code>${c.code}</code>
+        </div>
+      </div>`;
+    })
+    .join("");
+  window.applyTranslations?.(window.getLang?.());
+}
+
 async function renderReferral(profile) {
+
   const link = `${window.location.origin}/conta.html?ref=${profile?.referral_code || ""}`;
   document.getElementById("referralLink").value = link;
 
@@ -320,6 +368,7 @@ async function showProfile(session) {
   renderAccountFavorites();
   renderAccountRecommendations();
   renderReferral(profile);
+  renderAccountCredits(profile);
   isProfileShown = true;
 }
 
@@ -340,7 +389,7 @@ document.addEventListener("products:ready", () => {
 document.addEventListener("lang:changed", () => {
   if (!isProfileShown) return;
   if (loadedCustomerId) renderAccountOrders(loadedCustomerId);
-  if (loadedProfile) renderReferral(loadedProfile);
+  if (loadedProfile) { renderReferral(loadedProfile); renderAccountCredits(loadedProfile); }
 });
 
 function showAuthForms() {

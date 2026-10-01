@@ -251,6 +251,12 @@
       <span><span data-i18n="cart.discount">Desconto</span> <button type="button" class="coupon-remove" id="removeCouponBtn">(<span id="appliedCouponCode"></span> · <span data-i18n="cart.coupon.remove">remover</span>)</button></span>
       <strong id="cartDiscount">0 Kz</strong>
     </div>
+    <!-- Its own line, not folded into the discount: a coupon is a discount the
+         shop grants, this is money already paid for this perfume. -->
+    <div class="cart-total amostra-credit-row" id="amostraCreditRow" style="display:none;">
+      <span data-i18n="cart.amostra.credit">Crédito da amostra</span>
+      <strong id="cartAmostraCredit">0 Kz</strong>
+    </div>
     <p class="cart-delivery-hint" id="cartDeliveryHint" hidden></p>
     <div class="cart-total cart-total-final">
       <span data-i18n="cart.total">Total</span>

@@ -57,6 +57,8 @@ async function loadSettings() {
   if (amostraMl) amostraMl.value = data?.amostra_volume_ml ?? 5;
   const amostraDays = document.getElementById("amostra_credit_days");
   if (amostraDays) amostraDays.value = data?.amostra_credit_days ?? 30;
+  const amostraStacks = document.getElementById("amostra_credit_stacks");
+  if (amostraStacks) amostraStacks.checked = data?.amostra_credit_stacks_with_campaign !== false;
 }
 
 // upsert on a fixed id so the row is created the first time rather than the
@@ -281,10 +283,11 @@ document.getElementById("amostraForm")?.addEventListener("submit", async (e) => 
   e.preventDefault();
   const ml = Number(document.getElementById("amostra_volume_ml").value);
   const days = Number(document.getElementById("amostra_credit_days").value);
+  const stacks = document.getElementById("amostra_credit_stacks")?.checked !== false;
   if (!ml || ml < 1) return showAlert(amostraAlert, "Indique o tamanho da amostra em ml.");
   if (!days || days < 1) return showAlert(amostraAlert, "Indique a validade do crédito em dias.");
   await saveSettings(
-    { amostra_volume_ml: ml, amostra_credit_days: days },
+    { amostra_volume_ml: ml, amostra_credit_days: days, amostra_credit_stacks_with_campaign: stacks },
     "Definições de amostra guardadas.",
     amostraAlert
   );

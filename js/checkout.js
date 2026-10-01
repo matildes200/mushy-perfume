@@ -400,7 +400,8 @@ document.getElementById("checkoutPaymentForm")?.addEventListener("submit", async
     // District is optional, so it's only appended when there's something there.
     const address = district ? `${street}, ${district}` : street;
     const subtotalNow = cartSubtotal();
-    const afterDiscount = Math.max(0, subtotalNow - couponDiscountAmount(subtotalNow));
+    const discountNow = couponDiscountAmount(subtotalNow);
+    const afterDiscount = Math.max(0, subtotalNow - discountNow - amostraCreditAmount(subtotalNow, discountNow));
     const deliveryFee = deliveryFeeFor(selectedZone, afterDiscount);
     const order = await logOrder(name, phone, path, paymentMethod, address, city, {
       // Optional: with no zones configured the guard above lets the order
@@ -566,7 +567,8 @@ function updateCartDeliveryHint() {
 
   const cheapest = Math.min(...priced.map((z) => Number(z.price || 0)));
   const subtotal = cartSubtotal();
-  const afterDiscount = Math.max(0, subtotal - couponDiscountAmount(subtotal));
+  const dNow = couponDiscountAmount(subtotal);
+  const afterDiscount = Math.max(0, subtotal - dNow - amostraCreditAmount(subtotal, dNow));
   const threshold = freeDeliveryThreshold();
 
   if (threshold !== null && afterDiscount >= threshold) {
@@ -593,13 +595,17 @@ function renderCheckoutTotals() {
   if (!box) return;
   const subtotal = cartSubtotal();
   const discount = couponDiscountAmount(subtotal);
-  const afterDiscount = Math.max(0, subtotal - discount);
+  const credit = amostraCreditAmount(subtotal, discount);
+  const afterDiscount = Math.max(0, subtotal - discount - credit);
   const fee = deliveryFeeFor(selectedZone, afterDiscount);
   const free = selectedZone && !selectedZone.on_request && qualifiesForFreeDelivery(afterDiscount);
 
   const deliveryLabel = `${tx("checkout.delivery", "Entrega")} (${escapeZone(selectedZone?.name)})`;
   const rows = [[tx("cart.subtotal", "Subtotal"), money(subtotal)]];
   if (discount > 0) rows.push([tx("cart.discount", "Desconto"), `− ${money(discount)}`]);
+  // Its own line, named, so the customer can see the sample money coming back
+  // rather than wondering why the total is lower than the subtotal.
+  if (credit > 0) rows.push([tx("cart.amostra.credit", "Crédito da amostra"), `− ${money(credit)}`]);
   if (selectedZone) {
     if (selectedZone.on_request) {
       rows.push([deliveryLabel, tx("checkout.zone.onrequest", "Sob consulta")]);
